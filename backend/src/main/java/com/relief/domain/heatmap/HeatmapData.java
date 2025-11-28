@@ -72,6 +72,43 @@ public class HeatmapData {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
+
+    // Explicit getters and setters for Lombok compatibility
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public Point getLocation() { return location; }
+    public void setLocation(Point location) { this.location = location; }
+
+    public HeatmapType getHeatmapType() { return heatmapType; }
+    public void setHeatmapType(HeatmapType heatmapType) { this.heatmapType = heatmapType; }
+
+    public Double getIntensity() { return intensity; }
+    public void setIntensity(Double intensity) { this.intensity = intensity; }
+
+    public Double getWeight() { return weight; }
+    public void setWeight(Double weight) { this.weight = weight; }
+
+    public Double getRadius() { return radius; }
+    public void setRadius(Double radius) { this.radius = radius; }
+
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
+
+    public String getMetadata() { return metadata; }
+    public void setMetadata(String metadata) { this.metadata = metadata; }
+
+    public Long getSourceId() { return sourceId; }
+    public void setSourceId(Long sourceId) { this.sourceId = sourceId; }
+
+    public String getSourceType() { return sourceType; }
+    public void setSourceType(String sourceType) { this.sourceType = sourceType; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 }
 
 

@@ -2,6 +2,8 @@ package com.relief.service.realtime;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -19,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class StreamProcessingService {
 
+    private static final Logger log = LoggerFactory.getLogger(StreamProcessingService.class);
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(10);
     private final Map<String, StreamProcessor> processors = new ConcurrentHashMap<>();
     private final Map<String, List<StreamRule>> rules = new ConcurrentHashMap<>();

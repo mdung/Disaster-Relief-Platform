@@ -9,7 +9,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.locationtech.jts.geom.Coordinate;
-import org.springframework.format.annotation.DateTimeFormat;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,6 +26,8 @@ import java.util.List;
 @Slf4j
 @Tag(name = "Geofencing", description = "Geofencing and automated monitoring services")
 public class GeofencingController {
+    
+    private static final Logger log = LoggerFactory.getLogger(GeofencingController.class);
     
     private final GeofencingService geofencingService;
     

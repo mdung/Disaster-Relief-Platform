@@ -4,6 +4,8 @@ import com.relief.entity.WorkflowTemplateEntity;
 import com.relief.repository.WorkflowTemplateRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +19,7 @@ import java.util.*;
 @RequiredArgsConstructor
 public class WorkflowTemplateService {
 
+    private static final Logger log = LoggerFactory.getLogger(WorkflowTemplateService.class);
     private final WorkflowTemplateRepository templateRepository;
     private final WorkflowTemplateConverter converter;
 

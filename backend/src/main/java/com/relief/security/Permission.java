@@ -54,7 +54,10 @@ public enum Permission {
     // Security & Privacy
     SECURITY_READ("security:read", "Read security features"),
     SECURITY_WRITE("security:write", "Manage security settings"),
-    SECURITY_ANALYTICS("security:analytics", "Access security analytics");
+    SECURITY_ANALYTICS("security:analytics", "Access security analytics"),
+
+    // Composite / high-level permissions
+    ADMIN_USERS("admin:users", "Full access to user and dedupe management");
 
     private final String code;
     private final String description;

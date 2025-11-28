@@ -1,7 +1,8 @@
 package com.relief.service.security;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -10,8 +11,9 @@ import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class DLPService {
+
+    private static final Logger log = LoggerFactory.getLogger(DLPService.class);
 
     private static final Pattern SSN = Pattern.compile("\\b(?!000|666)[0-8][0-9]{2}-?(?!00)[0-9]{2}-?(?!0000)[0-9]{4}\\b");
     private static final Pattern CREDIT_CARD = Pattern.compile("\\b(?:\\d[ -]*?){13,16}\\b");

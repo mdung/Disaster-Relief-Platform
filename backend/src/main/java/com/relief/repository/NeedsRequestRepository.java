@@ -1,6 +1,7 @@
 package com.relief.repository;
 
 import com.relief.entity.NeedsRequest;
+import org.locationtech.jts.geom.Point;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -65,6 +66,13 @@ public interface NeedsRequestRepository extends JpaRepository<NeedsRequest, UUID
 
     @Query("SELECT COUNT(nr) FROM NeedsRequest nr WHERE nr.type = :type AND nr.status = :status")
     long countByTypeAndStatus(@Param("type") String type, @Param("status") String status);
+    
+    /**
+     * Find requests by type, severity, and status not equal to specified value.
+     * Used for dynamic task creation from historical patterns.
+     */
+    @Query("SELECT nr FROM NeedsRequest nr WHERE nr.type = :type AND nr.severity = :severity AND nr.status != :status")
+    List<NeedsRequest> findByTypeAndSeverityAndStatusNot(@Param("type") String type, @Param("severity") Integer severity, @Param("status") String status);
     
     // Admin-specific queries
     @Query("SELECT nr.category as category, COUNT(nr) as count FROM NeedsRequest nr GROUP BY nr.category")

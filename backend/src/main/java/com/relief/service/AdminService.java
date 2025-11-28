@@ -17,6 +17,8 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Random;
+import java.util.UUID;
 
 @Service
 public class AdminService {
@@ -74,7 +76,7 @@ public class AdminService {
     }
     
     public User getUserById(String id) {
-        return userRepository.findById(id).orElse(null);
+        return userRepository.findById(UUID.fromString(id)).orElse(null);
     }
     
     public User createUser(UserManagementRequest request) {
@@ -83,16 +85,14 @@ public class AdminService {
         user.setEmail(request.getEmail());
         user.setPhone(request.getPhone());
         user.setRole(request.getRole());
-        user.setActive(request.isActive());
-        user.setAddress(request.getAddress());
-        user.setNotes(request.getNotes());
+        user.setDisabled(!request.isActive()); // Invert the logic since we're using disabled
         
         // Set password if provided, otherwise generate a temporary one
         String password = request.getPassword();
         if (password == null || password.trim().isEmpty()) {
             password = generateTemporaryPassword();
         }
-        user.setPassword(passwordEncoder.encode(password));
+        user.setPasswordHash(passwordEncoder.encode(password));
         
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
@@ -101,7 +101,7 @@ public class AdminService {
     }
     
     public User updateUser(String id, UserManagementRequest request) {
-        Optional<User> userOpt = userRepository.findById(id);
+        Optional<User> userOpt = userRepository.findById(UUID.fromString(id));
         if (userOpt.isEmpty()) {
             return null;
         }
@@ -111,21 +111,19 @@ public class AdminService {
         user.setEmail(request.getEmail());
         user.setPhone(request.getPhone());
         user.setRole(request.getRole());
-        user.setActive(request.isActive());
-        user.setAddress(request.getAddress());
-        user.setNotes(request.getNotes());
+        user.setDisabled(!request.isActive()); // Invert the logic since we're using disabled
         user.setUpdatedAt(LocalDateTime.now());
         
         // Update password if provided
         if (request.getPassword() != null && !request.getPassword().trim().isEmpty()) {
-            user.setPassword(passwordEncoder.encode(request.getPassword()));
+            user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         }
         
         return userRepository.save(user);
     }
     
     public boolean deleteUser(String id) {
-        Optional<User> userOpt = userRepository.findById(id);
+        Optional<User> userOpt = userRepository.findById(UUID.fromString(id));
         if (userOpt.isEmpty()) {
             return false;
         }
@@ -135,7 +133,7 @@ public class AdminService {
     }
     
     public User updateUserRole(String id, String newRole) {
-        Optional<User> userOpt = userRepository.findById(id);
+        Optional<User> userOpt = userRepository.findById(UUID.fromString(id));
         if (userOpt.isEmpty()) {
             return null;
         }
@@ -148,26 +146,26 @@ public class AdminService {
     }
     
     public User activateUser(String id) {
-        Optional<User> userOpt = userRepository.findById(id);
+        Optional<User> userOpt = userRepository.findById(UUID.fromString(id));
         if (userOpt.isEmpty()) {
             return null;
         }
         
         User user = userOpt.get();
-        user.setActive(true);
+        user.setDisabled(false);
         user.setUpdatedAt(LocalDateTime.now());
         
         return userRepository.save(user);
     }
     
     public User deactivateUser(String id) {
-        Optional<User> userOpt = userRepository.findById(id);
+        Optional<User> userOpt = userRepository.findById(UUID.fromString(id));
         if (userOpt.isEmpty()) {
             return null;
         }
         
         User user = userOpt.get();
-        user.setActive(false);
+        user.setDisabled(true);
         user.setUpdatedAt(LocalDateTime.now());
         
         return userRepository.save(user);
@@ -201,13 +199,14 @@ public class AdminService {
     }
     
     private String generateTemporaryPassword() {
-        // Generate a random 8-character password
+        // Generate a random 10-character alphanumeric password
         String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        StringBuilder password = new StringBuilder();
-        for (int i = 0; i < 8; i++) {
-            password.append(chars.charAt((int) (Math.random() * chars.length())));
+        StringBuilder sb = new StringBuilder();
+        Random random = new Random();
+        for (int i = 0; i < 10; i++) {
+            sb.append(chars.charAt(random.nextInt(chars.length())));
         }
-        return password.toString();
+        return sb.toString();
     }
     
     private String getUptime() {

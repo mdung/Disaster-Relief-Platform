@@ -7,6 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,7 +24,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class HeatmapDataService {
-    
+
+    private static final Logger log = LoggerFactory.getLogger(HeatmapDataService.class);
+
     private final HeatmapDataRepository heatmapDataRepository;
     private final GeometryFactory geometryFactory;
     

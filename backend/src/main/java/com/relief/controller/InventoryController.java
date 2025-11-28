@@ -86,6 +86,19 @@ public class InventoryController {
         private UUID itemId;
         private Integer qtyAvailable;
         private Integer qtyReserved;
+
+        // Explicit getters and setters for Lombok compatibility
+        public UUID getHubId() { return hubId; }
+        public void setHubId(UUID hubId) { this.hubId = hubId; }
+
+        public UUID getItemId() { return itemId; }
+        public void setItemId(UUID itemId) { this.itemId = itemId; }
+
+        public Integer getQtyAvailable() { return qtyAvailable; }
+        public void setQtyAvailable(Integer qtyAvailable) { this.qtyAvailable = qtyAvailable; }
+
+        public Integer getQtyReserved() { return qtyReserved; }
+        public void setQtyReserved(Integer qtyReserved) { this.qtyReserved = qtyReserved; }
     }
 
     @Data
@@ -93,6 +106,16 @@ public class InventoryController {
         private UUID hubId;
         private UUID itemId;
         private Integer quantity;
+
+        // Explicit getters and setters for Lombok compatibility
+        public UUID getHubId() { return hubId; }
+        public void setHubId(UUID hubId) { this.hubId = hubId; }
+
+        public UUID getItemId() { return itemId; }
+        public void setItemId(UUID itemId) { this.itemId = itemId; }
+
+        public Integer getQuantity() { return quantity; }
+        public void setQuantity(Integer quantity) { this.quantity = quantity; }
     }
 }
 

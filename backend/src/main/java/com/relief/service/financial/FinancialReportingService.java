@@ -2,6 +2,8 @@ package com.relief.service.financial;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +20,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class FinancialReportingService {
+
+    private static final Logger log = LoggerFactory.getLogger(FinancialReportingService.class);
 
     private final Map<String, FinancialReport> reports = new ConcurrentHashMap<>();
     private final Map<String, List<FinancialMetric>> metrics = new ConcurrentHashMap<>();
@@ -159,7 +163,7 @@ public class FinancialReportingService {
         FinancialMetric donationGrowth = new FinancialMetric();
         donationGrowth.setId(UUID.randomUUID().toString());
         donationGrowth.setName("Donation Growth");
-        donationGrowth.setValue(calculateDonationGrowth(budgetIds, startDate, endDate));
+        donationGrowth.setValue(calculateDonationGrowth(budgetIds, startDate, endDate).doubleValue());
         donationGrowth.setUnit("Percentage");
         donationGrowth.setTrend(calculateDonationGrowthTrend(budgetIds, startDate, endDate));
         donationGrowth.setTarget(10.0);
@@ -170,7 +174,7 @@ public class FinancialReportingService {
         FinancialMetric costPerBeneficiary = new FinancialMetric();
         costPerBeneficiary.setId(UUID.randomUUID().toString());
         costPerBeneficiary.setName("Cost per Beneficiary");
-        costPerBeneficiary.setValue(calculateCostPerBeneficiary(budgetIds, startDate, endDate));
+        costPerBeneficiary.setValue(calculateCostPerBeneficiary(budgetIds, startDate, endDate).doubleValue());
         costPerBeneficiary.setUnit("Currency");
         costPerBeneficiary.setTrend(calculateCostPerBeneficiaryTrend(budgetIds, startDate, endDate));
         costPerBeneficiary.setTarget(100.0);
@@ -546,6 +550,8 @@ public class FinancialReportingService {
         private LocalDateTime endDate;
         private LocalDateTime generatedAt;
         private ReportStatus status;
+        private ReportFormat format;
+        private UUID generatedBy;
         private ExecutiveSummary executiveSummary;
         private BudgetSummary budgetSummary;
         private DonationSummary donationSummary;
@@ -600,6 +606,12 @@ public class FinancialReportingService {
 
         public List<FinancialRecommendation> getRecommendations() { return recommendations; }
         public void setRecommendations(List<FinancialRecommendation> recommendations) { this.recommendations = recommendations; }
+
+        public ReportFormat getFormat() { return format; }
+        public void setFormat(ReportFormat format) { this.format = format; }
+
+        public UUID getGeneratedBy() { return generatedBy; }
+        public void setGeneratedBy(UUID generatedBy) { this.generatedBy = generatedBy; }
     }
 
     public static class ExecutiveSummary {
@@ -972,5 +984,78 @@ public class FinancialReportingService {
     public Map<String, Object> getFinancialKPIs(LocalDateTime startDate, LocalDateTime endDate) {
         // Implementation for getting financial KPIs
         return Collections.emptyMap();
+    }
+
+    /**
+     * Generate report with filters
+     */
+    public FinancialReport generateReport(ReportType type, ReportFormat format,
+                                         LocalDateTime startDate, LocalDateTime endDate,
+                                         Map<String, Object> filters, UUID userId) {
+        // Convert filters to budget IDs if needed
+        String[] budgetIds = extractBudgetIds(filters);
+        String reportType = type != null ? type.name() : "CUSTOM";
+        String period = calculatePeriod(startDate, endDate);
+        
+        FinancialReport report = generateFinancialReport(reportType, period, startDate, endDate, budgetIds);
+        
+        // Store format and user info
+        report.setFormat(format);
+        report.setGeneratedBy(userId);
+        
+        return report;
+    }
+
+    /**
+     * Get reports with filters
+     */
+    public List<FinancialReport> getReports(ReportType type, LocalDateTime startDate, 
+                                          LocalDateTime endDate, int limit) {
+        return reports.values().stream()
+            .filter(r -> type == null || r.getReportType().equals(type.name()))
+            .filter(r -> startDate == null || !r.getStartDate().isBefore(startDate))
+            .filter(r -> endDate == null || !r.getEndDate().isAfter(endDate))
+            .sorted((a, b) -> b.getGeneratedAt().compareTo(a.getGeneratedAt()))
+            .limit(limit)
+            .collect(Collectors.toList());
+    }
+
+    /**
+     * Download report in specified format
+     */
+    public byte[] downloadReport(String reportId, ReportFormat format) {
+        FinancialReport report = reports.get(reportId);
+        if (report == null) {
+            throw new IllegalArgumentException("Report not found");
+        }
+        
+        // Mock implementation - would generate actual file
+        return new byte[0];
+    }
+
+    // Helper methods
+    private String[] extractBudgetIds(Map<String, Object> filters) {
+        if (filters == null || filters.isEmpty()) {
+            return new String[]{"default"};
+        }
+        Object budgetIds = filters.get("budgetIds");
+        if (budgetIds instanceof List) {
+            @SuppressWarnings("unchecked")
+            List<String> ids = (List<String>) budgetIds;
+            return ids.toArray(new String[0]);
+        }
+        return new String[]{"default"};
+    }
+
+    private String calculatePeriod(LocalDateTime startDate, LocalDateTime endDate) {
+        if (startDate == null || endDate == null) {
+            return "CUSTOM";
+        }
+        long days = java.time.temporal.ChronoUnit.DAYS.between(startDate, endDate);
+        if (days <= 7) return "WEEKLY";
+        if (days <= 31) return "MONTHLY";
+        if (days <= 93) return "QUARTERLY";
+        if (days <= 365) return "YEARLY";
+        return "CUSTOM";
     }
 }

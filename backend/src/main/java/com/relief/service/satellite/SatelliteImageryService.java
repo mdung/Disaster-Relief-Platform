@@ -3,7 +3,8 @@ package com.relief.service.satellite;
 import com.relief.domain.satellite.*;
 import com.relief.repository.satellite.SatelliteImageRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.locationtech.jts.geom.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,8 +18,8 @@ import java.util.Optional;
  */
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class SatelliteImageryService {
+    private static final Logger log = LoggerFactory.getLogger(SatelliteImageryService.class);
     
     private final SatelliteImageRepository satelliteImageRepository;
     private final GeometryFactory geometryFactory;
@@ -221,6 +222,3 @@ public class SatelliteImageryService {
         LocalDateTime latestCapture
     ) {}
 }
-
-
-

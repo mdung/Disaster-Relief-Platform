@@ -2,6 +2,8 @@ package com.relief.service.ai;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -16,6 +18,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class DisasterPredictionService {
+
+    private static final Logger log = LoggerFactory.getLogger(DisasterPredictionService.class);
 
     private final Map<String, DisasterPredictionModel> models = new ConcurrentHashMap<>();
     private final Map<String, List<DisasterPrediction>> predictions = new ConcurrentHashMap<>();

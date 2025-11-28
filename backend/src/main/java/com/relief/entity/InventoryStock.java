@@ -43,6 +43,80 @@ public class InventoryStock {
     @LastModifiedDate
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    // Explicit getters and setters for Lombok compatibility
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
+
+    public InventoryHub getHub() { return hub; }
+    public void setHub(InventoryHub hub) { this.hub = hub; }
+
+    public ItemCatalog getItem() { return item; }
+    public void setItem(ItemCatalog item) { this.item = item; }
+
+    public Integer getQtyAvailable() { return qtyAvailable; }
+    public void setQtyAvailable(Integer qtyAvailable) { this.qtyAvailable = qtyAvailable; }
+
+    public Integer getQtyReserved() { return qtyReserved; }
+    public void setQtyReserved(Integer qtyReserved) { this.qtyReserved = qtyReserved; }
+
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    // Builder pattern for Lombok compatibility
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+        private UUID id;
+        private InventoryHub hub;
+        private ItemCatalog item;
+        private Integer qtyAvailable = 0;
+        private Integer qtyReserved = 0;
+        private LocalDateTime updatedAt;
+
+        public Builder id(UUID id) {
+            this.id = id;
+            return this;
+        }
+
+        public Builder hub(InventoryHub hub) {
+            this.hub = hub;
+            return this;
+        }
+
+        public Builder item(ItemCatalog item) {
+            this.item = item;
+            return this;
+        }
+
+        public Builder qtyAvailable(Integer qtyAvailable) {
+            this.qtyAvailable = qtyAvailable;
+            return this;
+        }
+
+        public Builder qtyReserved(Integer qtyReserved) {
+            this.qtyReserved = qtyReserved;
+            return this;
+        }
+
+        public Builder updatedAt(LocalDateTime updatedAt) {
+            this.updatedAt = updatedAt;
+            return this;
+        }
+
+        public InventoryStock build() {
+            InventoryStock stock = new InventoryStock();
+            stock.setId(id);
+            stock.setHub(hub);
+            stock.setItem(item);
+            stock.setQtyAvailable(qtyAvailable);
+            stock.setQtyReserved(qtyReserved);
+            stock.setUpdatedAt(updatedAt);
+            return stock;
+        }
+    }
 }
 
 

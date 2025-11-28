@@ -251,6 +251,7 @@ public class CertificationTrackingService {
 
         public boolean isActive() { return isActive; }
         public void setActive(boolean active) { isActive = active; }
+        public void setIsActive(boolean active) { isActive = active; }
     }
 
     public static class UserCertification {
@@ -349,6 +350,7 @@ public class CertificationTrackingService {
 
         public boolean isMandatory() { return isMandatory; }
         public void setMandatory(boolean mandatory) { isMandatory = mandatory; }
+        public void setIsMandatory(boolean mandatory) { this.setMandatory(mandatory); }
 
         public Map<String, Object> getCriteria() { return criteria; }
         public void setCriteria(Map<String, Object> criteria) { this.criteria = criteria; }

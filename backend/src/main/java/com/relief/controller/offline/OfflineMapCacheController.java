@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -204,13 +205,15 @@ public class OfflineMapCacheController {
         var regionStatistics = offlineMapCacheService.getCacheStatisticsByRegion(start, end);
         
         List<Map<String, Object>> result = regionStatistics.stream()
-            .map(stat -> Map.of(
-                "regionId", stat.getRegionId(),
-                "regionName", stat.getRegionName(),
-                "cacheCount", stat.getCacheCount(),
-                "totalSizeBytes", stat.getTotalSizeBytes(),
-                "avgDownloadProgress", stat.getAvgDownloadProgress()
-            ))
+            .map(stat -> {
+                Map<String, Object> map = new java.util.HashMap<>();
+                map.put("regionId", stat.getRegionId());
+                map.put("regionName", stat.getRegionName());
+                map.put("cacheCount", stat.getCacheCount());
+                map.put("totalSizeBytes", stat.getTotalSizeBytes());
+                map.put("avgDownloadProgress", stat.getAvgDownloadProgress());
+                return map;
+            })
             .toList();
         
         return ResponseEntity.ok(result);

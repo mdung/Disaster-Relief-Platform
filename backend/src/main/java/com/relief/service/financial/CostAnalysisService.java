@@ -30,6 +30,27 @@ public class CostAnalysisService {
     }
 
     /**
+     * Perform cost analysis with category and filters
+     */
+    @Transactional(readOnly = true)
+    public CostAnalysis performCostAnalysis(String category, LocalDateTime startDate, 
+                                           LocalDateTime endDate, Map<String, Object> filters, 
+                                           UUID userId) {
+        log.info("Performing cost analysis for category {}: {} to {}", category, startDate, endDate);
+        
+        // Use category as budgetId if no budgetId in filters
+        String budgetId = filters != null && filters.containsKey("budgetId") 
+            ? (String) filters.get("budgetId") 
+            : category;
+        
+        String analysisType = filters != null && filters.containsKey("analysisType")
+            ? (String) filters.get("analysisType")
+            : "CATEGORY_ANALYSIS";
+        
+        return analyzeCosts(budgetId, analysisType, startDate, endDate);
+    }
+
+    /**
      * Analyze costs for a specific budget or relief effort
      */
     @Transactional(readOnly = true)
@@ -134,11 +155,16 @@ public class CostAnalysisService {
      * Get cost breakdown by category
      */
     @Transactional(readOnly = true)
-    public CostBreakdown getCostBreakdown(String budgetId, String category) {
-        List<CostItem> items = costItems.getOrDefault(budgetId, new ArrayList<>());
-        
-        List<CostItem> categoryItems = items.stream()
+    public CostBreakdown getCostBreakdown(String category, LocalDateTime startDate, LocalDateTime endDate) {
+        // Find all items matching the category and date range
+        List<CostItem> categoryItems = costItems.values().stream()
+            .flatMap(List::stream)
             .filter(item -> category.equals(item.getCategory()))
+            .filter(item -> {
+                if (startDate != null && item.getDate().isBefore(startDate)) return false;
+                if (endDate != null && item.getDate().isAfter(endDate)) return false;
+                return true;
+            })
             .collect(Collectors.toList());
         
         CostBreakdown breakdown = new CostBreakdown();
@@ -242,14 +268,20 @@ public class CostAnalysisService {
      * Get cost trends
      */
     @Transactional(readOnly = true)
-    public List<CostTrend> getCostTrends(String budgetId, int months) {
-        List<CostItem> items = costItems.getOrDefault(budgetId, new ArrayList<>());
+    public List<CostTrend> getCostTrends(String category, LocalDateTime startDate, LocalDateTime endDate, int days) {
+        // Use days to determine grouping if startDate/endDate are null
+        final LocalDateTime finalStartDate = startDate != null ? startDate : LocalDateTime.now().minusDays(days);
+        final LocalDateTime finalEndDate = endDate != null ? endDate : LocalDateTime.now();
         
-        LocalDateTime endDate = LocalDateTime.now();
-        LocalDateTime startDate = endDate.minusMonths(months);
-        
-        List<CostItem> filteredItems = items.stream()
-            .filter(item -> item.getDate().isAfter(startDate) && item.getDate().isBefore(endDate))
+        // Find all items matching the category and date range
+        List<CostItem> filteredItems = costItems.values().stream()
+            .flatMap(List::stream)
+            .filter(item -> category == null || category.equals(item.getCategory()))
+            .filter(item -> {
+                if (finalStartDate != null && item.getDate().isBefore(finalStartDate)) return false;
+                if (finalEndDate != null && item.getDate().isAfter(finalEndDate)) return false;
+                return true;
+            })
             .collect(Collectors.toList());
         
         Map<String, BigDecimal> monthlyCosts = filteredItems.stream()

@@ -2,6 +2,8 @@ package com.relief.service.realtime;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -16,6 +18,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class AnomalyDetectionService {
+
+    private static final Logger log = LoggerFactory.getLogger(AnomalyDetectionService.class);
 
     private final Map<String, AnomalyDetector> detectors = new ConcurrentHashMap<>();
     private final Map<String, List<Anomaly>> anomalies = new ConcurrentHashMap<>();
@@ -503,6 +507,11 @@ public class AnomalyDetectionService {
         public boolean isActive() { return isActive; }
         public void setActive(boolean active) { isActive = active; }
 
+        /**
+         * Backwards-compatible alias used by older code paths.
+         */
+        public void setIsActive(boolean isActive) { this.isActive = isActive; }
+
         public double getSensitivity() { return sensitivity; }
         public void setSensitivity(double sensitivity) { this.sensitivity = sensitivity; }
 
@@ -544,6 +553,11 @@ public class AnomalyDetectionService {
 
         public boolean isReady() { return isReady; }
         public void setReady(boolean ready) { isReady = ready; }
+
+        /**
+         * Backwards-compatible alias used by older code paths.
+         */
+        public void setIsReady(boolean isReady) { this.isReady = isReady; }
     }
 
     public static class Anomaly {
@@ -583,6 +597,11 @@ public class AnomalyDetectionService {
 
         public boolean isResolved() { return isResolved; }
         public void setResolved(boolean resolved) { isResolved = resolved; }
+
+        /**
+         * Backwards-compatible alias used by older code paths.
+         */
+        public void setIsResolved(boolean isResolved) { this.isResolved = isResolved; }
 
         public String getResolution() { return resolution; }
         public void setResolution(String resolution) { this.resolution = resolution; }
@@ -692,6 +711,29 @@ public class AnomalyDetectionService {
 
         public LocalDateTime getLastDetected() { return lastDetected; }
         public void setLastDetected(LocalDateTime lastDetected) { this.lastDetected = lastDetected; }
+    }
+
+    public static class DataPoint {
+        private LocalDateTime timestamp;
+        private double value;
+        private Map<String, Object> metadata;
+
+        public DataPoint() {
+        }
+
+        public DataPoint(LocalDateTime timestamp, double value) {
+            this.timestamp = timestamp;
+            this.value = value;
+        }
+
+        public LocalDateTime getTimestamp() { return timestamp; }
+        public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
+
+        public double getValue() { return value; }
+        public void setValue(double value) { this.value = value; }
+
+        public Map<String, Object> getMetadata() { return metadata; }
+        public void setMetadata(Map<String, Object> metadata) { this.metadata = metadata; }
     }
 }
 

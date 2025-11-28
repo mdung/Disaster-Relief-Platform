@@ -29,6 +29,15 @@ public class DynamicTaskCreationService {
     private final UserRepository userRepository;
     private final TaskRuleEngine taskRuleEngine;
     private final IntelligentCategorizationService categorizationService;
+    
+    /**
+     * Get a task by its ID
+     * @param taskId The ID of the task to retrieve
+     * @return An Optional containing the task if found, empty otherwise
+     */
+    public Optional<Task> getTaskById(UUID taskId) {
+        return taskRepository.findById(taskId);
+    }
 
     /**
      * Automatically create tasks for a needs request based on patterns and rules

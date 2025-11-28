@@ -1,7 +1,8 @@
 package com.relief.service.training;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -12,8 +13,9 @@ import java.util.*;
  */
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class PerformanceAssessmentService {
+
+    private static final Logger log = LoggerFactory.getLogger(PerformanceAssessmentService.class);
 
     public Assessment createAssessment(String name, String description, String assessmentType, 
                                     String category, Map<String, Object> criteria, UUID createdBy) {
@@ -265,6 +267,7 @@ public class PerformanceAssessmentService {
 
         public boolean isActive() { return isActive; }
         public void setActive(boolean active) { isActive = active; }
+        public void setIsActive(boolean active) { this.setActive(active); }
     }
 
     public static class AssessmentSession {
@@ -345,6 +348,7 @@ public class PerformanceAssessmentService {
 
         public boolean isActive() { return isActive; }
         public void setActive(boolean active) { isActive = active; }
+        public void setIsActive(boolean active) { this.setActive(active); }
     }
 
     public static class AssessmentResponse {

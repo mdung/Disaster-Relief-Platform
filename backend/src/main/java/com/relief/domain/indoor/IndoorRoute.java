@@ -123,6 +123,157 @@ public class IndoorRoute {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
+
+    // Explicit getters and setters for Lombok compatibility
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public IndoorMap getIndoorMap() { return indoorMap; }
+    public void setIndoorMap(IndoorMap indoorMap) { this.indoorMap = indoorMap; }
+
+    public IndoorNode getFromNode() { return fromNode; }
+    public void setFromNode(IndoorNode fromNode) { this.fromNode = fromNode; }
+
+    public IndoorNode getToNode() { return toNode; }
+    public void setToNode(IndoorNode toNode) { this.toNode = toNode; }
+
+    public String getRouteId() { return routeId; }
+    public void setRouteId(String routeId) { this.routeId = routeId; }
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+
+    public LineString getPath() { return path; }
+    public void setPath(LineString path) { this.path = path; }
+
+    public IndoorRouteType getRouteType() { return routeType; }
+    public void setRouteType(IndoorRouteType routeType) { this.routeType = routeType; }
+
+    public Double getTotalDistance() { return totalDistance; }
+    public void setTotalDistance(Double totalDistance) { this.totalDistance = totalDistance; }
+
+    public Integer getEstimatedTime() { return estimatedTime; }
+    public void setEstimatedTime(Integer estimatedTime) { this.estimatedTime = estimatedTime; }
+
+    public DifficultyLevel getDifficultyLevel() { return difficultyLevel; }
+    public void setDifficultyLevel(DifficultyLevel difficultyLevel) { this.difficultyLevel = difficultyLevel; }
+
+    public Boolean getIsAccessible() { return isAccessible; }
+    public void setIsAccessible(Boolean isAccessible) { this.isAccessible = isAccessible; }
+
+    public Boolean getIsEmergencyRoute() { return isEmergencyRoute; }
+    public void setIsEmergencyRoute(Boolean isEmergencyRoute) { this.isEmergencyRoute = isEmergencyRoute; }
+
+    public Boolean getIsRestricted() { return isRestricted; }
+    public void setIsRestricted(Boolean isRestricted) { this.isRestricted = isRestricted; }
+
+    public String getAccessLevel() { return accessLevel; }
+    public void setAccessLevel(String accessLevel) { this.accessLevel = accessLevel; }
+
+    public String getWaypoints() { return waypoints; }
+    public void setWaypoints(String waypoints) { this.waypoints = waypoints; }
+
+    public String getInstructions() { return instructions; }
+    public void setInstructions(String instructions) { this.instructions = instructions; }
+
+    public String getMetadata() { return metadata; }
+    public void setMetadata(String metadata) { this.metadata = metadata; }
+
+    public String getCreatedBy() { return createdBy; }
+    public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    public List<IndoorRouteStep> getSteps() { return steps; }
+    public void setSteps(List<IndoorRouteStep> steps) { this.steps = steps; }
+
+    // Builder pattern for Lombok compatibility
+    public static Builder builder() { return new Builder(); }
+
+    public static class Builder {
+        private Long id;
+        private IndoorMap indoorMap;
+        private IndoorNode fromNode;
+        private IndoorNode toNode;
+        private String routeId;
+        private String name;
+        private String description;
+        private LineString path;
+        private IndoorRouteType routeType;
+        private Double totalDistance;
+        private Integer estimatedTime;
+        private DifficultyLevel difficultyLevel;
+        private Boolean isAccessible;
+        private Boolean isEmergencyRoute;
+        private Boolean isRestricted;
+        private String accessLevel;
+        private String waypoints;
+        private String instructions;
+        private String metadata;
+        private String createdBy;
+        private LocalDateTime createdAt;
+        private LocalDateTime updatedAt;
+        private List<IndoorRouteStep> steps;
+
+        public Builder id(Long id) { this.id = id; return this; }
+        public Builder indoorMap(IndoorMap indoorMap) { this.indoorMap = indoorMap; return this; }
+        public Builder fromNode(IndoorNode fromNode) { this.fromNode = fromNode; return this; }
+        public Builder toNode(IndoorNode toNode) { this.toNode = toNode; return this; }
+        public Builder routeId(String routeId) { this.routeId = routeId; return this; }
+        public Builder name(String name) { this.name = name; return this; }
+        public Builder description(String description) { this.description = description; return this; }
+        public Builder path(LineString path) { this.path = path; return this; }
+        public Builder routeType(IndoorRouteType routeType) { this.routeType = routeType; return this; }
+        public Builder totalDistance(Double totalDistance) { this.totalDistance = totalDistance; return this; }
+        public Builder estimatedTime(Integer estimatedTime) { this.estimatedTime = estimatedTime; return this; }
+        public Builder difficultyLevel(DifficultyLevel difficultyLevel) { this.difficultyLevel = difficultyLevel; return this; }
+        public Builder isAccessible(Boolean isAccessible) { this.isAccessible = isAccessible; return this; }
+        public Builder isEmergencyRoute(Boolean isEmergencyRoute) { this.isEmergencyRoute = isEmergencyRoute; return this; }
+        public Builder isRestricted(Boolean isRestricted) { this.isRestricted = isRestricted; return this; }
+        public Builder accessLevel(String accessLevel) { this.accessLevel = accessLevel; return this; }
+        public Builder waypoints(String waypoints) { this.waypoints = waypoints; return this; }
+        public Builder instructions(String instructions) { this.instructions = instructions; return this; }
+        public Builder metadata(String metadata) { this.metadata = metadata; return this; }
+        public Builder createdBy(String createdBy) { this.createdBy = createdBy; return this; }
+        public Builder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
+        public Builder updatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; return this; }
+        public Builder steps(List<IndoorRouteStep> steps) { this.steps = steps; return this; }
+
+        public IndoorRoute build() {
+            IndoorRoute route = new IndoorRoute();
+            route.setId(id);
+            route.setIndoorMap(indoorMap);
+            route.setFromNode(fromNode);
+            route.setToNode(toNode);
+            route.setRouteId(routeId);
+            route.setName(name);
+            route.setDescription(description);
+            route.setPath(path);
+            route.setRouteType(routeType);
+            route.setTotalDistance(totalDistance);
+            route.setEstimatedTime(estimatedTime);
+            route.setDifficultyLevel(difficultyLevel);
+            route.setIsAccessible(isAccessible);
+            route.setIsEmergencyRoute(isEmergencyRoute);
+            route.setIsRestricted(isRestricted);
+            route.setAccessLevel(accessLevel);
+            route.setWaypoints(waypoints);
+            route.setInstructions(instructions);
+            route.setMetadata(metadata);
+            route.setCreatedBy(createdBy);
+            route.setCreatedAt(createdAt);
+            route.setUpdatedAt(updatedAt);
+            route.setSteps(steps);
+            return route;
+        }
+    }
 }
 
 

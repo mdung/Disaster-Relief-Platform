@@ -47,6 +47,9 @@ public class NeedsRequest {
     @Column(name = "geom_point", columnDefinition = "geometry(Point, 4326)")
     private Point geomPoint;
 
+    @Column(name = "address")
+    private String address;
+
     @Column(name = "last_seen_at")
     private LocalDateTime lastSeenAt;
 
@@ -65,6 +68,49 @@ public class NeedsRequest {
     @LastModifiedDate
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    // Explicit getters and setters for Lombok compatibility
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
+
+    public Household getHousehold() { return household; }
+    public void setHousehold(Household household) { this.household = household; }
+
+    public String getType() { return type; }
+    public void setType(String type) { this.type = type; }
+
+    public Integer getSeverity() { return severity; }
+    public void setSeverity(Integer severity) { this.severity = severity; }
+
+    public String getNotes() { return notes; }
+    public void setNotes(String notes) { this.notes = notes; }
+
+    public String getSource() { return source; }
+    public void setSource(String source) { this.source = source; }
+
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+
+    public Point getGeomPoint() { return geomPoint; }
+    public void setGeomPoint(Point geomPoint) { this.geomPoint = geomPoint; }
+
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
+
+    public LocalDateTime getLastSeenAt() { return lastSeenAt; }
+    public void setLastSeenAt(LocalDateTime lastSeenAt) { this.lastSeenAt = lastSeenAt; }
+
+    public User getCreatedBy() { return createdBy; }
+    public void setCreatedBy(User createdBy) { this.createdBy = createdBy; }
+
+    public User getCurrentAssignee() { return currentAssignee; }
+    public void setCurrentAssignee(User currentAssignee) { this.currentAssignee = currentAssignee; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 }
 
 

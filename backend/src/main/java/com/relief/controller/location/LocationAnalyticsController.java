@@ -282,18 +282,18 @@ public class LocationAnalyticsController {
         
         var statistics = locationPatternRepository.getPatternStatistics(start, end);
         
-        Map<String, Object> result = Map.of(
-            "totalPatterns", statistics.getTotalPatterns(),
-            "linearPatterns", statistics.getLinearPatterns(),
-            "circularPatterns", statistics.getCircularPatterns(),
-            "stationaryPatterns", statistics.getStationaryPatterns(),
-            "routePatterns", statistics.getRoutePatterns(),
-            "searchPatterns", statistics.getSearchPatterns(),
-            "recurringPatterns", statistics.getRecurringPatterns(),
-            "optimalPatterns", statistics.getOptimalPatterns(),
-            "avgConfidence", statistics.getAvgConfidence(),
-            "avgSpeed", statistics.getAvgSpeed(),
-            "avgDistance", statistics.getAvgDistance()
+        Map<String, Object> result = Map.ofEntries(
+            Map.entry("totalPatterns", statistics.getTotalPatterns()),
+            Map.entry("linearPatterns", statistics.getLinearPatterns()),
+            Map.entry("circularPatterns", statistics.getCircularPatterns()),
+            Map.entry("stationaryPatterns", statistics.getStationaryPatterns()),
+            Map.entry("routePatterns", statistics.getRoutePatterns()),
+            Map.entry("searchPatterns", statistics.getSearchPatterns()),
+            Map.entry("recurringPatterns", statistics.getRecurringPatterns()),
+            Map.entry("optimalPatterns", statistics.getOptimalPatterns()),
+            Map.entry("avgConfidence", statistics.getAvgConfidence()),
+            Map.entry("avgSpeed", statistics.getAvgSpeed()),
+            Map.entry("avgDistance", statistics.getAvgDistance())
         );
         
         return ResponseEntity.ok(result);
@@ -312,18 +312,18 @@ public class LocationAnalyticsController {
         
         var statistics = locationOptimizationRepository.getOptimizationStatistics(start, end);
         
-        Map<String, Object> result = Map.of(
-            "totalOptimizations", statistics.getTotalOptimizations(),
-            "pendingOptimizations", statistics.getPendingOptimizations(),
-            "approvedOptimizations", statistics.getApprovedOptimizations(),
-            "inProgressOptimizations", statistics.getInProgressOptimizations(),
-            "completedOptimizations", statistics.getCompletedOptimizations(),
-            "implementedOptimizations", statistics.getImplementedOptimizations(),
-            "avgCurrentEfficiency", statistics.getAvgCurrentEfficiency(),
-            "avgProjectedEfficiency", statistics.getAvgProjectedEfficiency(),
-            "avgActualEfficiencyGain", statistics.getAvgActualEfficiencyGain(),
-            "totalTimeSavings", statistics.getTotalTimeSavings(),
-            "totalDistanceSavings", statistics.getTotalDistanceSavings()
+        Map<String, Object> result = Map.ofEntries(
+            Map.entry("totalOptimizations", statistics.getTotalOptimizations()),
+            Map.entry("pendingOptimizations", statistics.getPendingOptimizations()),
+            Map.entry("approvedOptimizations", statistics.getApprovedOptimizations()),
+            Map.entry("inProgressOptimizations", statistics.getInProgressOptimizations()),
+            Map.entry("completedOptimizations", statistics.getCompletedOptimizations()),
+            Map.entry("implementedOptimizations", statistics.getImplementedOptimizations()),
+            Map.entry("avgCurrentEfficiency", statistics.getAvgCurrentEfficiency()),
+            Map.entry("avgProjectedEfficiency", statistics.getAvgProjectedEfficiency()),
+            Map.entry("avgActualEfficiencyGain", statistics.getAvgActualEfficiencyGain()),
+            Map.entry("totalTimeSavings", statistics.getTotalTimeSavings()),
+            Map.entry("totalDistanceSavings", statistics.getTotalDistanceSavings())
         );
         
         return ResponseEntity.ok(result);
@@ -343,13 +343,15 @@ public class LocationAnalyticsController {
         var statistics = locationHistoryRepository.getActivityTypeStatistics(start, end);
         
         List<Map<String, Object>> result = statistics.stream()
-            .map(stat -> Map.of(
-                "activityType", stat.getActivityType(),
-                "count", stat.getCount(),
-                "avgSpeed", stat.getAvgSpeed(),
-                "avgDuration", stat.getAvgDuration(),
-                "avgAccuracy", stat.getAvgAccuracy()
-            ))
+            .map(stat -> {
+                Map<String, Object> map = new java.util.HashMap<>();
+                map.put("activityType", stat.getActivityType());
+                map.put("count", stat.getCount());
+                map.put("avgSpeed", stat.getAvgSpeed());
+                map.put("avgDuration", stat.getAvgDuration());
+                map.put("avgAccuracy", stat.getAvgAccuracy());
+                return map;
+            })
             .toList();
         
         return ResponseEntity.ok(result);
@@ -369,18 +371,20 @@ public class LocationAnalyticsController {
         var statistics = locationHistoryRepository.getEntityMovementStatistics(start, end);
         
         List<Map<String, Object>> result = statistics.stream()
-            .map(stat -> Map.of(
-                "entityType", stat.getEntityType(),
-                "entityId", stat.getEntityId(),
-                "entityName", stat.getEntityName(),
-                "locationCount", stat.getLocationCount(),
-                "avgSpeed", stat.getAvgSpeed(),
-                "maxSpeed", stat.getMaxSpeed(),
-                "totalDistance", stat.getTotalDistance(),
-                "avgAccuracy", stat.getAvgAccuracy(),
-                "firstSeen", stat.getFirstSeen(),
-                "lastSeen", stat.getLastSeen()
-            ))
+            .map(stat -> {
+                Map<String, Object> map = new java.util.HashMap<>();
+                map.put("entityType", stat.getEntityType());
+                map.put("entityId", stat.getEntityId());
+                map.put("entityName", stat.getEntityName());
+                map.put("locationCount", stat.getLocationCount());
+                map.put("avgSpeed", stat.getAvgSpeed());
+                map.put("maxSpeed", stat.getMaxSpeed());
+                map.put("totalDistance", stat.getTotalDistance());
+                map.put("avgAccuracy", stat.getAvgAccuracy());
+                map.put("firstSeen", stat.getFirstSeen());
+                map.put("lastSeen", stat.getLastSeen());
+                return map;
+            })
             .toList();
         
         return ResponseEntity.ok(result);

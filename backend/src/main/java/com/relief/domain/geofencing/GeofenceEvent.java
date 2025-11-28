@@ -86,6 +86,109 @@ public class GeofenceEvent {
             occurredAt = LocalDateTime.now();
         }
     }
+
+    // Explicit getters and setters for Lombok compatibility
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public Geofence getGeofence() { return geofence; }
+    public void setGeofence(Geofence geofence) { this.geofence = geofence; }
+
+    public GeofenceEventType getEventType() { return eventType; }
+    public void setEventType(GeofenceEventType eventType) { this.eventType = eventType; }
+
+    public Point getLocation() { return location; }
+    public void setLocation(Point location) { this.location = location; }
+
+    public String getEntityType() { return entityType; }
+    public void setEntityType(String entityType) { this.entityType = entityType; }
+
+    public Long getEntityId() { return entityId; }
+    public void setEntityId(Long entityId) { this.entityId = entityId; }
+
+    public String getEntityName() { return entityName; }
+    public void setEntityName(String entityName) { this.entityName = entityName; }
+
+    public String getEventData() { return eventData; }
+    public void setEventData(String eventData) { this.eventData = eventData; }
+
+    public GeofenceEventSeverity getSeverity() { return severity; }
+    public void setSeverity(GeofenceEventSeverity severity) { this.severity = severity; }
+
+    public Double getConfidenceScore() { return confidenceScore; }
+    public void setConfidenceScore(Double confidenceScore) { this.confidenceScore = confidenceScore; }
+
+    public LocalDateTime getOccurredAt() { return occurredAt; }
+    public void setOccurredAt(LocalDateTime occurredAt) { this.occurredAt = occurredAt; }
+
+    public LocalDateTime getDetectedAt() { return detectedAt; }
+    public void setDetectedAt(LocalDateTime detectedAt) { this.detectedAt = detectedAt; }
+
+    public LocalDateTime getProcessedAt() { return processedAt; }
+    public void setProcessedAt(LocalDateTime processedAt) { this.processedAt = processedAt; }
+
+    public Boolean getIsProcessed() { return isProcessed; }
+    public void setIsProcessed(Boolean isProcessed) { this.isProcessed = isProcessed; }
+
+    public String getProcessingNotes() { return processingNotes; }
+    public void setProcessingNotes(String processingNotes) { this.processingNotes = processingNotes; }
+
+    // Builder pattern for Lombok compatibility
+    public static Builder builder() { return new Builder(); }
+
+    public static class Builder {
+        private Long id;
+        private Geofence geofence;
+        private GeofenceEventType eventType;
+        private Point location;
+        private String entityType;
+        private Long entityId;
+        private String entityName;
+        private String eventData;
+        private GeofenceEventSeverity severity;
+        private Double confidenceScore;
+        private LocalDateTime occurredAt;
+        private LocalDateTime detectedAt;
+        private LocalDateTime processedAt;
+        private Boolean isProcessed;
+        private String processingNotes;
+
+        public Builder id(Long id) { this.id = id; return this; }
+        public Builder geofence(Geofence geofence) { this.geofence = geofence; return this; }
+        public Builder eventType(GeofenceEventType eventType) { this.eventType = eventType; return this; }
+        public Builder location(Point location) { this.location = location; return this; }
+        public Builder entityType(String entityType) { this.entityType = entityType; return this; }
+        public Builder entityId(Long entityId) { this.entityId = entityId; return this; }
+        public Builder entityName(String entityName) { this.entityName = entityName; return this; }
+        public Builder eventData(String eventData) { this.eventData = eventData; return this; }
+        public Builder severity(GeofenceEventSeverity severity) { this.severity = severity; return this; }
+        public Builder confidenceScore(Double confidenceScore) { this.confidenceScore = confidenceScore; return this; }
+        public Builder occurredAt(LocalDateTime occurredAt) { this.occurredAt = occurredAt; return this; }
+        public Builder detectedAt(LocalDateTime detectedAt) { this.detectedAt = detectedAt; return this; }
+        public Builder processedAt(LocalDateTime processedAt) { this.processedAt = processedAt; return this; }
+        public Builder isProcessed(Boolean isProcessed) { this.isProcessed = isProcessed; return this; }
+        public Builder processingNotes(String processingNotes) { this.processingNotes = processingNotes; return this; }
+
+        public GeofenceEvent build() {
+            GeofenceEvent event = new GeofenceEvent();
+            event.setId(id);
+            event.setGeofence(geofence);
+            event.setEventType(eventType);
+            event.setLocation(location);
+            event.setEntityType(entityType);
+            event.setEntityId(entityId);
+            event.setEntityName(entityName);
+            event.setEventData(eventData);
+            event.setSeverity(severity);
+            event.setConfidenceScore(confidenceScore);
+            event.setOccurredAt(occurredAt);
+            event.setDetectedAt(detectedAt);
+            event.setProcessedAt(processedAt);
+            event.setIsProcessed(isProcessed);
+            event.setProcessingNotes(processingNotes);
+            return event;
+        }
+    }
 }
 
 

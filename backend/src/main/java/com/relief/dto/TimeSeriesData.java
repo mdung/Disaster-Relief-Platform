@@ -1,6 +1,7 @@
 package com.relief.dto;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 public class TimeSeriesData {
     private LocalDateTime timestamp;

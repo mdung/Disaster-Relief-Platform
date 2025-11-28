@@ -2,10 +2,15 @@ package com.relief.service.notification;
 
 import com.relief.entity.NeedsRequest;
 import com.relief.entity.User;
+import com.relief.repository.NeedsRequestRepository;
 import com.relief.repository.UserRepository;
+import com.relief.service.LocationService;
 import com.relief.service.NotificationService;
+import com.relief.service.notification.UserPreferenceService.UserPreferences;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -20,10 +25,22 @@ import java.util.stream.Collectors;
 @Slf4j
 public class SmartNotificationService {
 
+    private static final Logger log = LoggerFactory.getLogger(SmartNotificationService.class);
+
     private final NotificationService notificationService;
     private final UserRepository userRepository;
     private final UserPreferenceService userPreferenceService;
     private final LocationService locationService;
+    private final NeedsRequestRepository needsRequestRepository;
+
+    /**
+     * Send context-aware notification to appropriate users (by UUID)
+     */
+    public void sendContextualNotification(UUID requestId, String eventType, String baseMessage) {
+        NeedsRequest request = needsRequestRepository.findById(requestId)
+            .orElseThrow(() -> new IllegalArgumentException("NeedsRequest not found: " + requestId));
+        sendContextualNotification(request, eventType, baseMessage);
+    }
 
     /**
      * Send context-aware notification to appropriate users

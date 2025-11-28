@@ -18,7 +18,7 @@ import java.util.UUID;
  * Controller for smart notifications and user preferences
  */
 @RestController
-@RequestMapping("/notifications")
+@RequestMapping("/api/notifications")
 @RequiredArgsConstructor
 @Tag(name = "Smart Notifications", description = "Notification management and user preferences")
 public class NotificationController {
@@ -69,10 +69,9 @@ public class NotificationController {
             @RequestParam(defaultValue = "24") int hours) {
         
         UUID userId = UUID.fromString(principal.getUsername());
-        Map<String, Object> history = Map.of(
-            "totalNotifications", userPreferenceService.getNotificationCount(userId, "ALL", hours),
-            "last24Hours", userPreferenceService.getNotificationCount(userId, "ALL", 24)
-        );
+        Map<String, Object> history = new java.util.HashMap<>();
+        history.put("totalNotifications", userPreferenceService.getNotificationCount(userId, "ALL", hours));
+        history.put("last24Hours", userPreferenceService.getNotificationCount(userId, "ALL", 24));
         
         return ResponseEntity.ok(history);
     }
@@ -91,5 +90,4 @@ public class NotificationController {
         public void setMessage(String message) { this.message = message; }
     }
 }
-
 

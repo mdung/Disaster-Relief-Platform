@@ -58,6 +58,14 @@ public class LocationHistory {
     @Column(name = "speed", nullable = false)
     private Double speed; // Speed in m/s
     
+    public Double getSpeed() {
+        return speed;
+    }
+    
+    public void setSpeed(Double speed) {
+        this.speed = speed;
+    }
+    
     @Column(name = "accuracy", nullable = false)
     private Double accuracy; // Position accuracy in meters
     
@@ -77,8 +85,24 @@ public class LocationHistory {
     @Column(name = "distance_from_previous")
     private Double distanceFromPrevious; // Distance from previous location in meters
     
+    public Double getDistanceFromPrevious() {
+        return distanceFromPrevious;
+    }
+    
+    public void setDistanceFromPrevious(Double distanceFromPrevious) {
+        this.distanceFromPrevious = distanceFromPrevious;
+    }
+    
     @Column(name = "is_stationary", nullable = false)
     private Boolean isStationary; // Whether entity is stationary at this location
+    
+    public Boolean getIsStationary() {
+        return isStationary;
+    }
+    
+    public void setIsStationary(Boolean isStationary) {
+        this.isStationary = isStationary;
+    }
     
     @Column(name = "is_significant", nullable = false)
     private Boolean isSignificant; // Whether this is a significant location point

@@ -5,6 +5,8 @@ import com.relief.repository.indoor.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.locationtech.jts.geom.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +21,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class IndoorNavigationService {
+
+    private static final Logger log = LoggerFactory.getLogger(IndoorNavigationService.class);
     
     private final IndoorMapRepository mapRepository;
     private final IndoorNodeRepository nodeRepository;
@@ -179,9 +183,7 @@ public class IndoorNavigationService {
         // Create path geometry if provided
         LineString path = null;
         if (request.pathCoordinates() != null && !request.pathCoordinates().isEmpty()) {
-            Coordinate[] coordinates = request.pathCoordinates().stream()
-                .map(coord -> new Coordinate(coord.longitude(), coord.latitude()))
-                .toArray(Coordinate[]::new);
+            Coordinate[] coordinates = request.pathCoordinates().toArray(new Coordinate[0]);
             path = geometryFactory.createLineString(coordinates);
         }
         
@@ -504,13 +506,15 @@ public class IndoorNavigationService {
      */
     private String createWaypointsJson(List<IndoorNode> path) {
         List<Map<String, Object>> waypoints = path.stream()
-            .map(node -> Map.of(
-                "nodeId", node.getNodeId(),
-                "name", node.getName() != null ? node.getName() : "",
-                "localX", node.getLocalX(),
-                "localY", node.getLocalY(),
-                "floorLevel", node.getFloorLevel() != null ? node.getFloorLevel() : 0
-            ))
+            .map(node -> {
+                Map<String, Object> waypoint = new java.util.HashMap<>();
+                waypoint.put("nodeId", node.getNodeId());
+                waypoint.put("name", node.getName() != null ? node.getName() : "");
+                waypoint.put("localX", node.getLocalX());
+                waypoint.put("localY", node.getLocalY());
+                waypoint.put("floorLevel", node.getFloorLevel() != null ? node.getFloorLevel() : 0);
+                return waypoint;
+            })
             .collect(Collectors.toList());
         
         return "{\"waypoints\":" + waypoints.toString() + "}";

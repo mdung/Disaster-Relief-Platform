@@ -2,6 +2,8 @@ package com.relief.service.training;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -14,6 +16,8 @@ import java.util.*;
 @RequiredArgsConstructor
 @Slf4j
 public class KnowledgeBaseService {
+
+    private static final Logger log = LoggerFactory.getLogger(KnowledgeBaseService.class);
 
     public KnowledgeArticle createArticle(String title, String content, String category, String tags, 
                                         String authorId, String language, boolean isPublic) {
@@ -247,6 +251,8 @@ public class KnowledgeBaseService {
 
         public boolean isPublic() { return isPublic; }
         public void setPublic(boolean aPublic) { isPublic = aPublic; }
+        // Compatibility setter for Lombok-style naming
+        public void setIsPublic(boolean aPublic) { this.isPublic = aPublic; }
 
         public LocalDateTime getCreatedAt() { return createdAt; }
         public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
@@ -290,6 +296,8 @@ public class KnowledgeBaseService {
 
         public boolean isActive() { return isActive; }
         public void setActive(boolean active) { isActive = active; }
+        // Compatibility setter for Lombok-style naming
+        public void setIsActive(boolean active) { this.isActive = active; }
     }
 
     public static class KnowledgeTag {

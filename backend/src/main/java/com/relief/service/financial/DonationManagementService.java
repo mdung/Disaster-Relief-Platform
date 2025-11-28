@@ -4,6 +4,8 @@ import com.relief.entity.User;
 import com.relief.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +22,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class DonationManagementService {
+
+    private static final Logger log = LoggerFactory.getLogger(DonationManagementService.class);
 
     private final UserRepository userRepository;
     private final Map<String, Donation> donations = new ConcurrentHashMap<>();
@@ -463,6 +467,7 @@ public class DonationManagementService {
         private String processedNotes;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
+        private DonationType type;
 
         // Getters and setters
         public String getId() { return id; }
@@ -512,6 +517,9 @@ public class DonationManagementService {
 
         public LocalDateTime getUpdatedAt() { return updatedAt; }
         public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+        public DonationType getType() { return type; }
+        public void setType(DonationType type) { this.type = type; }
     }
 
     public static class DonationAllocation {
@@ -569,6 +577,8 @@ public class DonationManagementService {
         private LocalDateTime lastDonationDate;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
+        private String organization;
+        private String type;
 
         // Getters and setters
         public String getId() { return id; }
@@ -600,6 +610,12 @@ public class DonationManagementService {
 
         public LocalDateTime getUpdatedAt() { return updatedAt; }
         public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+        public String getOrganization() { return organization; }
+        public void setOrganization(String organization) { this.organization = organization; }
+
+        public String getType() { return type; }
+        public void setType(String type) { this.type = type; }
     }
 
     public static class Campaign {
@@ -740,6 +756,108 @@ public class DonationManagementService {
 
     public enum CampaignStatus {
         ACTIVE, COMPLETED, CANCELLED, SUSPENDED
+    }
+
+    /**
+     * Summary statistics for donations over a period or campaign.
+     */
+    public static class DonationSummary {
+        private int totalDonations;
+        private BigDecimal totalAmount;
+        private BigDecimal averageAmount;
+        private BigDecimal confirmedAmount;
+        private BigDecimal pendingAmount;
+        private Map<String, BigDecimal> amountByCurrency;
+
+        public int getTotalDonations() { return totalDonations; }
+        public void setTotalDonations(int totalDonations) { this.totalDonations = totalDonations; }
+
+        public BigDecimal getTotalAmount() { return totalAmount; }
+        public void setTotalAmount(BigDecimal totalAmount) { this.totalAmount = totalAmount; }
+
+        public BigDecimal getAverageAmount() { return averageAmount; }
+        public void setAverageAmount(BigDecimal averageAmount) { this.averageAmount = averageAmount; }
+
+        public BigDecimal getConfirmedAmount() { return confirmedAmount; }
+        public void setConfirmedAmount(BigDecimal confirmedAmount) { this.confirmedAmount = confirmedAmount; }
+
+        public BigDecimal getPendingAmount() { return pendingAmount; }
+        public void setPendingAmount(BigDecimal pendingAmount) { this.pendingAmount = pendingAmount; }
+
+        public Map<String, BigDecimal> getAmountByCurrency() { return amountByCurrency; }
+        public void setAmountByCurrency(Map<String, BigDecimal> amountByCurrency) { this.amountByCurrency = amountByCurrency; }
+    }
+
+    /**
+     * Time-series trend data for donations.
+     */
+    public static class DonationTrend {
+        private LocalDateTime timestamp;
+        private BigDecimal amount;
+
+        public LocalDateTime getTimestamp() { return timestamp; }
+        public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
+
+        public BigDecimal getAmount() { return amount; }
+        public void setAmount(BigDecimal amount) { this.amount = amount; }
+    }
+
+    /**
+     * Donor retention metrics.
+     */
+    public static class DonorRetention {
+        private int totalDonors;
+        private int returningDonors;
+        private double retentionRate;
+
+        public int getTotalDonors() { return totalDonors; }
+        public void setTotalDonors(int totalDonors) { this.totalDonors = totalDonors; }
+
+        public int getReturningDonors() { return returningDonors; }
+        public void setReturningDonors(int returningDonors) { this.returningDonors = returningDonors; }
+
+        public double getRetentionRate() { return retentionRate; }
+        public void setRetentionRate(double retentionRate) { this.retentionRate = retentionRate; }
+    }
+
+    /**
+     * Per-campaign performance metrics.
+     */
+    public static class CampaignPerformance {
+        private String campaignId;
+        private String campaignName;
+        private BigDecimal totalAmount;
+        private double progressPercentage;
+
+        public String getCampaignId() { return campaignId; }
+        public void setCampaignId(String campaignId) { this.campaignId = campaignId; }
+
+        public String getCampaignName() { return campaignName; }
+        public void setCampaignName(String campaignName) { this.campaignName = campaignName; }
+
+        public BigDecimal getTotalAmount() { return totalAmount; }
+        public void setTotalAmount(BigDecimal totalAmount) { this.totalAmount = totalAmount; }
+
+        public double getProgressPercentage() { return progressPercentage; }
+        public void setProgressPercentage(double progressPercentage) { this.progressPercentage = progressPercentage; }
+    }
+
+    /**
+     * Geographic distribution of donations (e.g. by region/country).
+     */
+    public static class GeographicDistribution {
+        private String region;
+        private BigDecimal totalAmount;
+        private int donationCount;
+
+        public String getRegion() { return region; }
+        public void setRegion(String region) { this.region = region; }
+
+        public BigDecimal getTotalAmount() { return totalAmount; }
+        public void setTotalAmount(BigDecimal totalAmount) { this.totalAmount = totalAmount; }
+
+        public int getDonationCount() { return donationCount; }
+        public void setDonationCount(int donationCount) { this.donationCount = donationCount; }
     }
 
     public static class DonationAnalytics {

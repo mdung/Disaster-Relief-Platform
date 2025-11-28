@@ -24,7 +24,7 @@ public class RbacService {
         }
         
         String emailOrPhone = authentication.getName();
-        return userService.findByEmailOrPhone(emailOrPhone);
+        return userService.findByEmailOrPhone(emailOrPhone, emailOrPhone).orElse(null);
     }
     
     public Role getCurrentUserRole() {
@@ -92,7 +92,7 @@ public class RbacService {
         }
         
         // Users can only access their own data
-        return currentUser.getId().equals(targetUserId);
+        return currentUser.getId().toString().equals(targetUserId);
     }
     
     public boolean canManageUser(String targetUserId) {
@@ -107,6 +107,6 @@ public class RbacService {
         }
         
         // Admins cannot manage themselves
-        return !currentUser.getId().equals(targetUserId);
+        return !currentUser.getId().toString().equals(targetUserId);
     }
 }

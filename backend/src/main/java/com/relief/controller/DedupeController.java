@@ -61,6 +61,16 @@ public class DedupeController {
         return ResponseEntity.ok(Map.of("status", "MERGED"));
     }
 
+    @PostMapping("/merge")
+    @Operation(summary = "Merge duplicate requests into a group")
+    @RequiresPermission(Permission.ADMIN_USERS)
+    public ResponseEntity<Result> mergeRequests(@RequestBody MergeBody body) {
+        int updated = dedupeService.mergeRequests(body.getRequestIds(), body.getReason());
+        Result result = new Result();
+        result.setUpdated(updated);
+        return ResponseEntity.ok(result);
+    }
+
     public static class CreateGroupRequest {
         public String entityType;
         public String note;
@@ -78,50 +88,37 @@ public class DedupeController {
         public Double score;
         public String reason;
     }
-}
 
-package com.relief.controller;
-
-import com.relief.service.DedupeService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.constraints.NotEmpty;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.UUID;
-
-@RestController
-@RequestMapping("/dedupe")
-@RequiredArgsConstructor
-@Tag(name = "Deduplication", description = "Merge duplicate requests")
-public class DedupeController {
-
-    private final DedupeService dedupeService;
-
-    @PostMapping("/merge")
-    @Operation(summary = "Merge duplicate requests into a group")
-    public ResponseEntity<Result> merge(@RequestBody MergeBody body) {
-        int updated = dedupeService.mergeRequests(body.getRequestIds(), body.getReason());
-        Result result = new Result();
-        result.setUpdated(updated);
-        return ResponseEntity.ok(result);
-    }
-
-    @Data
     public static class MergeBody {
-        @NotEmpty
         private List<UUID> requestIds;
         private String reason;
+
+        public List<UUID> getRequestIds() {
+            return requestIds;
+        }
+
+        public void setRequestIds(List<UUID> requestIds) {
+            this.requestIds = requestIds;
+        }
+
+        public String getReason() {
+            return reason;
+        }
+
+        public void setReason(String reason) {
+            this.reason = reason;
+        }
     }
 
-    @Data
     public static class Result {
         private int updated;
+
+        public int getUpdated() {
+            return updated;
+        }
+
+        public void setUpdated(int updated) {
+            this.updated = updated;
+        }
     }
 }
-
-

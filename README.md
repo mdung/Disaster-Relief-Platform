@@ -74,7 +74,7 @@ docker-compose --profile monitoring up -d
 
 ```bash
 cd backend
-./gradlew bootRun
+mvn spring-boot:run
 ```
 
 ### Frontend (React)
@@ -90,10 +90,10 @@ npm start
 ```bash
 # Create new migration
 cd backend
-./gradlew flywayMigrate
+mvn flyway:migrate
 
 # Check migration status
-./gradlew flywayInfo
+mvn flyway:info
 ```
 
 ## API Documentation

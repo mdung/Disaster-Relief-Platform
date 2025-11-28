@@ -169,7 +169,7 @@ tls-ca-cert-file /etc/ssl/certs/ca.crt
 FROM openjdk:17-jdk-slim as builder
 WORKDIR /app
 COPY . .
-RUN ./gradlew build -x test
+RUN mvn clean package -DskipTests
 
 # Production image
 FROM openjdk:17-jre-slim
@@ -179,7 +179,7 @@ WORKDIR /app
 RUN groupadd -r appuser && useradd -r -g appuser appuser
 
 # Copy application
-COPY --from=builder /app/build/libs/*.jar app.jar
+COPY --from=builder /app/target/*.jar app.jar
 
 # Set security options
 USER appuser

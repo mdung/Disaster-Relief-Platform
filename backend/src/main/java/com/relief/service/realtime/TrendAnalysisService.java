@@ -2,6 +2,8 @@ package com.relief.service.realtime;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -16,6 +18,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class TrendAnalysisService {
+
+    private static final Logger log = LoggerFactory.getLogger(TrendAnalysisService.class);
 
     private final Map<String, TrendAnalyzer> analyzers = new ConcurrentHashMap<>();
     private final Map<String, List<DataPoint>> dataPoints = new ConcurrentHashMap<>();
@@ -418,6 +422,8 @@ public class TrendAnalysisService {
 
         public boolean isActive() { return isActive; }
         public void setActive(boolean active) { isActive = active; }
+        // Compatibility setter for Lombok-style naming
+        public void setIsActive(boolean active) { this.isActive = active; }
 
         public int getWindowSize() { return windowSize; }
         public void setWindowSize(int windowSize) { this.windowSize = windowSize; }
@@ -452,9 +458,13 @@ public class TrendAnalysisService {
 
         public boolean isForecast() { return isForecast; }
         public void setForecast(boolean forecast) { isForecast = forecast; }
+        // Compatibility setter for Lombok-style naming
+        public void setIsForecast(boolean forecast) { this.isForecast = forecast; }
 
         public boolean isAnomaly() { return isAnomaly; }
         public void setAnomaly(boolean anomaly) { isAnomaly = anomaly; }
+        // Compatibility setter for Lombok-style naming
+        public void setIsAnomaly(boolean anomaly) { this.isAnomaly = anomaly; }
     }
 
     public static class TrendResult {
@@ -502,6 +512,8 @@ public class TrendAnalysisService {
 
         public boolean isSignificant() { return isSignificant; }
         public void setSignificant(boolean significant) { isSignificant = significant; }
+        // Compatibility setter for Lombok-style naming
+        public void setIsSignificant(boolean significant) { this.isSignificant = significant; }
 
         public String getTrendType() { return trendType; }
         public void setTrendType(String trendType) { this.trendType = trendType; }
@@ -552,6 +564,8 @@ public class TrendAnalysisService {
 
         public boolean isActive() { return isActive; }
         public void setActive(boolean active) { isActive = active; }
+        // Compatibility setter for Lombok-style naming
+        public void setIsActive(boolean active) { this.isActive = active; }
 
         public int getTriggerCount() { return triggerCount; }
         public void setTriggerCount(int triggerCount) { this.triggerCount = triggerCount; }

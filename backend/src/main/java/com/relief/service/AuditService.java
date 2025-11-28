@@ -25,7 +25,7 @@ public class AuditService {
         AuditLog auditLog = new AuditLog();
         auditLog.setAction(action);
         auditLog.setDescription(description);
-        auditLog.setUserId(rbacService.getCurrentUser() != null ? rbacService.getCurrentUser().getId() : "system");
+        auditLog.setUserId(rbacService.getCurrentUser() != null ? rbacService.getCurrentUser().getId().toString() : "system");
         auditLog.setUserRole(rbacService.getCurrentUserRole() != null ? rbacService.getCurrentUserRole().getCode() : "SYSTEM");
         auditLog.setTimestamp(LocalDateTime.now());
         auditLog.setIpAddress(getCurrentIpAddress());
@@ -38,7 +38,7 @@ public class AuditService {
         AuditLog auditLog = new AuditLog();
         auditLog.setAction(action);
         auditLog.setDescription(description);
-        auditLog.setUserId(rbacService.getCurrentUser() != null ? rbacService.getCurrentUser().getId() : "system");
+        auditLog.setUserId(rbacService.getCurrentUser() != null ? rbacService.getCurrentUser().getId().toString() : "system");
         auditLog.setUserRole(rbacService.getCurrentUserRole() != null ? rbacService.getCurrentUserRole().getCode() : "SYSTEM");
         auditLog.setTargetUserId(targetUserId);
         auditLog.setTimestamp(LocalDateTime.now());

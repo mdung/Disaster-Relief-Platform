@@ -2,7 +2,6 @@ package com.relief.config;
 
 import com.relief.security.JwtAuthenticationEntryPoint;
 import com.relief.security.JwtAuthenticationFilter;
-import com.relief.security.RateLimitInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,9 +34,6 @@ public class SecurityConfig {
 
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
-
-    @Autowired
-    private RateLimitInterceptor rateLimitInterceptor;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -72,13 +68,11 @@ public class SecurityConfig {
                 .authenticationEntryPoint(jwtAuthenticationEntryPoint)
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-            .addFilterBefore(rateLimitInterceptor, JwtAuthenticationFilter.class)
             .headers(headers -> headers
                 .frameOptions().deny()
                 .contentTypeOptions().and()
                 .httpStrictTransportSecurity(hstsConfig -> hstsConfig
                     .maxAgeInSeconds(31536000)
-                    .includeSubdomains(true)
                 )
                 .referrerPolicy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)
                 .and()

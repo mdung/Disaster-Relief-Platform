@@ -2,6 +2,8 @@ package com.relief.service.security;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -11,6 +13,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 public class ZeroTrustService {
+
+    private static final Logger log = LoggerFactory.getLogger(ZeroTrustService.class);
 
     public VerificationResult verifyAccess(String userId, String deviceId, String ipAddress, String resource, String action) {
         VerificationResult result = new VerificationResult();
@@ -42,6 +46,34 @@ public class ZeroTrustService {
         private boolean allowed;
         private String reason;
         private LocalDateTime timestamp;
+
+        // Explicit getters and setters for Lombok compatibility
+        public String getId() { return id; }
+        public void setId(String id) { this.id = id; }
+
+        public String getUserId() { return userId; }
+        public void setUserId(String userId) { this.userId = userId; }
+
+        public String getDeviceId() { return deviceId; }
+        public void setDeviceId(String deviceId) { this.deviceId = deviceId; }
+
+        public String getIpAddress() { return ipAddress; }
+        public void setIpAddress(String ipAddress) { this.ipAddress = ipAddress; }
+
+        public String getResource() { return resource; }
+        public void setResource(String resource) { this.resource = resource; }
+
+        public String getAction() { return action; }
+        public void setAction(String action) { this.action = action; }
+
+        public boolean isAllowed() { return allowed; }
+        public void setAllowed(boolean allowed) { this.allowed = allowed; }
+
+        public String getReason() { return reason; }
+        public void setReason(String reason) { this.reason = reason; }
+
+        public LocalDateTime getTimestamp() { return timestamp; }
+        public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
     }
 }
 

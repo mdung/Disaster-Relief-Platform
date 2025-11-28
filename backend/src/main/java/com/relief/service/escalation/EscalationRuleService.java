@@ -11,7 +11,6 @@ import java.util.*;
  * Service for managing escalation rules
  */
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class EscalationRuleService {
 

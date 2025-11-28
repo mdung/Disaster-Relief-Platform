@@ -92,7 +92,59 @@ public class DamageAssessment {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
+
+    // Explicit getters and setters for Lombok compatibility
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public SatelliteImage getSatelliteImage() { return satelliteImage; }
+    public void setSatelliteImage(SatelliteImage satelliteImage) { this.satelliteImage = satelliteImage; }
+
+    public Polygon getDamageArea() { return damageArea; }
+    public void setDamageArea(Polygon damageArea) { this.damageArea = damageArea; }
+
+    public DamageType getDamageType() { return damageType; }
+    public void setDamageType(DamageType damageType) { this.damageType = damageType; }
+
+    public DamageSeverity getSeverity() { return severity; }
+    public void setSeverity(DamageSeverity severity) { this.severity = severity; }
+
+    public Double getConfidenceScore() { return confidenceScore; }
+    public void setConfidenceScore(Double confidenceScore) { this.confidenceScore = confidenceScore; }
+
+    public Double getDamagePercentage() { return damagePercentage; }
+    public void setDamagePercentage(Double damagePercentage) { this.damagePercentage = damagePercentage; }
+
+    public Double getAffectedAreaSqm() { return affectedAreaSqm; }
+    public void setAffectedAreaSqm(Double affectedAreaSqm) { this.affectedAreaSqm = affectedAreaSqm; }
+
+    public Long getPreDisasterImageId() { return preDisasterImageId; }
+    public void setPreDisasterImageId(Long preDisasterImageId) { this.preDisasterImageId = preDisasterImageId; }
+
+    public Double getChangeDetectionScore() { return changeDetectionScore; }
+    public void setChangeDetectionScore(Double changeDetectionScore) { this.changeDetectionScore = changeDetectionScore; }
+
+    public String getAnalysisAlgorithm() { return analysisAlgorithm; }
+    public void setAnalysisAlgorithm(String analysisAlgorithm) { this.analysisAlgorithm = analysisAlgorithm; }
+
+    public String getAnalysisParameters() { return analysisParameters; }
+    public void setAnalysisParameters(String analysisParameters) { this.analysisParameters = analysisParameters; }
+
+    public LocalDateTime getAssessedAt() { return assessedAt; }
+    public void setAssessedAt(LocalDateTime assessedAt) { this.assessedAt = assessedAt; }
+
+    public String getAssessedBy() { return assessedBy; }
+    public void setAssessedBy(String assessedBy) { this.assessedBy = assessedBy; }
+
+    public String getNotes() { return notes; }
+    public void setNotes(String notes) { this.notes = notes; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 }
 
 
-
+ 

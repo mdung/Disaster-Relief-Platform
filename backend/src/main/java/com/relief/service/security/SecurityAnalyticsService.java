@@ -2,6 +2,8 @@ package com.relief.service.security;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -11,6 +13,8 @@ import java.util.*;
 @RequiredArgsConstructor
 @Slf4j
 public class SecurityAnalyticsService {
+
+    private static final Logger log = LoggerFactory.getLogger(SecurityAnalyticsService.class);
 
     private final List<Metric> metrics = new ArrayList<>();
 
@@ -41,13 +45,28 @@ public class SecurityAnalyticsService {
         return agg;
     }
 
-    @lombok.Data
     public static class Metric {
         private String id;
         private String name;
         private double value;
         private Map<String, String> labels;
         private LocalDateTime timestamp;
+
+        // Explicit getters and setters for Lombok compatibility
+        public String getId() { return id; }
+        public void setId(String id) { this.id = id; }
+
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
+
+        public double getValue() { return value; }
+        public void setValue(double value) { this.value = value; }
+
+        public Map<String, String> getLabels() { return labels; }
+        public void setLabels(Map<String, String> labels) { this.labels = labels; }
+
+        public LocalDateTime getTimestamp() { return timestamp; }
+        public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
     }
 }
 

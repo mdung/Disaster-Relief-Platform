@@ -1,6 +1,7 @@
 package com.relief.repository;
 
 import com.relief.entity.Task;
+import com.relief.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -43,7 +44,44 @@ public interface TaskRepository extends JpaRepository<Task, UUID> {
     }
     
     @Query("SELECT COUNT(t) FROM Task t WHERE t.assignee = :assignee AND t.status IN :statuses")
-    long countByAssigneeAndStatusIn(@Param("assignee") com.relief.entity.User assignee, @Param("statuses") List<String> statuses);
+    long countByAssigneeAndStatusIn(@Param("assignee") User assignee, @Param("statuses") List<String> statuses);
+
+    /**
+     * Find tasks for a given assignee in any of the provided statuses.
+     * Used for performance history in {@link com.relief.service.task.SkillBasedMatchingService}.
+     */
+    List<Task> findByAssigneeAndStatusIn(User assignee, List<String> statuses);
+
+    /**
+     * Find tasks that are currently unassigned with the given status.
+     * Used for auto-assignment of new tasks.
+     */
+    List<Task> findByAssigneeIsNullAndStatus(String status);
+    
+    /**
+     * Find tasks created between two dates.
+     * Used for performance analytics.
+     */
+    List<Task> findByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
+    
+    /**
+     * Find tasks with any of the provided statuses.
+     * Used for performance analytics.
+     */
+    List<Task> findByStatusIn(List<String> statuses);
+    
+    /**
+     * Find tasks with a specific status (returns List instead of Page).
+     * Used for performance analytics.
+     */
+    List<Task> findByStatus(String status);
+    
+    /**
+     * Find tasks by request ID.
+     * Used for dynamic task creation from historical patterns.
+     */
+    @Query("SELECT t FROM Task t WHERE t.request.id = :requestId")
+    List<Task> findByRequestId(@Param("requestId") UUID requestId);
 }
 
 

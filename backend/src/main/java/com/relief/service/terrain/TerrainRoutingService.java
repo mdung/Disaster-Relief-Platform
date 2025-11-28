@@ -33,7 +33,7 @@ public class TerrainRoutingService {
         
         // Get elevation data along the route
         List<ElevationPoint> elevationPoints = getElevationPointsAlongRoute(
-            startLon, startLat, endLon, endLat, options.getSearchRadius()
+            startLon, startLat, endLon, endLat, options.searchRadius()
         );
         
         if (elevationPoints.isEmpty()) {
@@ -47,11 +47,11 @@ public class TerrainRoutingService {
         );
         
         // Calculate total metrics
-        double totalDistance = segments.stream().mapToDouble(RouteSegment::getDistance).sum();
-        double totalElevationGain = segments.stream().mapToDouble(RouteSegment::getElevationGain).sum();
-        double totalElevationLoss = segments.stream().mapToDouble(RouteSegment::getElevationLoss).sum();
-        double maxSlope = segments.stream().mapToDouble(RouteSegment::getSlope).max().orElse(0);
-        double avgSlope = segments.stream().mapToDouble(RouteSegment::getSlope).average().orElse(0);
+        double totalDistance = segments.stream().mapToDouble(RouteSegment::distance).sum();
+        double totalElevationGain = segments.stream().mapToDouble(RouteSegment::elevationGain).sum();
+        double totalElevationLoss = segments.stream().mapToDouble(RouteSegment::elevationLoss).sum();
+        double maxSlope = segments.stream().mapToDouble(RouteSegment::slope).max().orElse(0);
+        double avgSlope = segments.stream().mapToDouble(RouteSegment::slope).average().orElse(0);
         
         // Calculate terrain difficulty score
         double difficultyScore = calculateDifficultyScore(segments, options);
@@ -70,7 +70,7 @@ public class TerrainRoutingService {
             .avgSlope(avgSlope)
             .difficultyScore(difficultyScore)
             .accessibilityScore(accessibilityScore)
-            .isAccessible(accessibilityScore >= options.getMinAccessibilityScore())
+            .isAccessible(accessibilityScore >= options.minAccessibilityScore())
             .build();
     }
     
@@ -104,11 +104,11 @@ public class TerrainRoutingService {
         // Sort by accessibility score and distance
         return routes.stream()
             .sorted((r1, r2) -> {
-                int accessibilityCompare = Double.compare(r2.getAccessibilityScore(), r1.getAccessibilityScore());
+                int accessibilityCompare = Double.compare(r2.accessibilityScore(), r1.accessibilityScore());
                 if (accessibilityCompare != 0) return accessibilityCompare;
-                return Double.compare(r1.getTotalDistance(), r2.getTotalDistance());
+                return Double.compare(r1.totalDistance(), r2.totalDistance());
             })
-            .limit(options.getMaxAlternativeRoutes())
+            .limit(options.maxAlternativeRoutes())
             .collect(Collectors.toList());
     }
     
@@ -215,10 +215,10 @@ public class TerrainRoutingService {
         double perpBearing1 = (bearing + 90) % 360;
         double perpBearing2 = (bearing - 90 + 360) % 360;
         
-        double offsetDistance = options.getWaypointOffsetDistance();
+        double waypointOffsetDistance = options.waypointOffsetDistance();
         
-        waypoints.add(calculateDestination(midLon, midLat, perpBearing1, offsetDistance));
-        waypoints.add(calculateDestination(midLon, midLat, perpBearing2, offsetDistance));
+        waypoints.add(calculateDestination(midLon, midLat, perpBearing1, waypointOffsetDistance));
+        waypoints.add(calculateDestination(midLon, midLat, perpBearing2, waypointOffsetDistance));
         
         return waypoints;
     }
@@ -234,22 +234,22 @@ public class TerrainRoutingService {
             double segmentDifficulty = 1.0; // Base difficulty
             
             // Increase difficulty for steep slopes
-            if (Math.abs(segment.getSlope()) > options.getMaxSlope()) {
+            if (Math.abs(segment.slope()) > options.maxSlope()) {
                 segmentDifficulty += 2.0;
-            } else if (Math.abs(segment.getSlope()) > options.getMaxSlope() / 2) {
+            } else if (Math.abs(segment.slope()) > options.maxSlope() / 2) {
                 segmentDifficulty += 1.0;
             }
             
             // Increase difficulty for elevation changes
-            if (segment.getElevationGain() > 100) {
+            if (segment.elevationGain() > 100) {
                 segmentDifficulty += 1.0;
             }
-            if (segment.getElevationLoss() > 100) {
+            if (segment.elevationLoss() > 100) {
                 segmentDifficulty += 0.5;
             }
             
-            totalDifficulty += segmentDifficulty * segment.getDistance();
-            totalDistance += segment.getDistance();
+            totalDifficulty += segmentDifficulty * segment.distance();
+            totalDistance += segment.distance();
         }
         
         return totalDistance > 0 ? totalDifficulty / totalDistance : 0;
@@ -260,7 +260,7 @@ public class TerrainRoutingService {
      */
     private double calculateRouteAccessibility(List<RouteSegment> segments, TerrainRoutingOptions options) {
         long accessibleSegments = segments.stream()
-            .filter(segment -> Math.abs(segment.getSlope()) <= options.getMaxSlope())
+            .filter(segment -> Math.abs(segment.slope()) <= options.maxSlope())
             .count();
         
         return segments.isEmpty() ? 0 : (double) accessibleSegments / segments.size();
@@ -298,27 +298,27 @@ public class TerrainRoutingService {
      * Combine two routes
      */
     private TerrainRoute combineRoutes(TerrainRoute route1, TerrainRoute route2) {
-        List<RouteSegment> combinedSegments = new ArrayList<>(route1.getSegments());
-        combinedSegments.addAll(route2.getSegments());
+        List<RouteSegment> combinedSegments = new ArrayList<>(route1.segments());
+        combinedSegments.addAll(route2.segments());
         
-        double totalDistance = route1.getTotalDistance() + route2.getTotalDistance();
-        double totalElevationGain = route1.getTotalElevationGain() + route2.getTotalElevationGain();
-        double totalElevationLoss = route1.getTotalElevationLoss() + route2.getTotalElevationLoss();
-        double maxSlope = Math.max(route1.getMaxSlope(), route2.getMaxSlope());
-        double avgSlope = (route1.getAvgSlope() * route1.getTotalDistance() + 
-                          route2.getAvgSlope() * route2.getTotalDistance()) / totalDistance;
+        double totalDistance = route1.totalDistance() + route2.totalDistance();
+        double totalElevationGain = route1.totalElevationGain() + route2.totalElevationGain();
+        double totalElevationLoss = route1.totalElevationLoss() + route2.totalElevationLoss();
+        double maxSlope = Math.max(route1.maxSlope(), route2.maxSlope());
+        double avgSlope = (route1.avgSlope() * route1.totalDistance() + 
+                          route2.avgSlope() * route2.totalDistance()) / totalDistance;
         
         return TerrainRoute.builder()
-            .startPoint(route1.getStartPoint())
-            .endPoint(route2.getEndPoint())
+            .startPoint(route1.startPoint())
+            .endPoint(route2.endPoint())
             .segments(combinedSegments)
             .totalDistance(totalDistance)
             .totalElevationGain(totalElevationGain)
             .totalElevationLoss(totalElevationLoss)
             .maxSlope(maxSlope)
             .avgSlope(avgSlope)
-            .difficultyScore((route1.getDifficultyScore() + route2.getDifficultyScore()) / 2)
-            .accessibilityScore(Math.min(route1.getAccessibilityScore(), route2.getAccessibilityScore()))
+            .difficultyScore((route1.difficultyScore() + route2.difficultyScore()) / 2)
+            .accessibilityScore(Math.min(route1.accessibilityScore(), route2.accessibilityScore()))
             .isAccessible(route1.isAccessible() && route2.isAccessible())
             .build();
     }
@@ -378,6 +378,7 @@ public class TerrainRoutingService {
     /**
      * Data classes for terrain routing
      */
+    @lombok.Builder
     public record TerrainRoute(
         Coordinate startPoint,
         Coordinate endPoint,
@@ -390,8 +391,13 @@ public class TerrainRoutingService {
         double difficultyScore,
         double accessibilityScore,
         boolean isAccessible
-    ) {}
+    ) {
+        public static TerrainRouteBuilder builder() {
+            return new TerrainRouteBuilder();
+        }
+    }
     
+    @lombok.Builder
     public record RouteSegment(
         Coordinate startPoint,
         Coordinate endPoint,
@@ -399,7 +405,11 @@ public class TerrainRoutingService {
         double slope,
         double elevationGain,
         double elevationLoss
-    ) {}
+    ) {
+        public static RouteSegmentBuilder builder() {
+            return new RouteSegmentBuilder();
+        }
+    }
     
     public record TerrainRoutingOptions(
         double searchRadius,

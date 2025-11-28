@@ -249,6 +249,9 @@ public class OfflineMapCacheService {
         // Write file
         try (java.io.FileOutputStream fos = new java.io.FileOutputStream(filePath)) {
             fos.write(tileData);
+        } catch (IOException e) {
+            log.error("IO error when saving tile: {}", filePath, e);
+            throw new RuntimeException("Failed to save tile file: " + filePath, e);
         }
         
         return filePath;

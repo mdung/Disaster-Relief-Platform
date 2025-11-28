@@ -1,6 +1,8 @@
 package com.relief.service.workflow;
 
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -12,8 +14,9 @@ import java.util.Map;
  * Utility class to convert between WorkflowTemplate and Map (for JSONB storage)
  */
 @Component
-@Slf4j
 public class WorkflowTemplateConverter {
+
+    private static final Logger log = LoggerFactory.getLogger(WorkflowTemplateConverter.class);
 
     /**
      * Convert Map (from JSONB) to WorkflowTemplate

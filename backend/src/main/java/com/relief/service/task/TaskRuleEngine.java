@@ -12,7 +12,6 @@ import java.util.stream.Collectors;
  * Engine for managing task creation rules and patterns
  */
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class TaskRuleEngine {
 

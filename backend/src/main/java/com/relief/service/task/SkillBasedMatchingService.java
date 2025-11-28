@@ -6,6 +6,8 @@ import com.relief.repository.TaskRepository;
 import com.relief.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,8 +20,9 @@ import java.util.stream.Collectors;
  */
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class SkillBasedMatchingService {
+
+    private static final Logger log = LoggerFactory.getLogger(SkillBasedMatchingService.class);
 
     private final UserRepository userRepository;
     private final TaskRepository taskRepository;

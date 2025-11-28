@@ -241,6 +241,7 @@ public class DisasterSimulationService {
 
         public boolean isActive() { return isActive; }
         public void setActive(boolean active) { isActive = active; }
+        public void setIsActive(boolean active) { isActive = active; }
     }
 
     public static class SimulationSession {
@@ -353,6 +354,7 @@ public class DisasterSimulationService {
 
         public boolean isCorrect() { return isCorrect; }
         public void setCorrect(boolean correct) { isCorrect = correct; }
+        public void setIsCorrect(boolean correct) { isCorrect = correct; }
     }
 
     public static class SimulationScore {
@@ -473,6 +475,7 @@ public class DisasterSimulationService {
 
         public boolean isPublic() { return isPublic; }
         public void setPublic(boolean aPublic) { isPublic = aPublic; }
+        public void setIsPublic(boolean aPublic) { isPublic = aPublic; }
     }
 
     public enum SimulationStatus {

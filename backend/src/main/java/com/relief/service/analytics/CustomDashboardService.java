@@ -229,6 +229,7 @@ public class CustomDashboardService {
 
         public boolean isPublic() { return isPublic; }
         public void setPublic(boolean aPublic) { isPublic = aPublic; }
+        public void setIsPublic(boolean aPublic) { isPublic = aPublic; }
 
         public Map<String, Object> getLayout() { return layout; }
         public void setLayout(Map<String, Object> layout) { this.layout = layout; }
@@ -241,6 +242,7 @@ public class CustomDashboardService {
 
         public boolean isActive() { return isActive; }
         public void setActive(boolean active) { isActive = active; }
+        public void setIsActive(boolean active) { isActive = active; }
     }
 
     public static class DashboardWidget {
@@ -281,6 +283,7 @@ public class CustomDashboardService {
 
         public boolean isVisible() { return isVisible; }
         public void setVisible(boolean visible) { isVisible = visible; }
+        public void setIsVisible(boolean visible) { isVisible = visible; }
     }
 
     public static class WidgetData {
@@ -337,6 +340,7 @@ public class CustomDashboardService {
 
         public boolean isPublic() { return isPublic; }
         public void setPublic(boolean aPublic) { isPublic = aPublic; }
+        public void setIsPublic(boolean aPublic) { isPublic = aPublic; }
     }
 
     public static class DashboardAnalytics {

@@ -7,6 +7,7 @@ import com.relief.repository.NeedsRequestRepository;
 import com.relief.repository.TaskRepository;
 import com.relief.repository.UserRepository;
 import com.relief.service.notification.SmartNotificationService;
+import com.relief.service.escalation.EscalationRuleService.EscalationRule;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;

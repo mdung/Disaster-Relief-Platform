@@ -61,10 +61,17 @@ public class TaskPerformanceAnalyticsService {
     }
 
     /**
-     * Get tasks in date range
+     * Get tasks in date range using a more efficient query
      */
     private List<Task> getTasksInDateRange(LocalDateTime startDate, LocalDateTime endDate) {
-        return taskRepository.findByCreatedAtBetween(startDate, endDate);
+        try {
+            log.debug("Fetching tasks between {} and {}", startDate, endDate);
+            // Use a custom query to fetch only the tasks in the date range
+            return taskRepository.findByCreatedAtBetween(startDate, endDate);
+        } catch (Exception e) {
+            log.error("Error fetching tasks in date range", e);
+            return Collections.emptyList();
+        }
     }
 
     /**
@@ -73,28 +80,47 @@ public class TaskPerformanceAnalyticsService {
     private CompletionMetrics calculateCompletionMetrics(List<Task> tasks) {
         CompletionMetrics metrics = new CompletionMetrics();
         
-        int totalTasks = tasks.size();
-        int completedTasks = (int) tasks.stream()
-            .filter(t -> Arrays.asList("delivered", "completed", "resolved").contains(t.getStatus()))
-            .count();
-        int cancelledTasks = (int) tasks.stream()
-            .filter(t -> Arrays.asList("cancelled", "failed").contains(t.getStatus()))
-            .count();
-        int inProgressTasks = (int) tasks.stream()
-            .filter(t -> Arrays.asList("assigned", "picked_up").contains(t.getStatus()))
-            .count();
-        
-        metrics.setTotalTasks(totalTasks);
-        metrics.setCompletedTasks(completedTasks);
-        metrics.setCancelledTasks(cancelledTasks);
-        metrics.setInProgressTasks(inProgressTasks);
-        
-        if (totalTasks > 0) {
+        try {
+            int totalTasks = tasks.size();
+            if (totalTasks == 0) {
+                return metrics; // Return empty metrics for no tasks
+            }
+            
+            // Use parallel stream for better performance with large datasets
+            Map<String, Long> statusCounts = tasks.parallelStream()
+                .collect(Collectors.groupingByConcurrent(
+                    Task::getStatus,
+                    Collectors.counting()
+                ));
+            
+            // Define status categories
+            long completedTasks = sumStatuses(statusCounts, "delivered", "completed", "resolved");
+            long cancelledTasks = sumStatuses(statusCounts, "cancelled", "failed");
+            long inProgressTasks = sumStatuses(statusCounts, "assigned", "picked_up");
+            
+            metrics.setTotalTasks(totalTasks);
+            metrics.setCompletedTasks((int) completedTasks);
+            metrics.setCancelledTasks((int) cancelledTasks);
+            metrics.setInProgressTasks((int) inProgressTasks);
+            
+            // Calculate rates
             metrics.setCompletionRate((double) completedTasks / totalTasks * 100);
             metrics.setCancellationRate((double) cancelledTasks / totalTasks * 100);
+            
+        } catch (Exception e) {
+            log.error("Error calculating completion metrics", e);
         }
         
         return metrics;
+    }
+    
+    /**
+     * Helper method to sum counts of multiple statuses
+     */
+    private long sumStatuses(Map<String, Long> statusCounts, String... statuses) {
+        return Arrays.stream(statuses)
+            .mapToLong(status -> statusCounts.getOrDefault(status, 0L))
+            .sum();
     }
 
     /**

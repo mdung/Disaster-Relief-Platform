@@ -271,7 +271,7 @@ public class LocationAnalyticsService {
             case STATIONARY_CLUSTER:
                 optimizations.addAll(generateStationaryOptimizations(pattern));
                 break;
-            case ROUTE_OPTIMIZATION:
+            case OPTIMIZED_ROUTE:
                 optimizations.addAll(generateRouteOptimizations(pattern));
                 break;
             case SEARCH_GRID:
@@ -484,7 +484,7 @@ public class LocationAnalyticsService {
     private List<List<LocationHistory>> groupStationaryClusters(List<LocationHistory> locations) {
         // Simplified stationary cluster grouping
         return locations.stream()
-            .filter(LocationHistory::getIsStationary)
+            .filter(loc -> loc.getIsStationary() != null && loc.getIsStationary())
             .map(List::of)
             .collect(Collectors.toList());
     }
@@ -504,7 +504,7 @@ public class LocationAnalyticsService {
     private List<LocationHistory> detectAnomalies(List<LocationHistory> locations) {
         // Simplified anomaly detection
         return locations.stream()
-            .filter(loc -> loc.getSpeed() > 50) // Speed > 50 m/s is anomalous
+            .filter(loc -> loc.getSpeed() != null && loc.getSpeed() > 50) // Speed > 50 m/s is anomalous
             .collect(Collectors.toList());
     }
     
@@ -541,12 +541,12 @@ public class LocationAnalyticsService {
             .sum();
         
         double averageSpeed = locations.stream()
-            .mapToDouble(LocationHistory::getSpeed)
+            .mapToDouble(loc -> loc.getSpeed() != null ? loc.getSpeed() : 0.0)
             .average()
             .orElse(0.0);
         
         double maxSpeed = locations.stream()
-            .mapToDouble(LocationHistory::getSpeed)
+            .mapToDouble(loc -> loc.getSpeed() != null ? loc.getSpeed() : 0.0)
             .max()
             .orElse(0.0);
         

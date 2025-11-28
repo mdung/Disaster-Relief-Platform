@@ -7,6 +7,8 @@ import com.relief.repository.heatmap.HeatmapLayerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.locationtech.jts.geom.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +24,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Slf4j
 public class HeatmapVisualizationService {
+
+    private static final Logger log = LoggerFactory.getLogger(HeatmapVisualizationService.class);
     
     private final HeatmapDataRepository heatmapDataRepository;
     private final HeatmapConfigurationRepository configurationRepository;

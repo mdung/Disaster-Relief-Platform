@@ -2,6 +2,8 @@ package com.relief.service.analytics;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -15,6 +17,8 @@ import java.util.*;
 @RequiredArgsConstructor
 @Slf4j
 public class AdvancedReportingService {
+
+    private static final Logger log = LoggerFactory.getLogger(AdvancedReportingService.class);
 
     public Report createReport(String name, String description, String reportType, String userId, 
                             List<ReportDataSource> dataSources, Map<String, Object> configuration) {
@@ -245,6 +249,7 @@ public class AdvancedReportingService {
 
         public boolean isPublic() { return isPublic; }
         public void setPublic(boolean aPublic) { isPublic = aPublic; }
+        public void setIsPublic(boolean isPublic) { this.isPublic = isPublic; }
     }
 
     public static class ReportDataSource {
@@ -406,6 +411,7 @@ public class AdvancedReportingService {
 
         public boolean isActive() { return isActive; }
         public void setActive(boolean active) { isActive = active; }
+        public void setIsActive(boolean isActive) { this.isActive = isActive; }
 
         public LocalDateTime getNextRun() { return nextRun; }
         public void setNextRun(LocalDateTime nextRun) { this.nextRun = nextRun; }
@@ -449,6 +455,7 @@ public class AdvancedReportingService {
 
         public boolean isPublic() { return isPublic; }
         public void setPublic(boolean aPublic) { isPublic = aPublic; }
+        public void setIsPublic(boolean isPublic) { this.isPublic = isPublic; }
     }
 
     public static class ReportAnalytics {

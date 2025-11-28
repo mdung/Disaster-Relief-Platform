@@ -2,6 +2,8 @@ package com.relief.service.ai;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -16,6 +18,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class EarlyWarningService {
+
+    private static final Logger log = LoggerFactory.getLogger(EarlyWarningService.class);
 
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(5);
     private final Map<String, WarningRule> rules = new ConcurrentHashMap<>();

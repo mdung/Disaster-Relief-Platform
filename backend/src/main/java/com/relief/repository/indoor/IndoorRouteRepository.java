@@ -57,6 +57,11 @@ public interface IndoorRouteRepository extends JpaRepository<IndoorRoute, Long> 
      * Find routes by map and accessibility
      */
     List<IndoorRoute> findByIndoorMapIdAndIsAccessibleTrue(Long indoorMapId);
+
+    /**
+     * Find emergency routes by map
+     */
+    List<IndoorRoute> findByIndoorMapIdAndIsEmergencyRouteTrue(Long indoorMapId);
     
     /**
      * Find routes from a node

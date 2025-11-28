@@ -62,21 +62,21 @@ public class MetricsService {
                 .register(meterRegistry);
         
         // Initialize gauges
-        Gauge.builder("disaster_relief_needs_active_total")
+        Gauge.builder("disaster_relief_needs_active_total", activeNeedsGauge, AtomicLong::get)
                 .description("Number of active needs requests")
-                .register(meterRegistry, activeNeedsGauge, AtomicLong::get);
+                .register(meterRegistry);
                 
-        Gauge.builder("disaster_relief_tasks_active_total")
+        Gauge.builder("disaster_relief_tasks_active_total", activeTasksGauge, AtomicLong::get)
                 .description("Number of active tasks")
-                .register(meterRegistry, activeTasksGauge, AtomicLong::get);
+                .register(meterRegistry);
                 
-        Gauge.builder("disaster_relief_users_active_total")
+        Gauge.builder("disaster_relief_users_active_total", activeUsersGauge, AtomicLong::get)
                 .description("Number of active users")
-                .register(meterRegistry, activeUsersGauge, AtomicLong::get);
+                .register(meterRegistry);
                 
-        Gauge.builder("disaster_relief_inventory_low_stock_total")
+        Gauge.builder("disaster_relief_inventory_low_stock_total", lowStockItemsGauge, AtomicLong::get)
                 .description("Number of items with low stock")
-                .register(meterRegistry, lowStockItemsGauge, AtomicLong::get);
+                .register(meterRegistry);
     }
 
     // Counter methods
@@ -169,27 +169,27 @@ public class MetricsService {
 
     // Business metrics
     public void recordNeedsByCategory(String category, long count) {
-        Gauge.builder("disaster_relief_needs_total")
+        Gauge.builder("disaster_relief_needs_total", () -> count)
                 .tag("category", category)
-                .register(meterRegistry, () -> count);
+                .register(meterRegistry);
     }
 
     public void recordTasksByStatus(String status, long count) {
-        Gauge.builder("disaster_relief_tasks_total")
+        Gauge.builder("disaster_relief_tasks_total", () -> count)
                 .tag("status", status)
-                .register(meterRegistry, () -> count);
+                .register(meterRegistry);
     }
 
     public void recordUsersByRole(String role, long count) {
-        Gauge.builder("disaster_relief_users_total")
+        Gauge.builder("disaster_relief_users_total", () -> count)
                 .tag("role", role)
-                .register(meterRegistry, () -> count);
+                .register(meterRegistry);
     }
 
     public void recordInventoryByHub(String hub, long count) {
-        Gauge.builder("disaster_relief_inventory_total")
+        Gauge.builder("disaster_relief_inventory_total", () -> count)
                 .tag("hub", hub)
-                .register(meterRegistry, () -> count);
+                .register(meterRegistry);
     }
 
     public void recordResponseTimeBySeverity(String severity, Duration duration) {

@@ -2,6 +2,8 @@ package com.relief.service.analytics;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -15,6 +17,8 @@ import java.util.*;
 @RequiredArgsConstructor
 @Slf4j
 public class ROIAnalysisService {
+
+    private static final Logger log = LoggerFactory.getLogger(ROIAnalysisService.class);
 
     public ROIAnalysis createAnalysis(String name, String description, String analysisType, 
                                     String projectId, Map<String, Object> parameters, String userId) {
@@ -273,6 +277,8 @@ public class ROIAnalysisService {
 
         public boolean isActive() { return isActive; }
         public void setActive(boolean active) { isActive = active; }
+        // Compatibility setter for Lombok-style naming
+        public void setIsActive(boolean active) { this.isActive = active; }
     }
 
     public static class ROIMetrics {

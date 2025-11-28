@@ -1,7 +1,8 @@
 package com.relief.service.optimization;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -13,8 +14,9 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class SmartInventoryService {
+
+    private static final Logger log = LoggerFactory.getLogger(SmartInventoryService.class);
 
     private final Map<String, InventoryOptimization> optimizations = new ConcurrentHashMap<>();
     private final Map<String, ReorderRule> reorderRules = new ConcurrentHashMap<>();

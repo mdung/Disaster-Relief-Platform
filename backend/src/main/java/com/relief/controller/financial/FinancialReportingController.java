@@ -82,7 +82,7 @@ public class FinancialReportingController {
             reportId,
             request.getSchedule(),
             request.getRecipients(),
-            request.getEnabled()
+            request.isEnabled()
         );
         
         return ResponseEntity.ok(schedule);

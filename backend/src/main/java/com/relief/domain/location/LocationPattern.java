@@ -66,6 +66,14 @@ public class LocationPattern {
     @Column(name = "distance_meters", nullable = false)
     private Double distanceMeters;
     
+    public Double getDistanceMeters() {
+        return distanceMeters;
+    }
+    
+    public void setDistanceMeters(Double distanceMeters) {
+        this.distanceMeters = distanceMeters;
+    }
+    
     @Column(name = "average_speed", nullable = false)
     private Double averageSpeed; // Average speed in m/s
     

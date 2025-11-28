@@ -101,6 +101,145 @@ public class GeofenceAlert {
             createdAt = LocalDateTime.now();
         }
     }
+
+    // Explicit getters and setters for Lombok compatibility
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public Geofence getGeofence() { return geofence; }
+    public void setGeofence(Geofence geofence) { this.geofence = geofence; }
+
+    public GeofenceAlertType getAlertType() { return alertType; }
+    public void setAlertType(GeofenceAlertType alertType) { this.alertType = alertType; }
+
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+
+    public String getMessage() { return message; }
+    public void setMessage(String message) { this.message = message; }
+
+    public GeofenceAlertSeverity getSeverity() { return severity; }
+    public void setSeverity(GeofenceAlertSeverity severity) { this.severity = severity; }
+
+    public GeofenceAlertStatus getStatus() { return status; }
+    public void setStatus(GeofenceAlertStatus status) { this.status = status; }
+
+    public Long getTriggeredByEventId() { return triggeredByEventId; }
+    public void setTriggeredByEventId(Long triggeredByEventId) { this.triggeredByEventId = triggeredByEventId; }
+
+    public String getAlertData() { return alertData; }
+    public void setAlertData(String alertData) { this.alertData = alertData; }
+
+    public String getNotificationChannels() { return notificationChannels; }
+    public void setNotificationChannels(String notificationChannels) { this.notificationChannels = notificationChannels; }
+
+    public String getAutoActionsTriggered() { return autoActionsTriggered; }
+    public void setAutoActionsTriggered(String autoActionsTriggered) { this.autoActionsTriggered = autoActionsTriggered; }
+
+    public String getAssignedTo() { return assignedTo; }
+    public void setAssignedTo(String assignedTo) { this.assignedTo = assignedTo; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public LocalDateTime getAcknowledgedAt() { return acknowledgedAt; }
+    public void setAcknowledgedAt(LocalDateTime acknowledgedAt) { this.acknowledgedAt = acknowledgedAt; }
+
+    public String getAcknowledgedBy() { return acknowledgedBy; }
+    public void setAcknowledgedBy(String acknowledgedBy) { this.acknowledgedBy = acknowledgedBy; }
+
+    public LocalDateTime getResolvedAt() { return resolvedAt; }
+    public void setResolvedAt(LocalDateTime resolvedAt) { this.resolvedAt = resolvedAt; }
+
+    public String getResolvedBy() { return resolvedBy; }
+    public void setResolvedBy(String resolvedBy) { this.resolvedBy = resolvedBy; }
+
+    public String getResolutionNotes() { return resolutionNotes; }
+    public void setResolutionNotes(String resolutionNotes) { this.resolutionNotes = resolutionNotes; }
+
+    public LocalDateTime getEscalatedAt() { return escalatedAt; }
+    public void setEscalatedAt(LocalDateTime escalatedAt) { this.escalatedAt = escalatedAt; }
+
+    public String getEscalatedTo() { return escalatedTo; }
+    public void setEscalatedTo(String escalatedTo) { this.escalatedTo = escalatedTo; }
+
+    public String getEscalationReason() { return escalationReason; }
+    public void setEscalationReason(String escalationReason) { this.escalationReason = escalationReason; }
+
+    // Builder pattern for Lombok compatibility
+    public static Builder builder() { return new Builder(); }
+
+    public static class Builder {
+        private Long id;
+        private Geofence geofence;
+        private GeofenceAlertType alertType;
+        private String title;
+        private String message;
+        private GeofenceAlertSeverity severity;
+        private GeofenceAlertStatus status;
+        private Long triggeredByEventId;
+        private String alertData;
+        private String notificationChannels;
+        private String autoActionsTriggered;
+        private String assignedTo;
+        private LocalDateTime createdAt;
+        private LocalDateTime acknowledgedAt;
+        private String acknowledgedBy;
+        private LocalDateTime resolvedAt;
+        private String resolvedBy;
+        private String resolutionNotes;
+        private LocalDateTime escalatedAt;
+        private String escalatedTo;
+        private String escalationReason;
+
+        public Builder id(Long id) { this.id = id; return this; }
+        public Builder geofence(Geofence geofence) { this.geofence = geofence; return this; }
+        public Builder alertType(GeofenceAlertType alertType) { this.alertType = alertType; return this; }
+        public Builder title(String title) { this.title = title; return this; }
+        public Builder message(String message) { this.message = message; return this; }
+        public Builder severity(GeofenceAlertSeverity severity) { this.severity = severity; return this; }
+        public Builder status(GeofenceAlertStatus status) { this.status = status; return this; }
+        public Builder triggeredByEventId(Long triggeredByEventId) { this.triggeredByEventId = triggeredByEventId; return this; }
+        public Builder alertData(String alertData) { this.alertData = alertData; return this; }
+        public Builder notificationChannels(String notificationChannels) { this.notificationChannels = notificationChannels; return this; }
+        public Builder autoActionsTriggered(String autoActionsTriggered) { this.autoActionsTriggered = autoActionsTriggered; return this; }
+        public Builder assignedTo(String assignedTo) { this.assignedTo = assignedTo; return this; }
+        public Builder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
+        public Builder acknowledgedAt(LocalDateTime acknowledgedAt) { this.acknowledgedAt = acknowledgedAt; return this; }
+        public Builder acknowledgedBy(String acknowledgedBy) { this.acknowledgedBy = acknowledgedBy; return this; }
+        public Builder resolvedAt(LocalDateTime resolvedAt) { this.resolvedAt = resolvedAt; return this; }
+        public Builder resolvedBy(String resolvedBy) { this.resolvedBy = resolvedBy; return this; }
+        public Builder resolutionNotes(String resolutionNotes) { this.resolutionNotes = resolutionNotes; return this; }
+        public Builder escalatedAt(LocalDateTime escalatedAt) { this.escalatedAt = escalatedAt; return this; }
+        public Builder escalatedTo(String escalatedTo) { this.escalatedTo = escalatedTo; return this; }
+        public Builder escalationReason(String escalationReason) { this.escalationReason = escalationReason; return this; }
+
+        public GeofenceAlert build() {
+            GeofenceAlert alert = new GeofenceAlert();
+            alert.setId(id);
+            alert.setGeofence(geofence);
+            alert.setAlertType(alertType);
+            alert.setTitle(title);
+            alert.setMessage(message);
+            alert.setSeverity(severity);
+            alert.setStatus(status);
+            alert.setTriggeredByEventId(triggeredByEventId);
+            alert.setAlertData(alertData);
+            alert.setNotificationChannels(notificationChannels);
+            alert.setAutoActionsTriggered(autoActionsTriggered);
+            alert.setAssignedTo(assignedTo);
+            alert.setCreatedAt(createdAt);
+            alert.setAcknowledgedAt(acknowledgedAt);
+            alert.setAcknowledgedBy(acknowledgedBy);
+            alert.setResolvedAt(resolvedAt);
+            alert.setResolvedBy(resolvedBy);
+            alert.setResolutionNotes(resolutionNotes);
+            alert.setEscalatedAt(escalatedAt);
+            alert.setEscalatedTo(escalatedTo);
+            alert.setEscalationReason(escalationReason);
+            return alert;
+        }
+    }
 }
 
 

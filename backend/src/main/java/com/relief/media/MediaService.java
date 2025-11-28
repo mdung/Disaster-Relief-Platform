@@ -71,7 +71,7 @@ public class MediaService {
         // Build media URL from object name
         String mediaUrl = buildMediaUrl(request.getObjectName());
 
-        Media.MediaBuilder mediaBuilder = Media.builder()
+        Media.Builder mediaBuilder = Media.builder()
                 .ownerUser(owner)
                 .type(mediaType)
                 .url(mediaUrl)

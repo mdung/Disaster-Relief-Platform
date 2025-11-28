@@ -37,6 +37,25 @@ public class DedupeGroup {
 
     @Column(name = "note", length = 1000)
     private String note;
+
+    // Explicit getters and setters for Lombok compatibility
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
+
+    public String getEntityType() { return entityType; }
+    public void setEntityType(String entityType) { this.entityType = entityType; }
+
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public User getCreatedBy() { return createdBy; }
+    public void setCreatedBy(User createdBy) { this.createdBy = createdBy; }
+
+    public String getNote() { return note; }
+    public void setNote(String note) { this.note = note; }
 }
 
 

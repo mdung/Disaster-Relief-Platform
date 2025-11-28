@@ -59,6 +59,31 @@ public class ElevationPoint {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
+
+    // Explicit getters and setters for Lombok compatibility
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public Point getLocation() { return location; }
+    public void setLocation(Point location) { this.location = location; }
+
+    public Double getElevation() { return elevation; }
+    public void setElevation(Double elevation) { this.elevation = elevation; }
+
+    public ElevationSource getSource() { return source; }
+    public void setSource(ElevationSource source) { this.source = source; }
+
+    public Double getAccuracy() { return accuracy; }
+    public void setAccuracy(Double accuracy) { this.accuracy = accuracy; }
+
+    public Double getResolution() { return resolution; }
+    public void setResolution(Double resolution) { this.resolution = resolution; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 }
 
 

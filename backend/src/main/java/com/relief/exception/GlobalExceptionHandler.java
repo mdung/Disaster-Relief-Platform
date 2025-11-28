@@ -1,7 +1,9 @@
 package com.relief.exception;
 
-import lombok.Value;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -11,6 +13,8 @@ import java.time.LocalDateTime;
 @ControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<ErrorResponse> handleApiException(ApiException ex) {
@@ -24,10 +28,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.internalServerError().body(new ErrorResponse("Internal server error"));
     }
 
-    @Value
+    @Data
     static class ErrorResponse {
-        String message;
-        LocalDateTime timestamp = LocalDateTime.now();
+        private String message;
+        private LocalDateTime timestamp = LocalDateTime.now();
+
+        public ErrorResponse() {}
+
+        public ErrorResponse(String message) {
+            this.message = message;
+        }
     }
 }
 

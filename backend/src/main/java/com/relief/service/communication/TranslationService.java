@@ -1,7 +1,8 @@
 package com.relief.service.communication;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,8 +15,9 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class TranslationService {
+
+    private static final Logger log = LoggerFactory.getLogger(TranslationService.class);
 
     private final Map<String, TranslationCache> translationCache = new ConcurrentHashMap<>();
     private final Map<String, LanguageSupport> supportedLanguages = new HashMap<>();

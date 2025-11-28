@@ -2,6 +2,8 @@ package com.relief.service.realtime;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -19,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class EventCorrelationService {
 
+    private static final Logger log = LoggerFactory.getLogger(EventCorrelationService.class);
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(5);
     private final Map<String, CorrelationRule> rules = new ConcurrentHashMap<>();
     private final Map<String, List<Event>> eventBuffer = new ConcurrentHashMap<>();
@@ -438,6 +441,8 @@ public class EventCorrelationService {
 
         public boolean isActive() { return isActive; }
         public void setActive(boolean active) { isActive = active; }
+        // Compatibility setter for Lombok-style naming
+        public void setIsActive(boolean active) { this.isActive = active; }
 
         public int getPriority() { return priority; }
         public void setPriority(int priority) { this.priority = priority; }
@@ -469,6 +474,8 @@ public class EventCorrelationService {
 
         public boolean isSignificant() { return isSignificant; }
         public void setSignificant(boolean significant) { isSignificant = significant; }
+        // Compatibility setter for Lombok-style naming
+        public void setIsSignificant(boolean significant) { this.isSignificant = significant; }
     }
 
     public static class EventPattern {

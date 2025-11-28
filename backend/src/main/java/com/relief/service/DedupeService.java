@@ -98,6 +98,36 @@ public class DedupeService {
         meterRegistry.counter("dedupe.groups.merged", "entityType", entityType).increment();
     }
 
+    @Transactional
+    public int mergeRequests(List<UUID> requestIds, String reason) {
+        if (requestIds == null || requestIds.isEmpty()) {
+            return 0;
+        }
+        
+        UUID canonicalId = requestIds.get(0);
+        int updated = 0;
+        
+        for (int i = 1; i < requestIds.size(); i++) {
+            UUID duplicateId = requestIds.get(i);
+            if (duplicateId == null || duplicateId.equals(canonicalId)) continue;
+            
+            NeedsRequest req = needsRequestRepository.findById(duplicateId).orElse(null);
+            if (req != null) {
+                req.setStatus("merged");
+                needsRequestRepository.save(req);
+                updated++;
+            }
+        }
+        
+        if (updated > 0) {
+            auditService.logAdminAction("DEDUPE_REQUESTS_MERGED",
+                    "Merged %d requests into %s. Reason: %s".formatted(updated, canonicalId, reason != null ? reason : "N/A"));
+            meterRegistry.counter("dedupe.requests.merged").increment(updated);
+        }
+        
+        return updated;
+    }
+
     private void mergeNeedsRequests(UUID canonicalId, List<DedupeLink> links) {
         for (DedupeLink link : links) {
             UUID duplicateId = link.getEntityId();

@@ -2,6 +2,8 @@ package com.relief.service.optimization;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -16,6 +18,8 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequiredArgsConstructor
 @Slf4j
 public class DynamicRoutingService {
+
+    private static final Logger log = LoggerFactory.getLogger(DynamicRoutingService.class);
 
     private final Map<String, Route> routes = new ConcurrentHashMap<>();
     private final Map<String, RouteOptimization> optimizations = new ConcurrentHashMap<>();
@@ -220,7 +224,6 @@ public class DynamicRoutingService {
     }
 
     // Inner classes
-    @lombok.Data
     public static class Route {
         private String id;
         private String originLat;
@@ -233,6 +236,40 @@ public class DynamicRoutingService {
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
         private LocalDateTime reoptimizedAt;
+
+        // Explicit getters and setters for Lombok compatibility
+        public String getId() { return id; }
+        public void setId(String id) { this.id = id; }
+
+        public String getOriginLat() { return originLat; }
+        public void setOriginLat(String originLat) { this.originLat = originLat; }
+
+        public String getOriginLon() { return originLon; }
+        public void setOriginLon(String originLon) { this.originLon = originLon; }
+
+        public List<String> getDestinations() { return destinations; }
+        public void setDestinations(List<String> destinations) { this.destinations = destinations; }
+
+        public RouteOptimization getOptimization() { return optimization; }
+        public void setOptimization(RouteOptimization optimization) { this.optimization = optimization; }
+
+        public double getEstimatedDuration() { return estimatedDuration; }
+        public void setEstimatedDuration(double estimatedDuration) { this.estimatedDuration = estimatedDuration; }
+
+        public double getEstimatedDistance() { return estimatedDistance; }
+        public void setEstimatedDistance(double estimatedDistance) { this.estimatedDistance = estimatedDistance; }
+
+        public int getPriority() { return priority; }
+        public void setPriority(int priority) { this.priority = priority; }
+
+        public LocalDateTime getCreatedAt() { return createdAt; }
+        public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+        public LocalDateTime getUpdatedAt() { return updatedAt; }
+        public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+        public LocalDateTime getReoptimizedAt() { return reoptimizedAt; }
+        public void setReoptimizedAt(LocalDateTime reoptimizedAt) { this.reoptimizedAt = reoptimizedAt; }
     }
 
     @lombok.Data
@@ -246,6 +283,34 @@ public class DynamicRoutingService {
         private double priorityAdjustment;
         private double confidence;
         private LocalDateTime optimizedAt;
+
+        // Explicit getters and setters for Lombok compatibility
+        public String getId() { return id; }
+        public void setId(String id) { this.id = id; }
+
+        public List<Waypoint> getWaypoints() { return waypoints; }
+        public void setWaypoints(List<Waypoint> waypoints) { this.waypoints = waypoints; }
+
+        public double getTotalDistance() { return totalDistance; }
+        public void setTotalDistance(double totalDistance) { this.totalDistance = totalDistance; }
+
+        public double getTotalDuration() { return totalDuration; }
+        public void setTotalDuration(double totalDuration) { this.totalDuration = totalDuration; }
+
+        public double getTrafficImpact() { return trafficImpact; }
+        public void setTrafficImpact(double trafficImpact) { this.trafficImpact = trafficImpact; }
+
+        public double getWeatherImpact() { return weatherImpact; }
+        public void setWeatherImpact(double weatherImpact) { this.weatherImpact = weatherImpact; }
+
+        public double getPriorityAdjustment() { return priorityAdjustment; }
+        public void setPriorityAdjustment(double priorityAdjustment) { this.priorityAdjustment = priorityAdjustment; }
+
+        public double getConfidence() { return confidence; }
+        public void setConfidence(double confidence) { this.confidence = confidence; }
+
+        public LocalDateTime getOptimizedAt() { return optimizedAt; }
+        public void setOptimizedAt(LocalDateTime optimizedAt) { this.optimizedAt = optimizedAt; }
     }
 
     @lombok.Data
@@ -261,6 +326,19 @@ public class DynamicRoutingService {
             this.type = type;
             this.order = order;
         }
+
+        // Explicit getters for Lombok compatibility
+        public String getLatitude() { return latitude; }
+        public void setLatitude(String latitude) { this.latitude = latitude; }
+
+        public String getLongitude() { return longitude; }
+        public void setLongitude(String longitude) { this.longitude = longitude; }
+
+        public String getType() { return type; }
+        public void setType(String type) { this.type = type; }
+
+        public int getOrder() { return order; }
+        public void setOrder(int order) { this.order = order; }
     }
 }
 

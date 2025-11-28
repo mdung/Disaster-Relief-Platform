@@ -17,7 +17,6 @@ NC='\033[0m' # No Color
 PLATFORM_URL="https://disaster-relief.local"
 ADMIN_EMAIL="admin@disaster-relief.local"
 DEFAULT_PASSWORD="ChangeMe123!"
-DOCKER_COMPOSE_FILE="docker-compose.yml"
 ENV_FILE=".env"
 
 # Functions
@@ -53,18 +52,24 @@ print_warning() {
 check_requirements() {
     print_step "1" "Checking system requirements..."
     
-    # Check if Docker is installed
-    if ! command -v docker &> /dev/null; then
-        print_error "Docker is required but not installed"
-        print_info "Please install Docker from https://docs.docker.com/get-docker/"
+    # Check if Java is installed
+    if ! command -v java &> /dev/null; then
+        print_error "Java 17+ is required but not installed"
+        print_info "Please install Java from https://adoptium.net/"
         exit 1
     fi
     
-    # Check if Docker Compose is installed
-    if ! command -v docker-compose &> /dev/null; then
-        print_error "Docker Compose is required but not installed"
-        print_info "Please install Docker Compose from https://docs.docker.com/compose/install/"
+    # Check if Node.js is installed
+    if ! command -v node &> /dev/null; then
+        print_error "Node.js 18+ is required but not installed"
+        print_info "Please install Node.js from https://nodejs.org/"
         exit 1
+    fi
+    
+    # Check if PostgreSQL is installed
+    if ! command -v psql &> /dev/null; then
+        print_warning "PostgreSQL is not installed or not in PATH"
+        print_info "Please install PostgreSQL with PostGIS extension"
     fi
     
     # Check if curl is installed
@@ -75,8 +80,7 @@ check_requirements() {
     
     # Check if jq is installed
     if ! command -v jq &> /dev/null; then
-        print_error "jq is required but not installed"
-        exit 1
+        print_warning "jq is not installed (optional but recommended)"
     fi
     
     # Check available disk space (at least 10GB)
@@ -98,11 +102,25 @@ check_requirements() {
 create_env_file() {
     print_step "2" "Creating environment configuration..."
     
+    read -p "Enter database host (default: localhost): " DB_HOST
+    DB_HOST=${DB_HOST:-localhost}
+    read -p "Enter database port (default: 5432): " DB_PORT
+    DB_PORT=${DB_PORT:-5432}
+    read -p "Enter database name (default: relief_platform): " DB_NAME
+    DB_NAME=${DB_NAME:-relief_platform}
+    read -p "Enter database username (default: postgres): " DB_USERNAME
+    DB_USERNAME=${DB_USERNAME:-postgres}
     read -p "Enter database password: " DB_PASSWORD
-    read -p "Enter Redis password: " REDIS_PASSWORD
+    read -p "Enter Redis host (default: localhost, optional): " REDIS_HOST
+    REDIS_HOST=${REDIS_HOST:-localhost}
+    read -p "Enter Redis port (default: 6379, optional): " REDIS_PORT
+    REDIS_PORT=${REDIS_PORT:-6379}
+    read -p "Enter Redis password (optional): " REDIS_PASSWORD
     read -p "Enter JWT secret (or press Enter for auto-generation): " JWT_SECRET
-    read -p "Enter MinIO access key: " MINIO_ACCESS_KEY
-    read -p "Enter MinIO secret key: " MINIO_SECRET_KEY
+    read -p "Enter MinIO endpoint (default: http://localhost:9000, optional): " MINIO_ENDPOINT
+    MINIO_ENDPOINT=${MINIO_ENDPOINT:-http://localhost:9000}
+    read -p "Enter MinIO access key (optional): " MINIO_ACCESS_KEY
+    read -p "Enter MinIO secret key (optional): " MINIO_SECRET_KEY
     
     # Generate JWT secret if not provided
     if [ -z "$JWT_SECRET" ]; then
@@ -113,15 +131,15 @@ create_env_file() {
     # Create .env file
     cat > "$ENV_FILE" << EOF
 # Database Configuration
-DB_HOST=postgres
-DB_PORT=5432
-DB_NAME=disaster_relief
-DB_USERNAME=disaster_relief
+DB_HOST=$DB_HOST
+DB_PORT=$DB_PORT
+DB_NAME=$DB_NAME
+DB_USERNAME=$DB_USERNAME
 DB_PASSWORD=$DB_PASSWORD
 
-# Redis Configuration
-REDIS_HOST=redis
-REDIS_PORT=6379
+# Redis Configuration (optional)
+REDIS_HOST=$REDIS_HOST
+REDIS_PORT=$REDIS_PORT
 REDIS_PASSWORD=$REDIS_PASSWORD
 
 # JWT Configuration
@@ -129,27 +147,23 @@ JWT_SECRET=$JWT_SECRET
 JWT_EXPIRATION=900000
 JWT_REFRESH_EXPIRATION=604800000
 
-# MinIO Configuration
-MINIO_ENDPOINT=minio
-MINIO_PORT=9000
+# MinIO Configuration (optional)
+MINIO_ENDPOINT=$MINIO_ENDPOINT
 MINIO_ACCESS_KEY=$MINIO_ACCESS_KEY
 MINIO_SECRET_KEY=$MINIO_SECRET_KEY
 MINIO_BUCKET_NAME=disaster-relief-media
 
 # Application Configuration
-SPRING_PROFILES_ACTIVE=production
+SPRING_PROFILES_ACTIVE=local
 SERVER_PORT=8080
 PLATFORM_URL=$PLATFORM_URL
 
 # Security Configuration
 BCRYPT_STRENGTH=12
 RATE_LIMITING_ENABLED=true
-RATE_LIMITING_REDIS_URL=redis://redis:6379
 
 # Monitoring Configuration
 PROMETHEUS_ENABLED=true
-GRAFANA_ENABLED=true
-ALERTMANAGER_ENABLED=true
 
 # Email Configuration
 SMTP_HOST=smtp.gmail.com
@@ -160,18 +174,23 @@ SMTP_TLS=true
 
 # Logging Configuration
 LOG_LEVEL=INFO
-LOG_FILE=/var/log/disaster-relief/application.log
 EOF
     
     print_success "Environment file created: $ENV_FILE"
 }
 
-# Create Docker Compose file
-create_docker_compose() {
-    print_step "3" "Creating Docker Compose configuration..."
+# Setup database (manual instructions)
+setup_database() {
+    print_step "3" "Database setup instructions..."
     
-    cat > "$DOCKER_COMPOSE_FILE" << 'EOF'
-version: '3.8'
+    print_info "Please ensure PostgreSQL with PostGIS is installed and running"
+    print_info "Create the database and run migrations:"
+    echo "  createdb -U $DB_USERNAME $DB_NAME"
+    echo "  cd backend"
+    echo "  mvn flyway:migrate"
+    
+    print_success "Database setup instructions provided"
+}
 
 services:
   # Database

@@ -77,7 +77,7 @@ public class AdvancedTaskController {
             @RequestParam UUID taskId,
             @AuthenticationPrincipal UserDetails principal) {
         
-        Task task = dynamicTaskCreationService.taskRepository.findById(taskId)
+        Task task = dynamicTaskCreationService.getTaskById(taskId)
             .orElseThrow(() -> new IllegalArgumentException("Task not found"));
         
         User bestMatch = skillBasedMatchingService.findBestMatch(task);
@@ -120,7 +120,7 @@ public class AdvancedTaskController {
             @PathVariable UUID taskId,
             @AuthenticationPrincipal UserDetails principal) {
         
-        Task task = dynamicTaskCreationService.taskRepository.findById(taskId)
+        Task task = dynamicTaskCreationService.getTaskById(taskId)
             .orElseThrow(() -> new IllegalArgumentException("Task not found"));
         
         TaskDependencyService.TaskDependencyChain chain = taskDependencyService.getTaskDependencyChain(task);
@@ -134,7 +134,7 @@ public class AdvancedTaskController {
             @PathVariable UUID taskId,
             @AuthenticationPrincipal UserDetails principal) {
         
-        Task task = dynamicTaskCreationService.taskRepository.findById(taskId)
+        Task task = dynamicTaskCreationService.getTaskById(taskId)
             .orElseThrow(() -> new IllegalArgumentException("Task not found"));
         
         List<Task> criticalPath = taskDependencyService.getCriticalPath(task);
@@ -158,7 +158,7 @@ public class AdvancedTaskController {
             @PathVariable UUID taskId,
             @AuthenticationPrincipal UserDetails principal) {
         
-        Task task = dynamicTaskCreationService.taskRepository.findById(taskId)
+        Task task = dynamicTaskCreationService.getTaskById(taskId)
             .orElseThrow(() -> new IllegalArgumentException("Task not found"));
         
         boolean isValid = taskDependencyService.validateDependencyChain(task);
@@ -176,7 +176,7 @@ public class AdvancedTaskController {
             @PathVariable UUID taskId,
             @AuthenticationPrincipal UserDetails principal) {
         
-        Task task = dynamicTaskCreationService.taskRepository.findById(taskId)
+        Task task = dynamicTaskCreationService.getTaskById(taskId)
             .orElseThrow(() -> new IllegalArgumentException("Task not found"));
         
         TaskDependencyService.TaskWorkflowVisualization workflow = taskDependencyService.getTaskWorkflowVisualization(task);

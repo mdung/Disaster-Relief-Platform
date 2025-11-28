@@ -6,6 +6,8 @@ import com.relief.entity.User;
 import com.relief.repository.InAppNotificationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -18,6 +20,7 @@ import io.micrometer.core.instrument.MeterRegistry;
 @Slf4j
 public class NotificationService {
 
+    private static final Logger log = LoggerFactory.getLogger(NotificationService.class);
     private final InAppNotificationRepository notificationRepository;
     private final EmailProvider emailProvider;
     private final SmsProvider smsProvider;

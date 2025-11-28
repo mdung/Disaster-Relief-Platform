@@ -1,5 +1,6 @@
 package com.relief.service.terrain;
 
+import com.relief.domain.terrain.ElevationPoint;
 import com.relief.domain.terrain.TerrainAnalysis;
 import com.relief.domain.terrain.TerrainAnalysisType;
 import com.relief.repository.terrain.TerrainAnalysisRepository;

@@ -4,8 +4,11 @@ import com.relief.entity.NeedsRequest;
 import com.relief.entity.User;
 import com.relief.repository.NeedsRequestRepository;
 import com.relief.service.DedupeService;
+import com.relief.service.DedupeService.DedupeCandidate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +24,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class AIDedupeService {
+
+    private static final Logger log = LoggerFactory.getLogger(AIDedupeService.class);
 
     private final NeedsRequestRepository needsRequestRepository;
     private final DedupeService dedupeService;
@@ -64,17 +69,17 @@ public class AIDedupeService {
      */
     @Transactional
     public void autoCreateDedupeGroup(NeedsRequest newRequest, User createdBy) {
-        List<DedupeService.DedupeCandidate> duplicates = findPotentialDuplicates(newRequest);
+        List<DedupeCandidate> duplicates = findPotentialDuplicates(newRequest);
         
         // Only auto-create if we have high-confidence duplicates (90%+ similarity)
-        List<DedupeService.DedupeCandidate> highConfidenceDuplicates = duplicates.stream()
+        List<DedupeCandidate> highConfidenceDuplicates = duplicates.stream()
             .filter(d -> d.score() >= 0.9)
             .collect(Collectors.toList());
             
         if (!highConfidenceDuplicates.isEmpty()) {
             // Add the new request as the first candidate
-            List<DedupeService.DedupeCandidate> allCandidates = new ArrayList<>();
-            allCandidates.add(new DedupeService.DedupeCandidate(
+            List<DedupeCandidate> allCandidates = new ArrayList<>();
+            allCandidates.add(new DedupeCandidate(
                 newRequest.getId(), 
                 1.0, 
                 "New request"

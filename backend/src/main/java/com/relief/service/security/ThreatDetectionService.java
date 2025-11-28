@@ -1,7 +1,8 @@
 package com.relief.service.security;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -10,8 +11,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class ThreatDetectionService {
+
+    private static final Logger log = LoggerFactory.getLogger(ThreatDetectionService.class);
 
     private final Map<String, SecurityEvent> events = new ConcurrentHashMap<>();
     private final Map<String, ThreatAlert> alerts = new ConcurrentHashMap<>();
@@ -78,7 +80,6 @@ public class ThreatDetectionService {
         return Math.min(1.0, score);
     }
 
-    @lombok.Data
     public static class SecurityEvent {
         private String id;
         private String userId;
@@ -87,9 +88,30 @@ public class ThreatDetectionService {
         private Map<String, Object> context;
         private LocalDateTime timestamp;
         private double anomalyScore;
+
+        // Getters and setters
+        public String getId() { return id; }
+        public void setId(String id) { this.id = id; }
+
+        public String getUserId() { return userId; }
+        public void setUserId(String userId) { this.userId = userId; }
+
+        public String getIp() { return ip; }
+        public void setIp(String ip) { this.ip = ip; }
+
+        public String getAction() { return action; }
+        public void setAction(String action) { this.action = action; }
+
+        public Map<String, Object> getContext() { return context; }
+        public void setContext(Map<String, Object> context) { this.context = context; }
+
+        public LocalDateTime getTimestamp() { return timestamp; }
+        public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
+
+        public double getAnomalyScore() { return anomalyScore; }
+        public void setAnomalyScore(double anomalyScore) { this.anomalyScore = anomalyScore; }
     }
 
-    @lombok.Data
     public static class ThreatAlert {
         private String id;
         private String eventId;
@@ -100,6 +122,34 @@ public class ThreatDetectionService {
         private String acknowledgedBy;
         private LocalDateTime acknowledgedAt;
         private LocalDateTime createdAt;
+
+        // Getters and setters
+        public String getId() { return id; }
+        public void setId(String id) { this.id = id; }
+
+        public String getEventId() { return eventId; }
+        public void setEventId(String eventId) { this.eventId = eventId; }
+
+        public String getTitle() { return title; }
+        public void setTitle(String title) { this.title = title; }
+
+        public String getMessage() { return message; }
+        public void setMessage(String message) { this.message = message; }
+
+        public String getSeverity() { return severity; }
+        public void setSeverity(String severity) { this.severity = severity; }
+
+        public boolean isAcknowledged() { return acknowledged; }
+        public void setAcknowledged(boolean acknowledged) { this.acknowledged = acknowledged; }
+
+        public String getAcknowledgedBy() { return acknowledgedBy; }
+        public void setAcknowledgedBy(String acknowledgedBy) { this.acknowledgedBy = acknowledgedBy; }
+
+        public LocalDateTime getAcknowledgedAt() { return acknowledgedAt; }
+        public void setAcknowledgedAt(LocalDateTime acknowledgedAt) { this.acknowledgedAt = acknowledgedAt; }
+
+        public LocalDateTime getCreatedAt() { return createdAt; }
+        public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     }
 }
 

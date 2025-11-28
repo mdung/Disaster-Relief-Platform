@@ -95,6 +95,61 @@ public class SatelliteImage {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
+
+    // Explicit getters and setters for Lombok compatibility
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+
+    public String getThumbnailUrl() { return thumbnailUrl; }
+    public void setThumbnailUrl(String thumbnailUrl) { this.thumbnailUrl = thumbnailUrl; }
+
+    public Polygon getCoverageArea() { return coverageArea; }
+    public void setCoverageArea(Polygon coverageArea) { this.coverageArea = coverageArea; }
+
+    public SatelliteProvider getProvider() { return provider; }
+    public void setProvider(SatelliteProvider provider) { this.provider = provider; }
+
+    public String getSatelliteName() { return satelliteName; }
+    public void setSatelliteName(String satelliteName) { this.satelliteName = satelliteName; }
+
+    public LocalDateTime getCapturedAt() { return capturedAt; }
+    public void setCapturedAt(LocalDateTime capturedAt) { this.capturedAt = capturedAt; }
+
+    public Double getResolutionMeters() { return resolutionMeters; }
+    public void setResolutionMeters(Double resolutionMeters) { this.resolutionMeters = resolutionMeters; }
+
+    public Double getCloudCoverPercentage() { return cloudCoverPercentage; }
+    public void setCloudCoverPercentage(Double cloudCoverPercentage) { this.cloudCoverPercentage = cloudCoverPercentage; }
+
+    public Double getSunElevationAngle() { return sunElevationAngle; }
+    public void setSunElevationAngle(Double sunElevationAngle) { this.sunElevationAngle = sunElevationAngle; }
+
+    public Double getSunAzimuthAngle() { return sunAzimuthAngle; }
+    public void setSunAzimuthAngle(Double sunAzimuthAngle) { this.sunAzimuthAngle = sunAzimuthAngle; }
+
+    public String getImageBands() { return imageBands; }
+    public void setImageBands(String imageBands) { this.imageBands = imageBands; }
+
+    public String getMetadata() { return metadata; }
+    public void setMetadata(String metadata) { this.metadata = metadata; }
+
+    public ProcessingStatus getProcessingStatus() { return processingStatus; }
+    public void setProcessingStatus(ProcessingStatus processingStatus) { this.processingStatus = processingStatus; }
+
+    public Double getQualityScore() { return qualityScore; }
+    public void setQualityScore(Double qualityScore) { this.qualityScore = qualityScore; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    public List<DamageAssessment> getDamageAssessments() { return damageAssessments; }
+    public void setDamageAssessments(List<DamageAssessment> damageAssessments) { this.damageAssessments = damageAssessments; }
 }
 
 
