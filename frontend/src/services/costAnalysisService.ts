@@ -97,7 +97,7 @@ export interface BenchmarkRequest {
 }
 
 class CostAnalysisService {
-  private baseUrl = '/api/cost-analysis';
+  private baseUrl = '/cost-analysis';
 
   async performCostAnalysis(request: CostAnalysisRequest): Promise<CostAnalysis> {
     return apiService.post(`${this.baseUrl}/analyze`, request);

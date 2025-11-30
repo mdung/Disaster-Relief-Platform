@@ -95,7 +95,7 @@ export interface GovernmentComplianceStatus {
 }
 
 class GovernmentApiService {
-  private baseUrl = '/api/integration/government';
+  private baseUrl = '/integration/government';
 
   async getDisasterData(region: string, disasterType: string): Promise<GovernmentDisasterData> {
     return apiService.get(`${this.baseUrl}/disasters`, { region, disasterType });

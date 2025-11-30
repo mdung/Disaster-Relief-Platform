@@ -83,7 +83,7 @@ export interface IoTDeviceAnalytics {
 }
 
 class IoTService {
-  private baseUrl = '/api/integration/iot';
+  private baseUrl = '/integration/iot';
 
   async getDevices(deviceType?: string, status?: string): Promise<IoTDevice[]> {
     return apiService.get(`${this.baseUrl}/devices`, { deviceType, status });

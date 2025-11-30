@@ -67,7 +67,7 @@ export interface UpdateTemplateRequest {
 }
 
 class FinancialReportingService {
-  private baseUrl = '/api/financial-reporting';
+  private baseUrl = '/financial-reporting';
 
   async generateReport(request: GenerateReportRequest): Promise<FinancialReport> {
     return apiService.post(`${this.baseUrl}/reports`, request);

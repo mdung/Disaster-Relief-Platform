@@ -1,5 +1,7 @@
 package com.relief.controller.communication;
 
+import com.relief.entity.User;
+import com.relief.repository.UserRepository;
 import com.relief.service.communication.VideoConferencingService;
 import com.relief.service.communication.VideoConferencingService.VideoConference;
 import com.relief.service.communication.VideoConferencingService.ConferenceJoinResult;
@@ -22,13 +24,28 @@ import java.util.UUID;
  * Video conferencing controller
  */
 @RestController
-@RequestMapping("/api/video-conference")
+@RequestMapping("/video-conference")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Video Conferencing", description = "Video conferencing and remote coordination APIs")
 public class VideoConferencingController {
 
     private final VideoConferencingService videoConferencingService;
+    private final UserRepository userRepository;
+
+    private UUID getUserIdFromPrincipal(UserDetails principal) {
+        String username = principal.getUsername();
+        // Try to parse as UUID first
+        try {
+            return UUID.fromString(username);
+        } catch (IllegalArgumentException e) {
+            // If not UUID, treat as email/phone and lookup user
+            User user = userRepository.findByEmail(username)
+                    .orElseGet(() -> userRepository.findByPhone(username)
+                            .orElseThrow(() -> new IllegalArgumentException("User not found: " + username)));
+            return user.getId();
+        }
+    }
 
     @PostMapping("/create")
     @Operation(summary = "Create a new video conference")
@@ -36,7 +53,7 @@ public class VideoConferencingController {
             @RequestBody CreateConferenceRequest request,
             @AuthenticationPrincipal UserDetails principal) {
         
-        UUID userId = UUID.fromString(principal.getUsername());
+        UUID userId = getUserIdFromPrincipal(principal);
         
         VideoConference conference = videoConferencingService.createConference(
             request.getTitle(),
@@ -54,7 +71,7 @@ public class VideoConferencingController {
             @PathVariable String conferenceId,
             @AuthenticationPrincipal UserDetails principal) {
         
-        UUID userId = UUID.fromString(principal.getUsername());
+        UUID userId = getUserIdFromPrincipal(principal);
         
         ConferenceJoinResult result = videoConferencingService.joinConference(conferenceId, userId);
         
@@ -67,7 +84,7 @@ public class VideoConferencingController {
             @PathVariable String conferenceId,
             @AuthenticationPrincipal UserDetails principal) {
         
-        UUID userId = UUID.fromString(principal.getUsername());
+        UUID userId = getUserIdFromPrincipal(principal);
         
         videoConferencingService.leaveConference(conferenceId, userId);
         
@@ -79,7 +96,7 @@ public class VideoConferencingController {
     public ResponseEntity<List<VideoConference>> getUserConferences(
             @AuthenticationPrincipal UserDetails principal) {
         
-        UUID userId = UUID.fromString(principal.getUsername());
+        UUID userId = getUserIdFromPrincipal(principal);
         
         List<VideoConference> conferences = videoConferencingService.getUserConferences(userId);
         
@@ -104,7 +121,7 @@ public class VideoConferencingController {
             @RequestBody ConferenceSettings settings,
             @AuthenticationPrincipal UserDetails principal) {
         
-        UUID userId = UUID.fromString(principal.getUsername());
+        UUID userId = getUserIdFromPrincipal(principal);
         
         VideoConference conference = videoConferencingService.updateConferenceSettings(conferenceId, settings);
         
@@ -117,7 +134,7 @@ public class VideoConferencingController {
             @PathVariable String conferenceId,
             @AuthenticationPrincipal UserDetails principal) {
         
-        videoConferencingService.endConference(conferenceId, UUID.fromString(principal.getUsername()));
+        videoConferencingService.endConference(conferenceId, getUserIdFromPrincipal(principal));
         
         return ResponseEntity.ok(Map.of("status", "success", "message", "Conference ended successfully"));
     }

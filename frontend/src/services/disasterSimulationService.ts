@@ -123,7 +123,7 @@ export interface CreateTemplateRequest {
 }
 
 class DisasterSimulationService {
-  private baseUrl = '/api/disaster-simulation';
+  private baseUrl = '/disaster-simulation';
 
   async createScenario(request: CreateScenarioRequest): Promise<SimulationScenario> {
     return apiService.post(`${this.baseUrl}/scenarios`, request);

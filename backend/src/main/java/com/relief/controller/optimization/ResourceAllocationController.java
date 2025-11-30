@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/optimization/allocation")
+@RequestMapping("/optimization/allocation")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Resource Allocation", description = "Intelligent distribution of resources")

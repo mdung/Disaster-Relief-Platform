@@ -1,5 +1,7 @@
 package com.relief.controller.financial;
 
+import com.relief.entity.User;
+import com.relief.repository.UserRepository;
 import com.relief.service.financial.BudgetTrackingService;
 import com.relief.service.financial.BudgetTrackingService.Budget;
 import com.relief.service.financial.BudgetTrackingService.BudgetTransaction;
@@ -24,13 +26,26 @@ import java.util.UUID;
  * Budget tracking controller
  */
 @RestController
-@RequestMapping("/api/budget-tracking")
+@RequestMapping("/budget-tracking")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Budget Tracking", description = "Budget tracking and spending control APIs")
 public class BudgetTrackingController {
 
     private final BudgetTrackingService budgetTrackingService;
+    private final UserRepository userRepository;
+
+    private UUID getUserIdFromPrincipal(UserDetails principal) {
+        String username = principal.getUsername();
+        try {
+            return UUID.fromString(username);
+        } catch (IllegalArgumentException e) {
+            User user = userRepository.findByEmail(username)
+                    .orElseGet(() -> userRepository.findByPhone(username)
+                            .orElseThrow(() -> new IllegalArgumentException("User not found: " + username)));
+            return user.getId();
+        }
+    }
 
     @PostMapping("/create")
     @Operation(summary = "Create a new budget")
@@ -38,7 +53,7 @@ public class BudgetTrackingController {
             @RequestBody CreateBudgetRequest request,
             @AuthenticationPrincipal UserDetails principal) {
         
-        UUID userId = UUID.fromString(principal.getUsername());
+        UUID userId = getUserIdFromPrincipal(principal);
         
         Budget budget = budgetTrackingService.createBudget(
             request.getName(),
@@ -60,7 +75,7 @@ public class BudgetTrackingController {
             @RequestBody RecordTransactionRequest request,
             @AuthenticationPrincipal UserDetails principal) {
         
-        UUID userId = UUID.fromString(principal.getUsername());
+        UUID userId = getUserIdFromPrincipal(principal);
         
         BudgetTransaction transaction = budgetTrackingService.recordTransaction(
             budgetId,
@@ -102,7 +117,7 @@ public class BudgetTrackingController {
     @GetMapping("/my-budgets")
     @Operation(summary = "Get user's budgets")
     public ResponseEntity<List<Budget>> getUserBudgets(@AuthenticationPrincipal UserDetails principal) {
-        UUID userId = UUID.fromString(principal.getUsername());
+        UUID userId = getUserIdFromPrincipal(principal);
         List<Budget> budgets = budgetTrackingService.getUserBudgets(userId);
         return ResponseEntity.ok(budgets);
     }

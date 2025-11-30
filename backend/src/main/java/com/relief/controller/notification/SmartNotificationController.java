@@ -1,5 +1,7 @@
 package com.relief.controller.notification;
 
+import com.relief.entity.User;
+import com.relief.repository.UserRepository;
 import com.relief.service.notification.SmartNotificationService;
 import com.relief.service.notification.UserPreferenceService;
 import com.relief.service.notification.UserPreferenceService.UserPreferences;
@@ -18,19 +20,32 @@ import java.util.UUID;
  * Controller for smart notifications and user preferences
  */
 @RestController
-@RequestMapping("/api/notifications")
+@RequestMapping("/notifications")
 @RequiredArgsConstructor
 @Tag(name = "Smart Notifications", description = "Notification management and user preferences")
 public class SmartNotificationController {
 
     private final SmartNotificationService smartNotificationService;
     private final UserPreferenceService userPreferenceService;
+    private final UserRepository userRepository;
+
+    private UUID getUserIdFromPrincipal(UserDetails principal) {
+        String username = principal.getUsername();
+        try {
+            return UUID.fromString(username);
+        } catch (IllegalArgumentException e) {
+            User user = userRepository.findByEmail(username)
+                    .orElseGet(() -> userRepository.findByPhone(username)
+                            .orElseThrow(() -> new IllegalArgumentException("User not found: " + username)));
+            return user.getId();
+        }
+    }
 
     @GetMapping("/preferences")
     @Operation(summary = "Get user notification preferences")
     public ResponseEntity<UserPreferences> getUserPreferences(
             @AuthenticationPrincipal UserDetails principal) {
-        UUID userId = UUID.fromString(principal.getUsername());
+        UUID userId = getUserIdFromPrincipal(principal);
         UserPreferences preferences = userPreferenceService.getUserPreferences(userId);
         return ResponseEntity.ok(preferences);
     }
@@ -40,7 +55,7 @@ public class SmartNotificationController {
     public ResponseEntity<UserPreferences> updateUserPreferences(
             @AuthenticationPrincipal UserDetails principal,
             @RequestBody UserPreferences preferences) {
-        UUID userId = UUID.fromString(principal.getUsername());
+        UUID userId = getUserIdFromPrincipal(principal);
         userPreferenceService.updateUserPreferences(userId, preferences);
         return ResponseEntity.ok(preferences);
     }
@@ -62,7 +77,7 @@ public class SmartNotificationController {
     public ResponseEntity<Map<String, Object>> getNotificationHistory(
             @AuthenticationPrincipal UserDetails principal,
             @RequestParam(defaultValue = "24") int hours) {
-        UUID userId = UUID.fromString(principal.getUsername());
+        UUID userId = getUserIdFromPrincipal(principal);
         Map<String, Object> history = new java.util.HashMap<>();
         history.put("totalNotifications", userPreferenceService.getNotificationCount(userId, "ALL", hours));
         history.put("last24Hours", userPreferenceService.getNotificationCount(userId, "ALL", 24));

@@ -20,7 +20,7 @@ import java.util.List;
  * REST controller for heatmap data and visualization
  */
 @RestController
-@RequestMapping("/api/heatmap")
+@RequestMapping("/heatmap")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Heatmap", description = "Heatmap data and visualization services")

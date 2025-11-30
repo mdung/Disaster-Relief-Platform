@@ -208,18 +208,18 @@ export interface IndoorPositionRequest {
 export class IndoorNavigationService {
   // Indoor Maps
   static async createIndoorMap(request: IndoorMapRequest): Promise<IndoorMap> {
-    const response = await apiClient.post('/api/indoor/maps', request);
-    return response.data;
+    const response = await apiClient.post('/indoor/maps', request);
+    return response;
   }
 
   static async updateIndoorMap(mapId: number, request: IndoorMapRequest): Promise<IndoorMap> {
-    const response = await apiClient.put(`/api/indoor/maps/${mapId}`, request);
-    return response.data;
+    const response = await apiClient.put(`/indoor/maps/${mapId}`, request);
+    return response;
   }
 
   static async getIndoorMap(mapId: number): Promise<IndoorMap> {
-    const response = await apiClient.get(`/api/indoor/maps/${mapId}`);
-    return response.data;
+    const response = await apiClient.get(`/indoor/maps/${mapId}`);
+    return response;
   }
 
   static async getAllIndoorMaps(params?: {
@@ -228,14 +228,14 @@ export class IndoorNavigationService {
     floorNumber?: number;
     activeOnly?: boolean;
   }): Promise<IndoorMap[]> {
-    const response = await apiClient.get('/api/indoor/maps', { params });
-    return response.data;
+    const response = await apiClient.get('/indoor/maps', { params });
+    return response;
   }
 
   // Indoor Nodes
   static async createIndoorNode(mapId: number, request: IndoorNodeRequest): Promise<IndoorNode> {
-    const response = await apiClient.post(`/api/indoor/maps/${mapId}/nodes`, request);
-    return response.data;
+    const response = await apiClient.post(`/indoor/maps/${mapId}/nodes`, request);
+    return response;
   }
 
   static async getIndoorNodes(mapId: number, params?: {
@@ -243,14 +243,14 @@ export class IndoorNavigationService {
     floorLevel?: number;
     accessibleOnly?: boolean;
   }): Promise<IndoorNode[]> {
-    const response = await apiClient.get(`/api/indoor/maps/${mapId}/nodes`, { params });
-    return response.data;
+    const response = await apiClient.get(`/indoor/maps/${mapId}/nodes`, { params });
+    return response;
   }
 
   // Indoor Edges
   static async createIndoorEdge(mapId: number, request: IndoorEdgeRequest): Promise<IndoorEdge> {
-    const response = await apiClient.post(`/api/indoor/maps/${mapId}/edges`, request);
-    return response.data;
+    const response = await apiClient.post(`/indoor/maps/${mapId}/edges`, request);
+    return response;
   }
 
   static async getIndoorEdges(mapId: number, params?: {
@@ -258,14 +258,14 @@ export class IndoorNavigationService {
     accessibleOnly?: boolean;
     bidirectionalOnly?: boolean;
   }): Promise<IndoorEdge[]> {
-    const response = await apiClient.get(`/api/indoor/maps/${mapId}/edges`, { params });
-    return response.data;
+    const response = await apiClient.get(`/indoor/maps/${mapId}/edges`, { params });
+    return response;
   }
 
   // Indoor Positioning
   static async recordIndoorPosition(request: IndoorPositionRequest): Promise<IndoorPosition> {
-    const response = await apiClient.post('/api/indoor/positions', request);
-    return response.data;
+    const response = await apiClient.post('/indoor/positions', request);
+    return response;
   }
 
   static async getIndoorPositions(params?: {
@@ -275,15 +275,15 @@ export class IndoorNavigationService {
     floorLevel?: number;
     positioningMethod?: string;
   }): Promise<IndoorPosition[]> {
-    const response = await apiClient.get('/api/indoor/positions', { params });
-    return response.data;
+    const response = await apiClient.get('/indoor/positions', { params });
+    return response;
   }
 
   static async getLatestPosition(entityType: string, entityId: number): Promise<IndoorPosition> {
-    const response = await apiClient.get('/api/indoor/positions/latest', {
+    const response = await apiClient.get('/indoor/positions/latest', {
       params: { entityType, entityId }
     });
-    return response.data;
+    return response;
   }
 
   // Indoor Routing
@@ -294,10 +294,10 @@ export class IndoorNavigationService {
     routeType: string = 'SHORTEST_PATH',
     createdBy: string
   ): Promise<IndoorRoute> {
-    const response = await apiClient.post(`/api/indoor/maps/${mapId}/routes/calculate`, null, {
+    const response = await apiClient.post(`/indoor/maps/${mapId}/routes/calculate`, null, {
       params: { fromNodeId, toNodeId, routeType, createdBy }
     });
-    return response.data;
+    return response;
   }
 
   static async getIndoorRoutes(mapId: number, params?: {
@@ -305,8 +305,8 @@ export class IndoorNavigationService {
     accessibleOnly?: boolean;
     emergencyOnly?: boolean;
   }): Promise<IndoorRoute[]> {
-    const response = await apiClient.get(`/api/indoor/maps/${mapId}/routes`, { params });
-    return response.data;
+    const response = await apiClient.get(`/indoor/maps/${mapId}/routes`, { params });
+    return response;
   }
 
   static async findNearestNode(
@@ -315,26 +315,26 @@ export class IndoorNavigationService {
     latitude: number,
     radius: number = 100
   ): Promise<IndoorNode> {
-    const response = await apiClient.get(`/api/indoor/maps/${mapId}/nodes/nearest`, {
+    const response = await apiClient.get(`/indoor/maps/${mapId}/nodes/nearest`, {
       params: { longitude, latitude, radius }
     });
-    return response.data;
+    return response;
   }
 
   // Statistics
   static async getMapStatistics(mapId: number): Promise<any> {
-    const response = await apiClient.get(`/api/indoor/maps/${mapId}/statistics`);
-    return response.data;
+    const response = await apiClient.get(`/indoor/maps/${mapId}/statistics`);
+    return response;
   }
 
   static async getNodeStatistics(mapId: number): Promise<any> {
-    const response = await apiClient.get(`/api/indoor/maps/${mapId}/nodes/statistics`);
-    return response.data;
+    const response = await apiClient.get(`/indoor/maps/${mapId}/nodes/statistics`);
+    return response;
   }
 
   static async getEdgeStatistics(mapId: number): Promise<any> {
-    const response = await apiClient.get(`/api/indoor/maps/${mapId}/edges/statistics`);
-    return response.data;
+    const response = await apiClient.get(`/indoor/maps/${mapId}/edges/statistics`);
+    return response;
   }
 
   static async getPositionStatistics(
@@ -342,10 +342,10 @@ export class IndoorNavigationService {
     startDate?: string,
     endDate?: string
   ): Promise<any> {
-    const response = await apiClient.get(`/api/indoor/maps/${mapId}/positions/statistics`, {
+    const response = await apiClient.get(`/indoor/maps/${mapId}/positions/statistics`, {
       params: { startDate, endDate }
     });
-    return response.data;
+    return response;
   }
 }
 

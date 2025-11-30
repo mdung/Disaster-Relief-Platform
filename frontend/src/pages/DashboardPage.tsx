@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { apiService } from '../services/api';
 import { realtimeService, RealtimeEventType } from '../services/realtimeService';
@@ -16,6 +17,7 @@ import {
 import StockAlerts from '../components/StockAlerts';
 
 const DashboardPage: React.FC = () => {
+  const navigate = useNavigate();
   const { user } = useAuthStore();
   const [stats, setStats] = useState({
     activeRequests: 0,
@@ -76,6 +78,31 @@ const DashboardPage: React.FC = () => {
       case 3: return 'bg-yellow-100 text-yellow-800';
       case 2: return 'bg-blue-100 text-blue-800';
       default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const handleFindShelter = async () => {
+    try {
+      // Try to get user's current location
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            const { latitude, longitude } = position.coords;
+            // Navigate to map with shelter filter
+            navigate(`/map?shelter=true&lat=${latitude}&lng=${longitude}`);
+          },
+          () => {
+            // If location access denied, just navigate to map
+            navigate('/map?shelter=true');
+          }
+        );
+      } else {
+        // Geolocation not supported, navigate to map
+        navigate('/map?shelter=true');
+      }
+    } catch (error) {
+      console.error('Error finding shelter:', error);
+      navigate('/map?shelter=true');
     }
   };
 
@@ -192,15 +219,27 @@ const DashboardPage: React.FC = () => {
                 <Plus className="h-6 w-6 mx-auto mb-2" />
                 <span className="text-sm font-medium">Create Need</span>
               </button>
-              <button className="bg-green-600 text-white p-4 rounded-lg hover:bg-green-700 transition-colors">
+              <button 
+                onClick={() => navigate('/tasks')}
+                className="bg-green-600 text-white p-4 rounded-lg hover:bg-green-700 transition-colors"
+                title="View available tasks to help"
+              >
                 <Users className="h-6 w-6 mx-auto mb-2" />
                 <span className="text-sm font-medium">Help Someone</span>
               </button>
-              <button className="bg-yellow-600 text-white p-4 rounded-lg hover:bg-yellow-700 transition-colors">
+              <button 
+                onClick={handleFindShelter}
+                className="bg-yellow-600 text-white p-4 rounded-lg hover:bg-yellow-700 transition-colors"
+                title="Find nearby emergency shelters"
+              >
                 <MapPin className="h-6 w-6 mx-auto mb-2" />
                 <span className="text-sm font-medium">Find Shelter</span>
               </button>
-              <button className="bg-purple-600 text-white p-4 rounded-lg hover:bg-purple-700 transition-colors">
+              <button 
+                onClick={() => navigate('/map')}
+                className="bg-purple-600 text-white p-4 rounded-lg hover:bg-purple-700 transition-colors"
+                title="View interactive map"
+              >
                 <Activity className="h-6 w-6 mx-auto mb-2" />
                 <span className="text-sm font-medium">View Map</span>
               </button>

@@ -78,7 +78,7 @@ export interface CreateTagRequest {
 }
 
 class KnowledgeBaseService {
-  private baseUrl = '/api/knowledge-base';
+  private baseUrl = '/knowledge-base';
 
   async createArticle(request: CreateArticleRequest): Promise<KnowledgeArticle> {
     return apiService.post(`${this.baseUrl}/articles`, request);

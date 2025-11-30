@@ -1,5 +1,7 @@
 package com.relief.controller.financial;
 
+import com.relief.entity.User;
+import com.relief.repository.UserRepository;
 import com.relief.service.financial.CostAnalysisService;
 import com.relief.service.financial.CostAnalysisService.CostAnalysis;
 import com.relief.service.financial.CostAnalysisService.CostBreakdown;
@@ -26,13 +28,26 @@ import java.util.UUID;
  * Cost analysis controller
  */
 @RestController
-@RequestMapping("/api/cost-analysis")
+@RequestMapping("/cost-analysis")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Cost Analysis", description = "Cost analysis and optimization APIs")
 public class CostAnalysisController {
 
     private final CostAnalysisService costAnalysisService;
+    private final UserRepository userRepository;
+
+    private UUID getUserIdFromPrincipal(UserDetails principal) {
+        String username = principal.getUsername();
+        try {
+            return UUID.fromString(username);
+        } catch (IllegalArgumentException e) {
+            User user = userRepository.findByEmail(username)
+                    .orElseGet(() -> userRepository.findByPhone(username)
+                            .orElseThrow(() -> new IllegalArgumentException("User not found: " + username)));
+            return user.getId();
+        }
+    }
 
     @PostMapping("/analyze")
     @Operation(summary = "Perform cost analysis")
@@ -40,7 +55,7 @@ public class CostAnalysisController {
             @RequestBody CostAnalysisRequest request,
             @AuthenticationPrincipal UserDetails principal) {
         
-        UUID userId = UUID.fromString(principal.getUsername());
+        UUID userId = getUserIdFromPrincipal(principal);
         
         CostAnalysis analysis = costAnalysisService.performCostAnalysis(
             request.getCategory(),

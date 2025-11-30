@@ -26,7 +26,7 @@ import java.util.UUID;
  * Certification tracking controller
  */
 @RestController
-@RequestMapping("/api/certification-tracking")
+@RequestMapping("/certification-tracking")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Certification Tracking", description = "Track training and certification requirements")

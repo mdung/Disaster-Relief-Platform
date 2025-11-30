@@ -26,7 +26,7 @@ import java.util.Optional;
  * REST controller for offline map caching
  */
 @RestController
-@RequestMapping("/api/offline-maps")
+@RequestMapping("/offline-maps")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Offline Map Cache", description = "Offline map caching and tile management APIs")

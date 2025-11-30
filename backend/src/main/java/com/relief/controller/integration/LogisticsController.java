@@ -24,7 +24,7 @@ import java.util.Map;
  * Third-party logistics integration controller
  */
 @RestController
-@RequestMapping("/api/integration/logistics")
+@RequestMapping("/integration/logistics")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Logistics Integration", description = "Integration with delivery and logistics providers")

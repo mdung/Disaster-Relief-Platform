@@ -96,7 +96,7 @@ export interface WeatherDisasterRisk {
 }
 
 class WeatherService {
-  private baseUrl = '/api/integration/weather';
+  private baseUrl = '/integration/weather';
 
   async getCurrentWeather(location: string, units: string = 'metric'): Promise<WeatherData> {
     return apiService.get(`${this.baseUrl}/current`, { location, units });

@@ -10,7 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/security/zero-trust")
+@RequestMapping("/security/zero-trust")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Zero Trust", description = "Continuous verification of users and devices")

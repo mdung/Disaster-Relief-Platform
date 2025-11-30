@@ -12,7 +12,7 @@ import javax.crypto.SecretKey;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/security/crypto")
+@RequestMapping("/security/crypto")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Advanced Encryption", description = "End-to-end encryption utilities")

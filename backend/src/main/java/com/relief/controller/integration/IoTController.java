@@ -23,7 +23,7 @@ import java.util.Map;
  * IoT device integration controller
  */
 @RestController
-@RequestMapping("/api/integration/iot")
+@RequestMapping("/integration/iot")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "IoT Device Integration", description = "Connect with sensors, drones, and other IoT devices")

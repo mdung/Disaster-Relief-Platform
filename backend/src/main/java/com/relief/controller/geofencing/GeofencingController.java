@@ -21,7 +21,7 @@ import java.util.List;
  * REST controller for geofencing operations
  */
 @RestController
-@RequestMapping("/api/geofencing")
+@RequestMapping("/geofencing")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Geofencing", description = "Geofencing and automated monitoring services")

@@ -142,7 +142,7 @@ export interface GenerateReportRequest {
 }
 
 class CertificationTrackingService {
-  private baseUrl = '/api/certification-tracking';
+  private baseUrl = '/certification-tracking';
 
   async createCertification(request: CreateCertificationRequest): Promise<Certification> {
     return apiService.post(`${this.baseUrl}/certifications`, request);

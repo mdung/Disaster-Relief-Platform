@@ -1,5 +1,7 @@
 package com.relief.controller.communication;
 
+import com.relief.entity.User;
+import com.relief.repository.UserRepository;
 import com.relief.service.communication.DocumentCollaborationService;
 import com.relief.service.communication.DocumentCollaborationService.CollaborativeDocument;
 import com.relief.service.communication.DocumentCollaborationService.DocumentJoinResult;
@@ -25,13 +27,28 @@ import java.util.UUID;
  * Document collaboration controller
  */
 @RestController
-@RequestMapping("/api/document-collaboration")
+@RequestMapping("/document-collaboration")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Document Collaboration", description = "Real-time document collaboration APIs")
 public class DocumentCollaborationController {
 
     private final DocumentCollaborationService documentCollaborationService;
+    private final UserRepository userRepository;
+
+    private UUID getUserIdFromPrincipal(UserDetails principal) {
+        String username = principal.getUsername();
+        // Try to parse as UUID first
+        try {
+            return UUID.fromString(username);
+        } catch (IllegalArgumentException e) {
+            // If not UUID, treat as email/phone and lookup user
+            User user = userRepository.findByEmail(username)
+                    .orElseGet(() -> userRepository.findByPhone(username)
+                            .orElseThrow(() -> new IllegalArgumentException("User not found: " + username)));
+            return user.getId();
+        }
+    }
 
     @PostMapping("/create")
     @Operation(summary = "Create a new collaborative document")
@@ -39,7 +56,7 @@ public class DocumentCollaborationController {
             @RequestBody CreateDocumentRequest request,
             @AuthenticationPrincipal UserDetails principal) {
         
-        UUID userId = UUID.fromString(principal.getUsername());
+        UUID userId = getUserIdFromPrincipal(principal);
         
         CollaborativeDocument document = documentCollaborationService.createDocument(
             request.getTitle(),
@@ -57,7 +74,7 @@ public class DocumentCollaborationController {
             @PathVariable String documentId,
             @AuthenticationPrincipal UserDetails principal) {
         
-        UUID userId = UUID.fromString(principal.getUsername());
+        UUID userId = getUserIdFromPrincipal(principal);
         
         DocumentJoinResult result = documentCollaborationService.joinDocument(documentId, userId);
         
@@ -71,7 +88,7 @@ public class DocumentCollaborationController {
             @RequestBody ApplyChangesRequest request,
             @AuthenticationPrincipal UserDetails principal) {
         
-        UUID userId = UUID.fromString(principal.getUsername());
+        UUID userId = getUserIdFromPrincipal(principal);
         
         DocumentChangeResult result = documentCollaborationService.applyChanges(
             documentId,
@@ -120,7 +137,7 @@ public class DocumentCollaborationController {
             @RequestBody DocumentPermissions permissions,
             @AuthenticationPrincipal UserDetails principal) {
         
-        UUID userId = UUID.fromString(principal.getUsername());
+        UUID userId = getUserIdFromPrincipal(principal);
         
         CollaborativeDocument document = documentCollaborationService.updatePermissions(
             documentId,
@@ -137,7 +154,7 @@ public class DocumentCollaborationController {
             @PathVariable String documentId,
             @AuthenticationPrincipal UserDetails principal) {
         
-        UUID userId = UUID.fromString(principal.getUsername());
+        UUID userId = getUserIdFromPrincipal(principal);
         
         documentCollaborationService.leaveDocument(documentId, userId);
         
@@ -149,7 +166,7 @@ public class DocumentCollaborationController {
     public ResponseEntity<List<CollaborativeDocument>> getUserDocuments(
             @AuthenticationPrincipal UserDetails principal) {
         
-        UUID userId = UUID.fromString(principal.getUsername());
+        UUID userId = getUserIdFromPrincipal(principal);
         
         List<CollaborativeDocument> documents = documentCollaborationService.getUserDocuments(userId);
         

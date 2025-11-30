@@ -1,5 +1,7 @@
 package com.relief.controller.communication;
 
+import com.relief.entity.User;
+import com.relief.repository.UserRepository;
 import com.relief.service.communication.ChatBotService;
 import com.relief.service.communication.ChatBotService.ChatBotResponse;
 import com.relief.service.communication.ChatBotService.ChatSession;
@@ -20,13 +22,28 @@ import java.util.UUID;
  * Chat bot controller
  */
 @RestController
-@RequestMapping("/api/chatbot")
+@RequestMapping("/chatbot")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Chat Bot", description = "AI-powered chat bot APIs")
 public class ChatBotController {
 
     private final ChatBotService chatBotService;
+    private final UserRepository userRepository;
+
+    private UUID getUserIdFromPrincipal(UserDetails principal) {
+        String username = principal.getUsername();
+        // Try to parse as UUID first
+        try {
+            return UUID.fromString(username);
+        } catch (IllegalArgumentException e) {
+            // If not UUID, treat as email/phone and lookup user
+            User user = userRepository.findByEmail(username)
+                    .orElseGet(() -> userRepository.findByPhone(username)
+                            .orElseThrow(() -> new IllegalArgumentException("User not found: " + username)));
+            return user.getId();
+        }
+    }
 
     @PostMapping("/message")
     @Operation(summary = "Send message to chat bot")
@@ -34,7 +51,7 @@ public class ChatBotController {
             @RequestBody SendMessageRequest request,
             @AuthenticationPrincipal UserDetails principal) {
         
-        UUID userId = UUID.fromString(principal.getUsername());
+        UUID userId = getUserIdFromPrincipal(principal);
         
         ChatBotResponse response = chatBotService.processMessage(
             request.getSessionId(),
@@ -50,7 +67,7 @@ public class ChatBotController {
     public ResponseEntity<List<ChatSession>> getUserSessions(
             @AuthenticationPrincipal UserDetails principal) {
         
-        UUID userId = UUID.fromString(principal.getUsername());
+        UUID userId = getUserIdFromPrincipal(principal);
         
         List<ChatSession> sessions = chatBotService.getUserSessions(userId);
         

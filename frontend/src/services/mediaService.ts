@@ -13,13 +13,41 @@ export class MediaService {
       // Generate unique object name
       const timestamp = Date.now();
       const extension = file.name.split('.').pop();
-      const objectName = `media/${timestamp}-${Math.random().toString(36).substring(2)}.${extension}`;
+      let objectName = `media/${timestamp}-${Math.random().toString(36).substring(2)}.${extension}`;
       
-      // Get presigned URL
+      // Get presigned URL (or direct upload URL for file system)
       const presignedData = await apiService.getPresignedUploadUrl(objectName, file.type);
       
-      // Upload to MinIO
-      await apiService.uploadToMinIO(presignedData.url, file);
+      // Check if it's a direct upload endpoint (file system) or presigned URL (MinIO)
+      if (presignedData.url.includes('/media/upload-direct')) {
+        // File system storage - upload directly
+        const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+        const { token } = useAuthStore.getState();
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('objectName', objectName);
+        
+        const response = await fetch(presignedData.url.startsWith('http') ? presignedData.url : `${API_BASE_URL}${presignedData.url}`, {
+          method: 'POST',
+          headers: {
+            ...(token && { 'Authorization': `Bearer ${token}` })
+          },
+          body: formData
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Upload failed: ${response.status}`);
+        }
+        
+        const uploadResult = await response.json();
+        // Use the returned objectName from the server if available
+        if (uploadResult.objectName) {
+          objectName = uploadResult.objectName;
+        }
+      } else {
+        // MinIO presigned URL - upload using PUT
+        await apiService.uploadToMinIO(presignedData.url, file);
+      }
       
       // Create media record in backend with metadata
       try {

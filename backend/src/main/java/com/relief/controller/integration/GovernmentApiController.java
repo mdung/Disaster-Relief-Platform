@@ -23,7 +23,7 @@ import java.util.Map;
  * Government API integration controller
  */
 @RestController
-@RequestMapping("/api/integration/government")
+@RequestMapping("/integration/government")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Government API Integration", description = "Integration with official disaster management systems")
@@ -72,10 +72,23 @@ public class GovernmentApiController {
     @GetMapping("/shelters")
     @Operation(summary = "Get shelter information from government API")
     public ResponseEntity<GovernmentShelterData> getShelterInformation(
-            @RequestParam String region) {
+            @RequestParam(required = false) String region,
+            @RequestParam(required = false) Double latitude,
+            @RequestParam(required = false) Double longitude) {
         
-        GovernmentShelterData data = governmentApiService.getShelterInformation(region);
-        return ResponseEntity.ok(data);
+        // If location provided, use it; otherwise use region
+        if (latitude != null && longitude != null) {
+            // For now, use region-based lookup (can be enhanced with location-based search)
+            GovernmentShelterData data = governmentApiService.getShelterInformation(region != null ? region : "default");
+            return ResponseEntity.ok(data);
+        } else if (region != null) {
+            GovernmentShelterData data = governmentApiService.getShelterInformation(region);
+            return ResponseEntity.ok(data);
+        } else {
+            // Default region if nothing provided
+            GovernmentShelterData data = governmentApiService.getShelterInformation("default");
+            return ResponseEntity.ok(data);
+        }
     }
 
     @PostMapping("/incidents")

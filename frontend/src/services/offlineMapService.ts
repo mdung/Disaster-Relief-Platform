@@ -116,13 +116,13 @@ export interface OfflineMapCacheRegionStatistics {
 export class OfflineMapService {
   // Offline Map Caches
   static async createOfflineMapCache(request: OfflineMapCacheRequest): Promise<OfflineMapCache> {
-    const response = await apiClient.post('/api/offline-maps/caches', request);
-    return response.data;
+    const response = await apiClient.post('/offline-maps/caches', request);
+    return response;
   }
 
   static async getOfflineMapCache(cacheId: number): Promise<OfflineMapCache> {
-    const response = await apiClient.get(`/api/offline-maps/caches/${cacheId}`);
-    return response.data;
+    const response = await apiClient.get(`/offline-maps/caches/${cacheId}`);
+    return response;
   }
 
   static async getAllOfflineMapCaches(params?: {
@@ -131,8 +131,8 @@ export class OfflineMapService {
     mapType?: string;
     priority?: string;
   }): Promise<OfflineMapCache[]> {
-    const response = await apiClient.get('/api/offline-maps/caches', { params });
-    return response.data;
+    const response = await apiClient.get('/offline-maps/caches', { params });
+    return response;
   }
 
   static async getCachesWithinBounds(
@@ -141,63 +141,63 @@ export class OfflineMapService {
     maxLon: number,
     maxLat: number
   ): Promise<OfflineMapCache[]> {
-    const response = await apiClient.get('/api/offline-maps/caches/within-bounds', {
+    const response = await apiClient.get('/offline-maps/caches/within-bounds', {
       params: { minLon, minLat, maxLon, maxLat }
     });
-    return response.data;
+    return response;
   }
 
   static async getCachesContainingPoint(
     longitude: number,
     latitude: number
   ): Promise<OfflineMapCache[]> {
-    const response = await apiClient.get('/api/offline-maps/caches/containing-point', {
+    const response = await apiClient.get('/offline-maps/caches/containing-point', {
       params: { longitude, latitude }
     });
-    return response.data;
+    return response;
   }
 
   // Cache Management
   static async startCacheDownload(cacheId: number): Promise<void> {
-    await apiClient.post(`/api/offline-maps/caches/${cacheId}/start-download`);
+    await apiClient.post(`/offline-maps/caches/${cacheId}/start-download`);
   }
 
   static async pauseCacheDownload(cacheId: number): Promise<void> {
-    await apiClient.post(`/api/offline-maps/caches/${cacheId}/pause-download`);
+    await apiClient.post(`/offline-maps/caches/${cacheId}/pause-download`);
   }
 
   static async resumeCacheDownload(cacheId: number): Promise<void> {
-    await apiClient.post(`/api/offline-maps/caches/${cacheId}/resume-download`);
+    await apiClient.post(`/offline-maps/caches/${cacheId}/resume-download`);
   }
 
   static async deleteOfflineMapCache(cacheId: number): Promise<void> {
-    await apiClient.delete(`/api/offline-maps/caches/${cacheId}`);
+    await apiClient.delete(`/offline-maps/caches/${cacheId}`);
   }
 
   static async cleanupExpiredCaches(): Promise<void> {
-    await apiClient.post('/api/offline-maps/caches/cleanup');
+    await apiClient.post('/offline-maps/caches/cleanup');
   }
 
   // Statistics
   static async getCacheStatistics(cacheId: number): Promise<any> {
-    const response = await apiClient.get(`/api/offline-maps/caches/${cacheId}/statistics`);
-    return response.data;
+    const response = await apiClient.get(`/offline-maps/caches/${cacheId}/statistics`);
+    return response;
   }
 
   static async getGlobalStatistics(params?: {
     startDate?: string;
     endDate?: string;
   }): Promise<OfflineMapCacheStatistics> {
-    const response = await apiClient.get('/api/offline-maps/statistics', { params });
-    return response.data;
+    const response = await apiClient.get('/offline-maps/statistics', { params });
+    return response;
   }
 
   static async getRegionalStatistics(params?: {
     startDate?: string;
     endDate?: string;
   }): Promise<OfflineMapCacheRegionStatistics[]> {
-    const response = await apiClient.get('/api/offline-maps/statistics/regions', { params });
-    return response.data;
+    const response = await apiClient.get('/offline-maps/statistics/regions', { params });
+    return response;
   }
 
   // Tiles
@@ -210,8 +210,8 @@ export class OfflineMapService {
       size?: number;
     }
   ): Promise<OfflineMapTile[]> {
-    const response = await apiClient.get(`/api/offline-maps/tiles/${cacheId}`, { params });
-    return response.data;
+    const response = await apiClient.get(`/offline-maps/tiles/${cacheId}`, { params });
+    return response;
   }
 
   static async downloadTile(
@@ -220,7 +220,7 @@ export class OfflineMapService {
     x: number,
     y: number
   ): Promise<Blob> {
-    const response = await apiClient.get<Blob>(`/api/offline-maps/tiles/${cacheId}/download`, {
+    const response = await apiClient.get<Blob>(`/offline-maps/tiles/${cacheId}/download`, {
       params: { z, x, y },
       responseType: 'blob'
     });

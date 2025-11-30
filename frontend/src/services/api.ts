@@ -123,12 +123,18 @@ class ApiService {
   }
 
   // Media APIs
-  async getPresignedUploadUrl(objectName: string, contentType: string): Promise<{ url: string; [key: string]: any }> {
-    const response = await fetch(`${API_BASE_URL}/media/presign?objectName=${objectName}&contentType=${contentType}`, {
+  async getPresignedUploadUrl(objectName: string, contentType: string): Promise<{ url: string; uploadUrl?: string; [key: string]: any }> {
+    const response = await fetch(`${API_BASE_URL}/media/presign?objectName=${encodeURIComponent(objectName)}&contentType=${encodeURIComponent(contentType)}`, {
       method: 'POST',
       headers: this.getHeaders()
     });
-    return this.handleResponse<{ url: string; [key: string]: any }>(response);
+    const data = await this.handleResponse<{ uploadUrl: string; url?: string; [key: string]: any }>(response);
+    // Backend returns 'uploadUrl', but frontend expects 'url', so map it
+    // data.uploadUrl is guaranteed to be a string from backend response, so use it directly
+    return {
+      ...data,
+      url: data.uploadUrl
+    };
   }
 
   async uploadToMinIO(url: string, file: File) {
@@ -2734,6 +2740,35 @@ class ApiService {
       headers: this.getHeaders()
     });
     return this.handleResponse(response);
+  }
+
+  // Shelter APIs
+  async getShelters(region?: string, latitude?: number, longitude?: number) {
+    const params = new URLSearchParams();
+    if (region) params.append('region', region);
+    if (latitude) params.append('latitude', latitude.toString());
+    if (longitude) params.append('longitude', longitude.toString());
+    
+    const response = await fetch(`${API_BASE_URL}/integration/government/shelters${params.toString() ? '?' + params.toString() : ''}`, {
+      headers: this.getHeaders()
+    });
+    return this.handleResponse(response);
+  }
+
+  async findNearbyShelters(latitude: number, longitude: number, radiusKm: number = 50) {
+    // Use needs requests with type "Shelter" as a fallback, or government API
+    try {
+      const shelters = await this.getShelters(undefined, latitude, longitude);
+      return shelters;
+    } catch (error) {
+      // Fallback: search for needs requests with type "Shelter"
+      const requests = await this.getRequests({ 
+        type: 'Shelter',
+        page: 0,
+        size: 100
+      });
+      return requests.content || [];
+    }
   }
 }
 

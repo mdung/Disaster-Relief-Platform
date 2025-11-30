@@ -28,7 +28,7 @@ import java.util.Map;
  * REST controller for location analytics
  */
 @RestController
-@RequestMapping("/api/location-analytics")
+@RequestMapping("/location-analytics")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Location Analytics", description = "Location history analytics and pattern detection APIs")

@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/security/threats")
+@RequestMapping("/security/threats")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Threat Detection", description = "ML-based anomaly detection for security threats")

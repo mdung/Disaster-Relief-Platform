@@ -114,7 +114,7 @@ export interface LogisticsAnalytics {
 }
 
 class LogisticsService {
-  private baseUrl = '/api/integration/logistics';
+  private baseUrl = '/integration/logistics';
 
   async getQuote(origin: string, destination: string, items: LogisticsItem[], serviceType: string): Promise<LogisticsQuote> {
     return apiService.post(`${this.baseUrl}/quotes`, { origin, destination, items, serviceType });

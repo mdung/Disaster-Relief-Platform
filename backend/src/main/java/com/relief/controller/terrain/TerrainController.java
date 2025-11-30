@@ -23,7 +23,7 @@ import java.util.Optional;
  * REST controller for terrain analysis and elevation services
  */
 @RestController
-@RequestMapping("/api/terrain")
+@RequestMapping("/terrain")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Terrain Analysis", description = "Terrain analysis and elevation services")

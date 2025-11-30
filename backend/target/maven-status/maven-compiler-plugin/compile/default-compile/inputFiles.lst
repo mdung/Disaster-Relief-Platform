@@ -209,6 +209,7 @@ D:\project\GIS\Disaster-Relief-Platform\backend\src\main\java\com\relief\service
 D:\project\GIS\Disaster-Relief-Platform\backend\src\main\java\com\relief\config\RateLimitingConfig.java
 D:\project\GIS\Disaster-Relief-Platform\backend\src\main\java\com\relief\entity\InventoryHub.java
 D:\project\GIS\Disaster-Relief-Platform\backend\src\main\java\com\relief\security\Role.java
+D:\project\GIS\Disaster-Relief-Platform\backend\src\main\java\com\relief\config\StorageConfig.java
 D:\project\GIS\Disaster-Relief-Platform\backend\src\main\java\com\relief\service\UserService.java
 D:\project\GIS\Disaster-Relief-Platform\backend\src\main\java\com\relief\service\integration\WeatherService.java
 D:\project\GIS\Disaster-Relief-Platform\backend\src\main\java\com\relief\service\satellite\DamageAssessmentService.java

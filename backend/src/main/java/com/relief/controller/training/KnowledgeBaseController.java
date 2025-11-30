@@ -23,7 +23,7 @@ import java.util.UUID;
  * Knowledge base controller
  */
 @RestController
-@RequestMapping("/api/knowledge-base")
+@RequestMapping("/knowledge-base")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Knowledge Base", description = "Searchable repository of best practices and procedures")

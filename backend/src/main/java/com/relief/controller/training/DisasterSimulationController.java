@@ -1,5 +1,7 @@
 package com.relief.controller.training;
 
+import com.relief.entity.User;
+import com.relief.repository.UserRepository;
 import com.relief.service.training.DisasterSimulationService;
 import com.relief.service.training.DisasterSimulationService.SimulationScenario;
 import com.relief.service.training.DisasterSimulationService.SimulationSession;
@@ -26,13 +28,26 @@ import java.util.UUID;
  * Disaster simulation controller
  */
 @RestController
-@RequestMapping("/api/disaster-simulation")
+@RequestMapping("/disaster-simulation")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Disaster Simulation", description = "Virtual training scenarios for responders")
 public class DisasterSimulationController {
 
     private final DisasterSimulationService disasterSimulationService;
+    private final UserRepository userRepository;
+
+    private UUID getUserIdFromPrincipal(UserDetails principal) {
+        String username = principal.getUsername();
+        try {
+            return UUID.fromString(username);
+        } catch (IllegalArgumentException e) {
+            User user = userRepository.findByEmail(username)
+                    .orElseGet(() -> userRepository.findByPhone(username)
+                            .orElseThrow(() -> new IllegalArgumentException("User not found: " + username)));
+            return user.getId();
+        }
+    }
 
     @PostMapping("/scenarios")
     @Operation(summary = "Create a simulation scenario")
@@ -40,7 +55,7 @@ public class DisasterSimulationController {
             @RequestBody CreateScenarioRequest request,
             @AuthenticationPrincipal UserDetails principal) {
         
-        UUID userId = UUID.fromString(principal.getUsername());
+        UUID userId = getUserIdFromPrincipal(principal);
         
         SimulationScenario scenario = disasterSimulationService.createScenario(
             request.getName(),
@@ -61,7 +76,7 @@ public class DisasterSimulationController {
             @RequestBody StartSessionRequest request,
             @AuthenticationPrincipal UserDetails principal) {
         
-        UUID instructorId = UUID.fromString(principal.getUsername());
+        UUID instructorId = getUserIdFromPrincipal(principal);
         
         SimulationSession session = disasterSimulationService.startSession(
             request.getScenarioId(),
@@ -233,7 +248,7 @@ public class DisasterSimulationController {
             @RequestBody CreateTemplateRequest request,
             @AuthenticationPrincipal UserDetails principal) {
         
-        UUID userId = UUID.fromString(principal.getUsername());
+        UUID userId = getUserIdFromPrincipal(principal);
         
         SimulationTemplate template = disasterSimulationService.createTemplate(
             request.getName(),

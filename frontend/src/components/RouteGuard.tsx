@@ -59,8 +59,35 @@ const RouteGuard: React.FC<RouteGuardProps> = ({
         case 'system:monitor':
         case 'system:config':
           return user?.role === 'ADMIN';
+        // Management menu permissions
+        case 'security:read':
+        case 'security:write':
+          return ['ADMIN', 'DISPATCHER'].includes(user?.role || '');
+        case 'financial:read':
+        case 'financial:write':
+          return ['ADMIN', 'DISPATCHER'].includes(user?.role || '');
+        case 'training:read':
+        case 'training:write':
+          return ['ADMIN', 'DISPATCHER', 'HELPER'].includes(user?.role || '');
+        case 'integration:read':
+        case 'integration:write':
+          return ['ADMIN', 'DISPATCHER'].includes(user?.role || '');
+        // Analytics & Intelligence permissions
+        case 'analytics:read':
+        case 'analytics:write':
+          return ['ADMIN', 'DISPATCHER'].includes(user?.role || '');
+        case 'realtime:read':
+        case 'realtime:write':
+          return ['ADMIN', 'DISPATCHER', 'HELPER'].includes(user?.role || '');
+        case 'ai:read':
+        case 'ai:write':
+          return ['ADMIN', 'DISPATCHER'].includes(user?.role || '');
+        case 'optimization:read':
+        case 'optimization:write':
+          return ['ADMIN', 'DISPATCHER'].includes(user?.role || '');
         default:
-          return false;
+          // ADMIN has all permissions by default
+          return user?.role === 'ADMIN';
       }
     });
 

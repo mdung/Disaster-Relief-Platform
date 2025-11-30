@@ -1,5 +1,7 @@
 package com.relief.controller.training;
 
+import com.relief.entity.User;
+import com.relief.repository.UserRepository;
 import com.relief.service.training.PerformanceAssessmentService;
 import com.relief.service.training.PerformanceAssessmentService.Assessment;
 import com.relief.service.training.PerformanceAssessmentService.AssessmentSession;
@@ -29,13 +31,26 @@ import java.util.UUID;
  * Performance assessment controller
  */
 @RestController
-@RequestMapping("/api/performance-assessment")
+@RequestMapping("/performance-assessment")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Performance Assessment", description = "Evaluate and improve response capabilities")
 public class PerformanceAssessmentController {
 
     private final PerformanceAssessmentService performanceAssessmentService;
+    private final UserRepository userRepository;
+
+    private UUID getUserIdFromPrincipal(UserDetails principal) {
+        String username = principal.getUsername();
+        try {
+            return UUID.fromString(username);
+        } catch (IllegalArgumentException e) {
+            User user = userRepository.findByEmail(username)
+                    .orElseGet(() -> userRepository.findByPhone(username)
+                            .orElseThrow(() -> new IllegalArgumentException("User not found: " + username)));
+            return user.getId();
+        }
+    }
 
     @PostMapping("/assessments")
     @Operation(summary = "Create a performance assessment")
@@ -43,7 +58,7 @@ public class PerformanceAssessmentController {
             @RequestBody CreateAssessmentRequest request,
             @AuthenticationPrincipal UserDetails principal) {
         
-        UUID userId = UUID.fromString(principal.getUsername());
+        UUID userId = getUserIdFromPrincipal(principal);
         
         Assessment assessment = performanceAssessmentService.createAssessment(
             request.getName(),

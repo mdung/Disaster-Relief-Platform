@@ -23,7 +23,7 @@ import java.util.Map;
  * Social media monitoring controller
  */
 @RestController
-@RequestMapping("/api/integration/social-media")
+@RequestMapping("/integration/social-media")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Social Media Monitoring", description = "Track and analyze social media for disaster information")

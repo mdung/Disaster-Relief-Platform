@@ -119,7 +119,7 @@ export interface ProcessRefundRequest {
 }
 
 class DonationManagementService {
-  private baseUrl = '/api/donation-management';
+  private baseUrl = '/donation-management';
 
   async recordDonation(request: RecordDonationRequest): Promise<Donation> {
     return apiService.post(`${this.baseUrl}/donations`, request);

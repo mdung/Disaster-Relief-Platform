@@ -23,7 +23,7 @@ import java.util.List;
  * REST controller for satellite imagery and damage assessment
  */
 @RestController
-@RequestMapping("/api/satellite")
+@RequestMapping("/satellite")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Satellite Imagery", description = "Satellite imagery and damage assessment services")

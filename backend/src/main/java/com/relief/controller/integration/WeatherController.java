@@ -23,7 +23,7 @@ import java.util.List;
  * Weather service integration controller
  */
 @RestController
-@RequestMapping("/api/integration/weather")
+@RequestMapping("/integration/weather")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Weather Integration", description = "Real-time weather data integration")

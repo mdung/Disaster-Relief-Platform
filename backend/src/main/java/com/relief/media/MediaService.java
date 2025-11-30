@@ -14,6 +14,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
@@ -23,24 +31,39 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class MediaService {
 
-    private final MinioClient minioClient;
     private final MediaRepository mediaRepository;
     private final UserRepository userRepository;
     private final GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
 
-    @Value("${minio.bucket-name}")
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private MinioClient minioClient;
+
+    @Value("${minio.bucket-name:relief-media}")
     private String bucketName;
 
     @Value("${spring.servlet.context-path:/api}")
     private String contextPath;
 
+    @Value("${storage.type:filesystem}")
+    private String storageType;
+
+    @Value("${storage.filesystem.path:./storage/media}")
+    private String filesystemPath;
+
     public String createPresignedPutUrl(String objectName, String contentType) {
+        // Use file system storage if MinIO is not available
+        if (minioClient == null || "filesystem".equals(storageType)) {
+            return createFileSystemUploadUrl(objectName);
+        }
+
         try {
+            // Ensure bucket exists
             boolean exists = minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build());
             if (!exists) {
                 minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
             }
 
+            // Generate presigned URL (expires in 1 hour by default)
             return minioClient.getPresignedObjectUrl(
                     GetPresignedObjectUrlArgs.builder()
                             .method(io.minio.http.Method.PUT)
@@ -50,7 +73,18 @@ public class MediaService {
                             .build()
             );
         } catch (Exception e) {
-            throw new RuntimeException("Failed to create presigned URL", e);
+            // Fallback to file system if MinIO fails
+            return createFileSystemUploadUrl(objectName);
+        }
+    }
+
+    private String createFileSystemUploadUrl(String objectName) {
+        // Return direct upload endpoint for file system storage
+        try {
+            String encoded = java.net.URLEncoder.encode(objectName, java.nio.charset.StandardCharsets.UTF_8);
+            return contextPath + "/media/upload-direct?objectName=" + encoded;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to create file system upload URL: " + e.getMessage(), e);
         }
     }
 
@@ -136,9 +170,56 @@ public class MediaService {
     }
 
     private String buildMediaUrl(String objectName) {
-        // Remove /api prefix if present in contextPath
+        // For file system storage, use the file endpoint
+        if ("filesystem".equals(storageType) || minioClient == null) {
+            return contextPath + "/media/file/" + objectName;
+        }
+        // For MinIO, use the object name as URL
         String basePath = contextPath.equals("/api") ? "" : contextPath.replace("/api", "");
         return basePath + "/media/" + objectName;
+    }
+
+    /**
+     * Save file to file system storage
+     */
+    public String saveFileToFileSystem(MultipartFile file, String objectName, String userId) throws IOException {
+        Path storageDir = Paths.get(filesystemPath);
+        if (!Files.exists(storageDir)) {
+            Files.createDirectories(storageDir);
+        }
+
+        // Create user-specific directory
+        Path userDir = storageDir.resolve(userId);
+        if (!Files.exists(userDir)) {
+            Files.createDirectories(userDir);
+        }
+
+        // Save file
+        Path filePath = userDir.resolve(objectName);
+        Files.copy(file.getInputStream(), filePath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+
+        // Return relative path for URL
+        return userId + "/" + objectName;
+    }
+
+    /**
+     * Get file system URL for an object
+     */
+    public String getFileSystemUrl(String objectName) {
+        return contextPath + "/media/file/" + objectName;
+    }
+
+    /**
+     * Get file resource from file system
+     */
+    public Resource getFileSystemResource(String objectName) throws IOException {
+        Path filePath = Paths.get(filesystemPath).resolve(objectName);
+        Resource resource = new UrlResource(filePath.toUri());
+        if (resource.exists() && resource.isReadable()) {
+            return resource;
+        } else {
+            throw new IOException("File not found: " + objectName);
+        }
     }
 
     // Inner class for request DTO

@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
  * Donation management controller
  */
 @RestController
-@RequestMapping("/api/donation-management")
+@RequestMapping("/donation-management")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Donation Management", description = "Donation tracking and management APIs")
@@ -48,7 +48,16 @@ public class DonationManagementController {
             @AuthenticationPrincipal UserDetails principal) {
         
         try {
-            UUID userId = UUID.fromString(principal.getUsername());
+            String username = principal.getUsername();
+            UUID userId;
+            try {
+                userId = UUID.fromString(username);
+            } catch (IllegalArgumentException e) {
+                User user = userRepository.findByEmail(username)
+                        .orElseGet(() -> userRepository.findByPhone(username)
+                                .orElseThrow(() -> new IllegalArgumentException("User not found: " + username)));
+                userId = user.getId();
+            }
             
             // Get user details for recording
             User user = userRepository.findById(userId)
@@ -87,7 +96,16 @@ public class DonationManagementController {
             @AuthenticationPrincipal UserDetails principal) {
         
         try {
-            UUID userId = UUID.fromString(principal.getUsername());
+            String username = principal.getUsername();
+            UUID userId;
+            try {
+                userId = UUID.fromString(username);
+            } catch (IllegalArgumentException e) {
+                User user = userRepository.findByEmail(username)
+                        .orElseGet(() -> userRepository.findByPhone(username)
+                                .orElseThrow(() -> new IllegalArgumentException("User not found: " + username)));
+                userId = user.getId();
+            }
             
             // Get user details for recording
             User user = userRepository.findById(userId)

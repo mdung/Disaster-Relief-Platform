@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/optimization/routing")
+@RequestMapping("/optimization/routing")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Dynamic Routing", description = "AI-powered optimal delivery routes")

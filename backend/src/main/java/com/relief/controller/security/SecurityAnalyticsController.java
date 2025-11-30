@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/security/analytics")
+@RequestMapping("/security/analytics")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Security Analytics", description = "Real-time security monitoring and metrics")

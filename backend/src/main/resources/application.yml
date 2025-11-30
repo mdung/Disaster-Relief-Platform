@@ -38,12 +38,26 @@ spring:
       max-file-size: 10MB
       max-request-size: 10MB
 
-# MinIO Configuration
+# Storage Configuration
+# Set to "filesystem" to use local file system (no MinIO required)
+# Set to "minio" to use MinIO object storage
+storage:
+  type: ${STORAGE_TYPE:filesystem}
+  filesystem:
+    path: ${STORAGE_FILESYSTEM_PATH:./storage/media}
+
+# MinIO Configuration (only used when storage.type=minio)
 minio:
+  # Endpoint can be in one of these formats:
+  # - Full URL: http://localhost:9000 or https://minio.example.com:9000
+  # - Hostname:port: localhost:9000 (will default to HTTP)
+  # - Just hostname: localhost (will default to http://localhost:9000)
   endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
   access-key: ${MINIO_ACCESS_KEY:minioadmin}
   secret-key: ${MINIO_SECRET_KEY:minioadmin123}
-  bucket-name: relief-media
+  bucket-name: ${MINIO_BUCKET_NAME:relief-media}
+  # Optional: explicitly set secure flag (auto-detected from endpoint URL if not set)
+  secure: ${MINIO_SECURE:false}
 
 # Map Configuration
 map:

@@ -154,8 +154,8 @@ export interface LocationOptimizationStatistics {
 export class LocationAnalyticsService {
   // Location History
   static async recordLocationHistory(request: LocationHistoryRequest): Promise<LocationHistory> {
-    const response = await apiClient.post('/api/location-analytics/history', request);
-    return response.data;
+    const response = await apiClient.post('/location-analytics/history', request);
+    return response;
   }
 
   static async getLocationHistory(params?: {
@@ -169,8 +169,8 @@ export class LocationAnalyticsService {
     page?: number;
     size?: number;
   }): Promise<LocationHistory[]> {
-    const response = await apiClient.get('/api/location-analytics/history', { params });
-    return response.data;
+    const response = await apiClient.get('/location-analytics/history', { params });
+    return response;
   }
 
   static async getLocationHistoryWithinBounds(
@@ -181,10 +181,10 @@ export class LocationAnalyticsService {
     startTime?: string,
     endTime?: string
   ): Promise<LocationHistory[]> {
-    const response = await apiClient.get('/api/location-analytics/history/within-bounds', {
+    const response = await apiClient.get('/location-analytics/history/within-bounds', {
       params: { minLon, minLat, maxLon, maxLat, startTime, endTime }
     });
-    return response.data;
+    return response;
   }
 
   static async getLocationHistoryNearPoint(
@@ -194,10 +194,10 @@ export class LocationAnalyticsService {
     startTime?: string,
     endTime?: string
   ): Promise<LocationHistory[]> {
-    const response = await apiClient.get('/api/location-analytics/history/near-point', {
+    const response = await apiClient.get('/location-analytics/history/near-point', {
       params: { longitude, latitude, radius, startTime, endTime }
     });
-    return response.data;
+    return response;
   }
 
   // Location Patterns
@@ -209,12 +209,12 @@ export class LocationAnalyticsService {
     optimalOnly?: boolean;
     minConfidence?: number;
   }): Promise<LocationPattern[]> {
-    const response = await apiClient.get('/api/location-analytics/patterns', { params });
-    return response.data;
+    const response = await apiClient.get('/location-analytics/patterns', { params });
+    return response;
   }
 
   static async analyzePatternsForEntity(entityType: string, entityId: number): Promise<void> {
-    await apiClient.post('/api/location-analytics/patterns/analyze', null, {
+    await apiClient.post('/location-analytics/patterns/analyze', null, {
       params: { entityType, entityId }
     });
   }
@@ -228,8 +228,8 @@ export class LocationAnalyticsService {
     implementedOnly?: boolean;
     highPriorityOnly?: boolean;
   }): Promise<LocationOptimization[]> {
-    const response = await apiClient.get('/api/location-analytics/optimizations', { params });
-    return response.data;
+    const response = await apiClient.get('/location-analytics/optimizations', { params });
+    return response;
   }
 
   static async implementOptimization(
@@ -237,7 +237,7 @@ export class LocationAnalyticsService {
     notes?: string,
     actualEfficiencyGain?: number
   ): Promise<void> {
-    await apiClient.post(`/api/location-analytics/optimizations/${optimizationId}/implement`, null, {
+    await apiClient.post(`/location-analytics/optimizations/${optimizationId}/implement`, null, {
       params: { notes, actualEfficiencyGain }
     });
   }
@@ -247,40 +247,40 @@ export class LocationAnalyticsService {
     startDate?: string;
     endDate?: string;
   }): Promise<LocationHistoryStatistics> {
-    const response = await apiClient.get('/api/location-analytics/statistics/history', { params });
-    return response.data;
+    const response = await apiClient.get('/location-analytics/statistics/history', { params });
+    return response;
   }
 
   static async getPatternStatistics(params?: {
     startDate?: string;
     endDate?: string;
   }): Promise<LocationPatternStatistics> {
-    const response = await apiClient.get('/api/location-analytics/statistics/patterns', { params });
-    return response.data;
+    const response = await apiClient.get('/location-analytics/statistics/patterns', { params });
+    return response;
   }
 
   static async getOptimizationStatistics(params?: {
     startDate?: string;
     endDate?: string;
   }): Promise<LocationOptimizationStatistics> {
-    const response = await apiClient.get('/api/location-analytics/statistics/optimizations', { params });
-    return response.data;
+    const response = await apiClient.get('/location-analytics/statistics/optimizations', { params });
+    return response;
   }
 
   static async getActivityTypeStatistics(params?: {
     startDate?: string;
     endDate?: string;
   }): Promise<any[]> {
-    const response = await apiClient.get('/api/location-analytics/statistics/activity-types', { params });
-    return response.data;
+    const response = await apiClient.get('/location-analytics/statistics/activity-types', { params });
+    return response;
   }
 
   static async getEntityMovementStatistics(params?: {
     startDate?: string;
     endDate?: string;
   }): Promise<any[]> {
-    const response = await apiClient.get('/api/location-analytics/statistics/entity-movement', { params });
-    return response.data;
+    const response = await apiClient.get('/location-analytics/statistics/entity-movement', { params });
+    return response;
   }
 
   // Utility methods

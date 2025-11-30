@@ -32,19 +32,30 @@ export const TerrainVisualization: React.FC<TerrainVisualizationProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (mapRef.current) {
-      loadTerrainData();
+    // Wait a bit for map to be fully initialized
+    if (mapRef.current && mapRef.current.loaded()) {
+      const timer = setTimeout(() => {
+        loadTerrainData();
+      }, 500);
+      return () => clearTimeout(timer);
     }
-  }, [center, zoom]);
+  }, [center, zoom, showElevation, showSlope, showAccessibility]);
 
   const loadTerrainData = async () => {
-    if (!mapRef.current) return;
+    if (!mapRef.current || !mapRef.current.loaded()) {
+      console.warn('Map not loaded yet, skipping terrain data load');
+      return;
+    }
 
     setLoading(true);
     setError(null);
 
     try {
       const bounds = mapRef.current.getBounds();
+      if (!bounds) {
+        throw new Error('Map bounds not available');
+      }
+
       const minLon = bounds.getWest();
       const minLat = bounds.getSouth();
       const maxLon = bounds.getEast();
@@ -53,19 +64,30 @@ export const TerrainVisualization: React.FC<TerrainVisualizationProps> = ({
       // Load elevation points
       if (showElevation) {
         const points = await TerrainService.getElevationPointsInBounds(minLon, minLat, maxLon, maxLat);
-        setElevationPoints(points);
-        addElevationLayer(points);
+        if (points && Array.isArray(points) && points.length > 0) {
+          setElevationPoints(points);
+          addElevationLayer(points);
+        } else {
+          console.warn('No elevation points returned from API or invalid data format');
+          // Don't show error if API returns empty array - this is normal for areas without data
+          if (points === null || points === undefined) {
+            setError('Failed to load elevation data from server');
+          }
+        }
       }
 
       // Load terrain analysis
       if (showSlope || showAccessibility) {
         const analysis = await TerrainService.findAccessibleAreas(0.4, 45);
-        setTerrainAnalysis(analysis);
-        addTerrainAnalysisLayer(analysis);
+        if (analysis && analysis.length > 0) {
+          setTerrainAnalysis(analysis);
+          addTerrainAnalysisLayer(analysis);
+        }
       }
 
-    } catch (err) {
-      setError('Failed to load terrain data');
+    } catch (err: any) {
+      const errorMessage = err?.message || 'Failed to load terrain data';
+      setError(errorMessage);
       console.error('Terrain data loading error:', err);
     } finally {
       setLoading(false);
@@ -73,7 +95,10 @@ export const TerrainVisualization: React.FC<TerrainVisualizationProps> = ({
   };
 
   const addElevationLayer = (points: ElevationPoint[]) => {
-    if (!mapRef.current || points.length === 0) return;
+    if (!mapRef.current || !points || !Array.isArray(points) || points.length === 0) {
+      console.warn('Cannot add elevation layer: invalid points data', points);
+      return;
+    }
 
     const minElev = Math.min(...points.map(p => p.elevation));
     const maxElev = Math.max(...points.map(p => p.elevation));
@@ -141,7 +166,10 @@ export const TerrainVisualization: React.FC<TerrainVisualizationProps> = ({
   };
 
   const addTerrainAnalysisLayer = (analysis: TerrainAnalysis[]) => {
-    if (!mapRef.current || analysis.length === 0) return;
+    if (!mapRef.current || !analysis || !Array.isArray(analysis) || analysis.length === 0) {
+      console.warn('Cannot add terrain analysis layer: invalid analysis data', analysis);
+      return;
+    }
 
     // Add terrain analysis areas
     if (mapRef.current.getSource('terrain-analysis')) {
@@ -244,7 +272,10 @@ export const TerrainVisualization: React.FC<TerrainVisualizationProps> = ({
   };
 
   const addRouteLayer = (routeData: TerrainRoute[]) => {
-    if (!mapRef.current || routeData.length === 0) return;
+    if (!mapRef.current || !routeData || !Array.isArray(routeData) || routeData.length === 0) {
+      console.warn('Cannot add route layer: invalid route data', routeData);
+      return;
+    }
 
     // Remove existing route layers
     ['route-line', 'route-points'].forEach(layerId => {
@@ -258,25 +289,37 @@ export const TerrainVisualization: React.FC<TerrainVisualizationProps> = ({
       }
     });
 
-    const features = routeData.map((route, index) => ({
-      type: 'Feature',
-      geometry: {
-        type: 'LineString',
-        coordinates: route.segments.map(segment => [
-          segment.startPoint.longitude,
-          segment.startPoint.latitude
-        ]).concat([[
-          route.segments[route.segments.length - 1].endPoint.longitude,
-          route.segments[route.segments.length - 1].endPoint.latitude
-        ]])
-      },
-      properties: {
-        routeIndex: index,
-        totalDistance: route.totalDistance,
-        accessibilityScore: route.accessibilityScore,
-        isAccessible: route.isAccessible
+    const features = routeData.map((route, index) => {
+      if (!route.segments || !Array.isArray(route.segments) || route.segments.length === 0) {
+        console.warn(`Route ${index} has invalid segments`, route);
+        return null;
       }
-    }));
+      
+      return {
+        type: 'Feature',
+        geometry: {
+          type: 'LineString',
+          coordinates: route.segments.map(segment => [
+            segment.startPoint.longitude,
+            segment.startPoint.latitude
+          ]).concat([[
+            route.segments[route.segments.length - 1].endPoint.longitude,
+            route.segments[route.segments.length - 1].endPoint.latitude
+          ]])
+        },
+        properties: {
+          routeIndex: index,
+          totalDistance: route.totalDistance,
+          accessibilityScore: route.accessibilityScore,
+          isAccessible: route.isAccessible
+        }
+      };
+    }).filter((feature): feature is NonNullable<typeof feature> => feature !== null);
+
+    if (features.length === 0) {
+      console.warn('No valid route features to display');
+      return;
+    }
 
     mapRef.current.addSource('route-source', {
       type: 'geojson',
@@ -302,8 +345,11 @@ export const TerrainVisualization: React.FC<TerrainVisualizationProps> = ({
     });
 
     // Add route points
-    const routePoints = routeData.flatMap(route => 
-      route.segments.map(segment => ({
+    const routePoints = routeData.flatMap(route => {
+      if (!route.segments || !Array.isArray(route.segments)) {
+        return [];
+      }
+      return route.segments.map(segment => ({
         type: 'Feature',
         geometry: {
           type: 'Point',
@@ -314,8 +360,8 @@ export const TerrainVisualization: React.FC<TerrainVisualizationProps> = ({
           elevationGain: segment.elevationGain,
           elevationLoss: segment.elevationLoss
         }
-      }))
-    );
+      }));
+    });
 
     mapRef.current.addSource('route-points', {
       type: 'geojson',

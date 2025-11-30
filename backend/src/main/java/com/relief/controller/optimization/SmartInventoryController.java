@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/optimization/inventory")
+@RequestMapping("/optimization/inventory")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Smart Inventory Management", description = "ML algorithms for automatic reordering and stock optimization")

@@ -1,5 +1,7 @@
 package com.relief.controller.financial;
 
+import com.relief.entity.User;
+import com.relief.repository.UserRepository;
 import com.relief.service.financial.FinancialReportingService;
 import com.relief.service.financial.FinancialReportingService.FinancialReport;
 import com.relief.service.financial.FinancialReportingService.ReportType;
@@ -23,13 +25,26 @@ import java.util.UUID;
  * Financial reporting controller
  */
 @RestController
-@RequestMapping("/api/financial-reporting")
+@RequestMapping("/financial-reporting")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Financial Reporting", description = "Financial reporting and analytics APIs")
 public class FinancialReportingController {
 
     private final FinancialReportingService financialReportingService;
+    private final UserRepository userRepository;
+
+    private UUID getUserIdFromPrincipal(UserDetails principal) {
+        String username = principal.getUsername();
+        try {
+            return UUID.fromString(username);
+        } catch (IllegalArgumentException e) {
+            User user = userRepository.findByEmail(username)
+                    .orElseGet(() -> userRepository.findByPhone(username)
+                            .orElseThrow(() -> new IllegalArgumentException("User not found: " + username)));
+            return user.getId();
+        }
+    }
 
     @PostMapping("/reports")
     @Operation(summary = "Generate financial report")
@@ -37,7 +52,7 @@ public class FinancialReportingController {
             @RequestBody GenerateReportRequest request,
             @AuthenticationPrincipal UserDetails principal) {
         
-        UUID userId = UUID.fromString(principal.getUsername());
+        UUID userId = getUserIdFromPrincipal(principal);
         
         FinancialReport report = financialReportingService.generateReport(
             request.getType(),
@@ -141,7 +156,7 @@ public class FinancialReportingController {
             @RequestBody CreateTemplateRequest request,
             @AuthenticationPrincipal UserDetails principal) {
         
-        UUID userId = UUID.fromString(principal.getUsername());
+        UUID userId = getUserIdFromPrincipal(principal);
         
         Map<String, Object> template = financialReportingService.createReportTemplate(
             request.getName(),

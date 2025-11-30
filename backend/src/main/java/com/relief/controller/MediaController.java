@@ -93,7 +93,7 @@ public class MediaController {
 
 
     @PostMapping("/presign")
-    @Operation(summary = "Get presigned URL for direct upload to MinIO")
+    @Operation(summary = "Get presigned URL for direct upload to MinIO or file system")
     @RequiresPermission(Permission.MEDIA_UPLOAD)
     public ResponseEntity<Map<String, String>> getPresignedUploadUrl(
             @RequestParam String objectName,
@@ -115,6 +115,75 @@ public class MediaController {
                 "error", "Failed to generate presigned URL",
                 "message", e.getMessage()
             ));
+        }
+    }
+
+    @PostMapping("/upload-direct")
+    @Operation(summary = "Direct file upload to file system (fallback when MinIO unavailable)")
+    @RequiresPermission(Permission.MEDIA_UPLOAD)
+    public ResponseEntity<Map<String, Object>> uploadDirect(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam String objectName,
+            Authentication authentication) {
+        
+        try {
+            String userId = authentication.getName();
+            String savedObjectName = mediaService.saveFileToFileSystem(file, objectName, userId);
+            String fileUrl = mediaService.getFileSystemUrl(savedObjectName);
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "objectName", savedObjectName,
+                "url", fileUrl,
+                "message", "File uploaded successfully"
+            ));
+            
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "error", "Upload failed",
+                "message", e.getMessage()
+            ));
+        }
+    }
+
+    @GetMapping("/file/**")
+    @Operation(summary = "Serve file from file system storage")
+    public ResponseEntity<org.springframework.core.io.Resource> getFile(
+            jakarta.servlet.http.HttpServletRequest request) {
+        
+        try {
+            // Extract object name from request path
+            String requestPath = request.getRequestURI();
+            String contextPath = request.getContextPath();
+            String servletPath = request.getServletPath();
+            
+            // Remove context path and servlet path to get the actual path
+            String path = requestPath;
+            if (contextPath != null && !contextPath.isEmpty()) {
+                path = path.substring(contextPath.length());
+            }
+            if (servletPath != null && !servletPath.isEmpty() && path.startsWith(servletPath)) {
+                path = path.substring(servletPath.length());
+            }
+            
+            // Extract object name (remove /media/file/ prefix)
+            String objectName = path.replaceFirst("^/media/file/", "");
+            if (objectName.startsWith("/")) {
+                objectName = objectName.substring(1);
+            }
+            
+            org.springframework.core.io.Resource resource = mediaService.getFileSystemResource(objectName);
+            if (resource.exists() && resource.isReadable()) {
+                return ResponseEntity.ok()
+                    .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, 
+                            "inline; filename=\"" + resource.getFilename() + "\"")
+                    .body(resource);
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
         }
     }
 

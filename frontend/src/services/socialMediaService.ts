@@ -87,7 +87,7 @@ export interface SocialMediaReport {
 }
 
 class SocialMediaService {
-  private baseUrl = '/api/integration/social-media';
+  private baseUrl = '/integration/social-media';
 
   async searchPosts(query: string, platform?: string, limit: number = 50): Promise<SocialMediaPost[]> {
     return apiService.get(`${this.baseUrl}/posts/search`, { query, platform, limit });

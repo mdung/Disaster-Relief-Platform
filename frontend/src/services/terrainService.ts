@@ -79,10 +79,10 @@ export class TerrainService {
    */
   static async getElevation(longitude: number, latitude: number): Promise<number | null> {
     try {
-      const response = await apiClient.get(`/terrain/elevation`, {
+      const response = await apiClient.get<{ elevation: number }>(`/terrain/elevation`, {
         params: { longitude, latitude }
       });
-      return response.data.elevation;
+      return response?.elevation || null;
     } catch (error) {
       console.error('Failed to get elevation:', error);
       return null;
@@ -96,10 +96,10 @@ export class TerrainService {
     minLon: number, minLat: number, maxLon: number, maxLat: number
   ): Promise<ElevationPoint[]> {
     try {
-      const response = await apiClient.get('/terrain/elevation/bounds', {
+      const response = await apiClient.get<ElevationPoint[]>('/terrain/elevation/bounds', {
         params: { minLon, minLat, maxLon, maxLat }
       });
-      return response.data;
+      return response || [];
     } catch (error) {
       console.error('Failed to get elevation points:', error);
       return [];
@@ -113,10 +113,10 @@ export class TerrainService {
     minLon: number, minLat: number, maxLon: number, maxLat: number
   ): Promise<ElevationStatistics | null> {
     try {
-      const response = await apiClient.get('/terrain/elevation/statistics', {
+      const response = await apiClient.get<ElevationStatistics>('/terrain/elevation/statistics', {
         params: { minLon, minLat, maxLon, maxLat }
       });
-      return response.data;
+      return response || null;
     } catch (error) {
       console.error('Failed to get elevation statistics:', error);
       return null;
@@ -131,11 +131,11 @@ export class TerrainService {
     analysisType: string
   ): Promise<TerrainAnalysis | null> {
     try {
-      const response = await apiClient.post('/terrain/analysis', {
+      const response = await apiClient.post<TerrainAnalysis>('/terrain/analysis', {
         coordinates,
         analysisType
       });
-      return response.data;
+      return response || null;
     } catch (error) {
       console.error('Failed to perform terrain analysis:', error);
       return null;
@@ -149,10 +149,10 @@ export class TerrainService {
     longitude: number, latitude: number
   ): Promise<TerrainAnalysis | null> {
     try {
-      const response = await apiClient.get('/terrain/analysis/point', {
+      const response = await apiClient.get<TerrainAnalysis>('/terrain/analysis/point', {
         params: { longitude, latitude }
       });
-      return response.data;
+      return response || null;
     } catch (error) {
       console.error('Failed to get terrain analysis:', error);
       return null;
@@ -167,10 +167,10 @@ export class TerrainService {
     maxSlope: number = 15
   ): Promise<TerrainAnalysis[]> {
     try {
-      const response = await apiClient.get('/terrain/analysis/accessible', {
+      const response = await apiClient.get<TerrainAnalysis[]>('/terrain/analysis/accessible', {
         params: { minAccessibilityScore, maxSlope }
       });
-      return response.data;
+      return response || [];
     } catch (error) {
       console.error('Failed to find accessible areas:', error);
       return [];
@@ -198,8 +198,8 @@ export class TerrainService {
         maxAlternativeRoutes: options.maxAlternativeRoutes || 3
       };
 
-      const response = await apiClient.post('/terrain/routing', request);
-      return response.data;
+      const response = await apiClient.post<TerrainRoute>('/terrain/routing', request);
+      return response || null;
     } catch (error) {
       console.error('Failed to calculate terrain route:', error);
       return null;
@@ -227,8 +227,8 @@ export class TerrainService {
         maxAlternativeRoutes: options.maxAlternativeRoutes || 3
       };
 
-      const response = await apiClient.post('/terrain/routing/alternatives', request);
-      return response.data;
+      const response = await apiClient.post<TerrainRoute[]>('/terrain/routing/alternatives', request);
+      return response || [];
     } catch (error) {
       console.error('Failed to find alternative routes:', error);
       return [];

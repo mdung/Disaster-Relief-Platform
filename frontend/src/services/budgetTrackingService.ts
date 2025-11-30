@@ -108,7 +108,7 @@ export interface CloseBudgetRequest {
 }
 
 class BudgetTrackingService {
-  private baseUrl = '/api/budget-tracking';
+  private baseUrl = '/budget-tracking';
 
   async createBudget(request: CreateBudgetRequest): Promise<Budget> {
     return apiService.post(`${this.baseUrl}/create`, request);

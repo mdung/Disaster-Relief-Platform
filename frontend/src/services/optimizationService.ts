@@ -140,7 +140,7 @@ export interface TaskItem {
 }
 
 class OptimizationService {
-  private baseUrl = '/api/optimization';
+  private baseUrl = '/optimization';
 
   // Dynamic Routing
   async createRoute(originLat: string, originLon: string, destinations: string[], constraints?: Record<string, any>): Promise<Route> {

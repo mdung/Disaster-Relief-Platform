@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/security/dlp")
+@RequestMapping("/security/dlp")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Data Loss Prevention", description = "Detect and prevent sensitive data leaks")

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { MapPin, Filter, Layers, Navigation, RefreshCw, AlertTriangle } from 'lucide-react';
@@ -7,6 +8,7 @@ import { apiService } from '../services/api';
 import { realtimeService, RealtimeEventType } from '../services/realtimeService';
 
 const MapPage: React.FC = () => {
+  const [searchParams] = useSearchParams();
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
@@ -15,7 +17,8 @@ const MapPage: React.FC = () => {
   const [filters, setFilters] = useState({
     severity: 'all',
     type: 'all',
-    status: 'all'
+    status: 'all',
+    shelter: searchParams.get('shelter') === 'true'
   });
   const [drawingBBox, setDrawingBBox] = useState(false);
   const bboxStartRef = useRef<maplibregl.LngLat | null>(null);
@@ -46,8 +49,10 @@ const MapPage: React.FC = () => {
           }
         ]
       },
-      center: [-95.7129, 37.0902], // Center on US to show demo markers
-      zoom: 4
+      center: searchParams.get('lat') && searchParams.get('lng') 
+        ? [parseFloat(searchParams.get('lng')!), parseFloat(searchParams.get('lat')!)]
+        : [-95.7129, 37.0902], // Center on US to show demo markers or user location
+      zoom: searchParams.get('lat') && searchParams.get('lng') ? 12 : 4
     });
 
     map.current.on('load', () => {
@@ -288,6 +293,14 @@ const MapPage: React.FC = () => {
     }
   ];
 
+  // Initialize shelter filter from URL params
+  useEffect(() => {
+    const shelterParam = searchParams.get('shelter');
+    if (shelterParam === 'true' && !filters.shelter) {
+      setFilters(prev => ({ ...prev, shelter: true }));
+    }
+  }, [searchParams]);
+
   // Fetch requests data
   useEffect(() => {
     fetchRequests();
@@ -297,6 +310,12 @@ const MapPage: React.FC = () => {
     try {
       setLoading(true);
       const params = { ...filters } as any;
+      
+      // If shelter filter is active, filter by type "Shelter"
+      if (filters.shelter) {
+        params.type = 'Shelter';
+      }
+      
       if (bbox) {
         // bbox as "minLng,minLat,maxLng,maxLat"
         params.bbox = bbox.join(',');
@@ -314,8 +333,13 @@ const MapPage: React.FC = () => {
   useEffect(() => {
     if (!map.current || !isMapLoaded) return;
     
+    // Filter by shelter type if shelter filter is active
+    const filteredRequests = filters.shelter 
+      ? (requests || []).filter((r: any) => r.type === 'Shelter' || r.category === 'Shelter')
+      : (requests || []);
+    
     // Use real data if available, otherwise show demo markers
-    const realFeatures = (requests || [])
+    const realFeatures = filteredRequests
       .filter((r: any) => r.location?.coordinates)
       .map((r: any) => ({
         type: 'Feature',
@@ -325,7 +349,7 @@ const MapPage: React.FC = () => {
         },
         properties: {
           id: r.id,
-          category: r.category,
+          category: r.category || r.type,
           severity: r.severity,
           status: r.status,
           description: r.description,
@@ -334,14 +358,18 @@ const MapPage: React.FC = () => {
       }));
     
     // Use demo markers if enabled, otherwise use real data
-    const features = showDemoData ? demoMarkers : realFeatures;
+    // If shelter filter is active, also filter demo markers
+    const demoFeatures = filters.shelter 
+      ? demoMarkers.filter((m: any) => m.properties.category === 'Shelter')
+      : demoMarkers;
+    const features = showDemoData ? demoFeatures : realFeatures;
     
     const data = { type: 'FeatureCollection', features } as any;
     const src = map.current.getSource('needs') as maplibregl.GeoJSONSource;
     if (src) {
       src.setData(data as any);
     }
-  }, [isMapLoaded, requests, showDemoData]);
+  }, [isMapLoaded, requests, showDemoData, filters.shelter]);
 
   // Set up real-time updates
   useEffect(() => {
@@ -427,7 +455,28 @@ const MapPage: React.FC = () => {
       {/* Map Controls */}
       <div className="bg-white shadow-sm border-b p-4 flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <h2 className="text-lg font-semibold text-gray-900">Live Map</h2>
+          <h2 className="text-lg font-semibold text-gray-900">
+            {filters.shelter ? 'Shelter Map' : 'Live Map'}
+          </h2>
+          {filters.shelter && (
+            <>
+              <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">
+                Showing Shelters Only
+              </span>
+              <button 
+                onClick={() => {
+                  setFilters(prev => ({ ...prev, shelter: false }));
+                  // Remove shelter param from URL
+                  const newParams = new URLSearchParams(searchParams);
+                  newParams.delete('shelter');
+                  window.history.replaceState({}, '', `${window.location.pathname}${newParams.toString() ? '?' + newParams.toString() : ''}`);
+                }}
+                className="px-3 py-1 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 text-sm"
+              >
+                Clear Filter
+              </button>
+            </>
+          )}
           <div className="flex items-center space-x-2">
             <button className="flex items-center px-3 py-2 text-sm bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200">
               <Filter className="w-4 h-4 mr-1" />

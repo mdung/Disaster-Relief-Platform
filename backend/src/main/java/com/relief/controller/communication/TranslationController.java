@@ -20,7 +20,7 @@ import java.util.Map;
  * Translation controller
  */
 @RestController
-@RequestMapping("/api/translation")
+@RequestMapping("/translation")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Translation", description = "Real-time translation APIs")

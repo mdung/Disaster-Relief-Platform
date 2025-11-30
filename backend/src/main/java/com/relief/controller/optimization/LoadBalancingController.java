@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/optimization/load-balancing")
+@RequestMapping("/optimization/load-balancing")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Load Balancing", description = "AI-driven task assignment optimization")

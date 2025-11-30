@@ -24,7 +24,7 @@ import java.util.Optional;
  * REST controller for indoor navigation
  */
 @RestController
-@RequestMapping("/api/indoor")
+@RequestMapping("/indoor")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Indoor Navigation", description = "Indoor navigation and positioning APIs")

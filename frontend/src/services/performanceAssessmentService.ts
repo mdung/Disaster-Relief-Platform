@@ -160,7 +160,7 @@ export interface GeneratePerformanceReportRequest {
 }
 
 class PerformanceAssessmentService {
-  private baseUrl = '/api/performance-assessment';
+  private baseUrl = '/performance-assessment';
 
   async createAssessment(request: CreateAssessmentRequest): Promise<Assessment> {
     return apiService.post(`${this.baseUrl}/assessments`, request);
