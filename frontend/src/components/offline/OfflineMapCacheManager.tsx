@@ -101,7 +101,7 @@ export const OfflineMapCacheManager: React.FC<OfflineMapCacheManagerProps> = ({ 
   };
 
   const handleDeleteCache = async (cacheId: number) => {
-    if (!confirm('Are you sure you want to delete this cache? This action cannot be undone.')) {
+    if (!window.confirm('Are you sure you want to delete this cache? This action cannot be undone.')) {
       return;
     }
 

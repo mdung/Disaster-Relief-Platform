@@ -13,7 +13,7 @@ import {
   XCircle
 } from 'lucide-react';
 import { budgetTrackingService, Budget, BudgetSummary } from '../services/budgetTrackingService';
-import { donationManagementService, Donation, DonationSummary } from '../services/donationManagementService';
+import { donationManagementService, Donation, DonationSummary, DonationType } from '../services/donationManagementService';
 import { costAnalysisService, CostAnalysis } from '../services/costAnalysisService';
 import { financialReportingService, FinancialReport, ReportType } from '../services/financialReportingService';
 
@@ -445,7 +445,7 @@ const FinancialDashboard: React.FC = () => {
               await donationManagementService.recordDonation({
                 donorId: donationData.donorId,
                 amount: donationData.amount,
-                type: donationData.type,
+                type: donationData.type as DonationType,
                 description: donationData.description,
                 campaignId: donationData.campaignId,
                 referenceId: donationData.referenceId

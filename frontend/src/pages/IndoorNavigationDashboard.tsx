@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { IndoorNavigationService, IndoorMap, IndoorRoute } from '../../services/indoorNavigationService';
+import { IndoorNavigationService, IndoorMap, IndoorRoute } from '../services/indoorNavigationService';
 import { IndoorMapViewer } from '../components/indoor/IndoorMapViewer';
 import { IndoorNavigationPanel } from '../components/indoor/IndoorNavigationPanel';
 import { Building, MapPin, Navigation, AlertTriangle, Users, Clock, Route } from 'lucide-react';

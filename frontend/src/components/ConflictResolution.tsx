@@ -3,7 +3,7 @@ import { AlertTriangle, CheckCircle, X, Merge, User, Server, Clock } from 'lucid
 import { offlineApiService } from '../services/offlineApiService';
 
 interface Conflict {
-  id: number;
+  id?: number;
   entityId: string;
   entityType: string;
   localData: any;
@@ -36,7 +36,11 @@ const ConflictResolution: React.FC<ConflictResolutionProps> = ({ onResolve, onCl
     }
   };
 
-  const handleResolve = async (conflictId: number, resolution: 'local' | 'server' | 'merge') => {
+  const handleResolve = async (conflictId: number | undefined, resolution: 'local' | 'server' | 'merge') => {
+    if (conflictId === undefined) {
+      console.error('Cannot resolve conflict: conflictId is undefined');
+      return;
+    }
     setLoading(true);
     try {
       await offlineApiService.resolveConflict(conflictId, resolution, mergedData);
@@ -64,7 +68,7 @@ const ConflictResolution: React.FC<ConflictResolutionProps> = ({ onResolve, onCl
   };
 
   const updateMergedData = (field: string, value: any) => {
-    setMergedData(prev => ({
+    setMergedData((prev: any) => ({
       ...prev,
       [field]: value
     }));
@@ -124,8 +128,8 @@ const ConflictResolution: React.FC<ConflictResolutionProps> = ({ onResolve, onCl
             </p>
           </div>
 
-          {conflicts.map((conflict) => (
-            <div key={conflict.id} className="mb-6 border border-gray-200 rounded-lg p-4">
+          {conflicts.map((conflict, index) => (
+            <div key={conflict.id ?? `conflict-${index}`} className="mb-6 border border-gray-200 rounded-lg p-4">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-medium text-gray-900">
                   {getEntityDisplayName(conflict.entityType)} - {conflict.entityId}

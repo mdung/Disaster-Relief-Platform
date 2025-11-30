@@ -1,6 +1,3 @@
--- Enable PostGIS extension
-CREATE EXTENSION IF NOT EXISTS postgis;
-
 -- Create roles table
 CREATE TABLE roles (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -184,15 +181,7 @@ CREATE TABLE status_history (
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
--- Create geofences table
-CREATE TABLE geofences (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name VARCHAR(255) NOT NULL,
-    area_geom geometry(Polygon, 4326),
-    active BOOLEAN DEFAULT TRUE,
-    province_id UUID REFERENCES provinces(id),
-    created_at TIMESTAMPTZ DEFAULT now()
-);
+-- Note: geofences table is created in V7__Create_geofencing_tables.sql with full structure
 
 -- Create dedupe groups table
 CREATE TABLE dedupe_groups (

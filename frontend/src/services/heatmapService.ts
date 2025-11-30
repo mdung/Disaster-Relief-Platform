@@ -374,7 +374,7 @@ export class HeatmapService {
   /**
    * Generate heatmap layer for MapLibre
    */
-  static generateHeatmapLayer(heatmapType: string, colorScheme: string = 'default'): any {
+  static generateHeatmapLayerConfig(heatmapType: string, colorScheme: string = 'default'): any {
     const baseColor = this.getHeatmapTypeColor(heatmapType);
     
     return {

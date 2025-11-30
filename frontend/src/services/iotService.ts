@@ -109,8 +109,8 @@ class IoTService {
     return apiService.get(`${this.baseUrl}/sensors/${sensorId}/readings`, { sensorType, startTime, endTime });
   }
 
-  async getDeviceAlerts(deviceId: string, alertType?: string): Promise<IoTAlert> {
-    return apiService.get(`${this.baseUrl}/devices/${deviceId}/alerts`, { alertType });
+  async getDeviceAlerts(deviceId: string, alertType?: string): Promise<IoTAlert[]> {
+    return apiService.get<IoTAlert[]>(`${this.baseUrl}/devices/${deviceId}/alerts`, { alertType });
   }
 
   async getDeviceStatus(deviceId: string): Promise<IoTDeviceStatus> {

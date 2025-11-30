@@ -24,8 +24,7 @@ CREATE INDEX inventory_hubs_geom_gist ON inventory_hubs USING GIST (geom_point);
 -- Media spatial index
 CREATE INDEX media_geom_gist ON media USING GIST (geom_point);
 
--- Geofences spatial index
-CREATE INDEX geofences_area_geom_gist ON geofences USING GIST (area_geom);
+-- Note: Geofences spatial index is created in V7__Create_geofencing_tables.sql
 
 -- Create additional indexes for common geospatial queries
 CREATE INDEX needs_requests_created_at_geom ON needs_requests (created_at, geom_point);

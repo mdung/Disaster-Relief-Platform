@@ -136,8 +136,7 @@ class PushNotificationService {
         lang: options.lang || 'en',
         renotify: options.renotify || false,
         silent: options.silent || false,
-        timestamp: options.timestamp || Date.now(),
-        tag: options.tag
+        timestamp: options.timestamp || Date.now()
       });
     } else {
       // Fallback to basic notification
@@ -229,11 +228,14 @@ class PushNotificationService {
     }
 
     // Handle notification clicks
-    this.registration.addEventListener('notificationclick', (event) => {
-      event.notification.close();
+    this.registration.addEventListener('notificationclick', (event: Event) => {
+      // Type assertion for NotificationEvent (service worker types)
+      // NotificationEvent is not in standard types, use any with proper structure
+      const notificationEvent = event as any;
+      notificationEvent.notification.close();
 
-      const data = event.notification.data;
-      const action = event.action;
+      const data = notificationEvent.notification.data;
+      const action = notificationEvent.action;
 
       if (action) {
         this.handleNotificationAction(action, data);

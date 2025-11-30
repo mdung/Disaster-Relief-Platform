@@ -133,7 +133,7 @@ export class MediaService {
     });
   }
 
-  async getMediaUrl(mediaId: string): string {
+  async getMediaUrl(mediaId: string): Promise<string> {
     // This would return the actual media URL from backend
     return `${process.env.REACT_APP_API_URL}/media/${mediaId}`;
   }

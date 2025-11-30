@@ -16,6 +16,13 @@ interface NeedsFormProps {
   onCancel?: () => void;
 }
 
+interface CategorizationResult {
+  confidence: number;
+  suggestedType?: string;
+  suggestedSeverity?: number;
+  reasoning?: string;
+}
+
 const NeedsForm: React.FC<NeedsFormProps> = ({ onSuccess, onCancel }) => {
   const [formData, setFormData] = useState({
     category: '',
@@ -143,9 +150,9 @@ const NeedsForm: React.FC<NeedsFormProps> = ({ onSuccess, onCancel }) => {
           formData.description,
           formData.category,
           formData.severity
-        );
+        ) as CategorizationResult;
         
-        if (categorization.confidence > 0.7) {
+        if (categorization.confidence > 0.7 && categorization.suggestedType) {
           finalCategory = categorization.suggestedType;
           if (categorization.suggestedSeverity) {
             finalSeverity = categorization.suggestedSeverity;

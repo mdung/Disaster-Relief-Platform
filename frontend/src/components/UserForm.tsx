@@ -88,12 +88,14 @@ const UserForm: React.FC<UserFormProps> = ({ user, onSave, onCancel }) => {
       return;
     }
 
-    const userData = { ...formData };
+    const userData: any = { ...formData };
     if (user && !userData.password) {
-      delete userData.password; // Don't update password if empty
+      // Remove password from data if empty (safer than delete)
+      const { password, ...rest } = userData;
+      onSave(rest);
+    } else {
+      onSave(userData);
     }
-
-    onSave(userData);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {

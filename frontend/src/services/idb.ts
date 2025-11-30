@@ -24,7 +24,10 @@ export async function putAll<T extends { id: string }>(store: StoreName, items: 
   for (const item of items) {
     s.put(item);
   }
-  await tx.complete;
+  await new Promise<void>((resolve, reject) => {
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
   db.close();
 }
 
@@ -32,15 +35,20 @@ export async function getAll<T>(store: StoreName): Promise<T[]> {
   const db = await openDb();
   const tx = db.transaction(store, 'readonly');
   const s = tx.objectStore(store);
-  const result: T[] = await new Promise((resolve) => {
+  const result: T[] = await new Promise((resolve, reject) => {
     const items: T[] = [] as any;
     const cur = s.openCursor();
     cur.onsuccess = (e: any) => {
       const cursor = e.target.result;
       if (cursor) { items.push(cursor.value); cursor.continue(); } else { resolve(items); }
     };
+    cur.onerror = () => reject(cur.error);
+    tx.onerror = () => reject(tx.error);
   });
-  await tx.complete;
+  await new Promise<void>((resolve, reject) => {
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
   db.close();
   return result;
 }

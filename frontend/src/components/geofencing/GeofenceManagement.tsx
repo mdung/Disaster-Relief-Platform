@@ -85,7 +85,7 @@ export const GeofenceManagement: React.FC<GeofenceManagementProps> = ({
   };
 
   const handleDelete = async (geofenceId: number) => {
-    if (!confirm('Are you sure you want to delete this geofence?')) {
+    if (!window.confirm('Are you sure you want to delete this geofence?')) {
       return;
     }
 

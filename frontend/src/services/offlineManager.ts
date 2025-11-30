@@ -149,9 +149,13 @@ class OfflineManager {
         console.log('Action queued:', id, action);
         
         // Register for background sync
-        if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
+        if ('serviceWorker' in navigator) {
           navigator.serviceWorker.ready.then(registration => {
-            registration.sync.register('background-sync');
+            // Safe check for sync manager
+            const syncManager = (registration as any).sync;
+            if (syncManager && typeof syncManager.register === 'function') {
+              syncManager.register('background-sync');
+            }
           });
         }
         

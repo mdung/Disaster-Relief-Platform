@@ -29,7 +29,8 @@ spring:
   
   security:
     jwt:
-      secret: ${JWT_SECRET:your-jwt-secret-key-change-in-production}
+      # JWT secret must be at least 64 characters (512 bits) for HS512 algorithm
+      secret: ${JWT_SECRET:disaster-relief-platform-jwt-secret-key-2024-must-be-at-least-64-characters-long-for-hs512-security-requirements}
       expiration: 86400000 # 24 hours
   
   servlet:

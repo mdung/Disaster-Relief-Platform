@@ -34,7 +34,9 @@ import OfflineBanner from './components/OfflineBanner';
 import SyncIndicator from './components/SyncIndicator';
 
 function App() {
+  console.log('App component rendering...');
   const { isAuthenticated, user } = useAuthStore();
+  console.log('Auth state:', { isAuthenticated, user: user?.email || 'no user' });
   const [showConflictResolution, setShowConflictResolution] = useState(false);
   const [showUpdatePrompt, setShowUpdatePrompt] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);

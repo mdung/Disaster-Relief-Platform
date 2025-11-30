@@ -2,8 +2,58 @@ import { useAuthStore } from '../store/authStore';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
 
+// Type definitions for API responses
+export interface LoginResponse {
+  user: any;
+  accessToken: string;
+}
+
+export interface Profile {
+  fullName?: string;
+  email?: string;
+  phone?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  country?: string;
+  dateOfBirth?: string;
+  gender?: string;
+  preferredLanguage?: string;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
+  householdSize?: number;
+  specialNeeds?: string;
+  latitude?: number;
+  longitude?: number;
+  consentToContact?: boolean;
+  consentToShare?: boolean;
+}
+
+export interface DedupeLink {
+  id: string;
+  requestId: string;
+  entityId: string;
+  score?: number;
+  reason?: string;
+}
+
+export interface PagedResponse<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+}
+
 class ApiService {
-  private getHeaders(): HeadersInit {
+  // Expose baseUrl and getHeaders for services that need them
+  get baseUrl(): string {
+    return API_BASE_URL;
+  }
+
+  getHeaders(): HeadersInit {
     const { token } = useAuthStore.getState();
     return {
       'Content-Type': 'application/json',
@@ -20,13 +70,13 @@ class ApiService {
   }
 
   // Auth APIs
-  async login(emailOrPhone: string, password: string) {
+  async login(emailOrPhone: string, password: string): Promise<LoginResponse> {
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ emailOrPhone, password })
     });
-    return this.handleResponse(response);
+    return this.handleResponse<LoginResponse>(response);
   }
 
   async register(userData: any) {
@@ -73,12 +123,12 @@ class ApiService {
   }
 
   // Media APIs
-  async getPresignedUploadUrl(objectName: string, contentType: string) {
+  async getPresignedUploadUrl(objectName: string, contentType: string): Promise<{ url: string; [key: string]: any }> {
     const response = await fetch(`${API_BASE_URL}/media/presign?objectName=${objectName}&contentType=${contentType}`, {
       method: 'POST',
       headers: this.getHeaders()
     });
-    return this.handleResponse(response);
+    return this.handleResponse<{ url: string; [key: string]: any }>(response);
   }
 
   async uploadToMinIO(url: string, file: File) {
@@ -126,11 +176,11 @@ class ApiService {
   }
 
   // Task APIs
-  async getMyTasks(page = 0, size = 20) {
+  async getMyTasks(page = 0, size = 20): Promise<PagedResponse<any>> {
     const response = await fetch(`${API_BASE_URL}/tasks/mine?page=${page}&size=${size}`, {
       headers: this.getHeaders()
     });
-    return this.handleResponse(response);
+    return this.handleResponse<PagedResponse<any>>(response);
   }
 
   async createTask(requestId: string, assigneeId?: string, plannedKitCode?: string) {
@@ -251,11 +301,120 @@ class ApiService {
     return this.handleResponse(response);
   }
 
-  async getDedupeGroupLinks(groupId: string) {
+  async getDedupeGroupLinks(groupId: string): Promise<DedupeLink[]> {
     const response = await fetch(`${API_BASE_URL}/dedupe/groups/${groupId}/links`, {
       headers: this.getHeaders()
     });
-    return this.handleResponse(response);
+    return this.handleResponse<DedupeLink[]>(response);
+  }
+
+  // Admin / analytics APIs
+  async getAdminStats(): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/admin/stats`, {
+      headers: this.getHeaders()
+    });
+    return this.handleResponse<any>(response);
+  }
+
+  async getAnalyticsOverview(startDate: string, endDate: string): Promise<any>;
+  async getAnalyticsOverview(startDate?: string, endDate?: string): Promise<any>;
+  async getAnalyticsOverview(startDate?: string, endDate?: string): Promise<any> {
+    const params = new URLSearchParams();
+    if (startDate) params.append('start', startDate);
+    if (endDate) params.append('end', endDate);
+    const response = await fetch(`${API_BASE_URL}/analytics/overview?${params}`, {
+      headers: this.getHeaders()
+    });
+    return this.handleResponse<any>(response);
+  }
+
+  async getNeedsTrends(startDate: string, endDate: string, granularity: string): Promise<any>;
+  async getNeedsTrends(startDate?: string, endDate?: string, granularity?: string): Promise<any>;
+  async getNeedsTrends(startDate?: string, endDate?: string, granularity = 'day'): Promise<any> {
+    const params = new URLSearchParams();
+    if (startDate) params.append('start', startDate);
+    if (endDate) params.append('end', endDate);
+    params.append('granularity', granularity);
+    const response = await fetch(`${API_BASE_URL}/analytics/needs/trends?${params}`, {
+      headers: this.getHeaders()
+    });
+    return this.handleResponse<any>(response);
+  }
+
+  // -------- Generic helpers used by other services (video conferencing, trend analysis, etc.) --------
+
+  async get<T = any>(path: string, queryParams?: Record<string, any>): Promise<T> {
+    let url = `${API_BASE_URL}${path.startsWith('/') ? path : `/${path}`}`;
+    if (queryParams) {
+      const params = new URLSearchParams();
+      Object.entries(queryParams).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          params.append(key, String(value));
+        }
+      });
+      const queryString = params.toString();
+      if (queryString) {
+        url += (url.includes('?') ? '&' : '?') + queryString;
+      }
+    }
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: this.getHeaders()
+    });
+    return this.handleResponse<T>(response);
+  }
+
+  async post<T = any>(path: string, body?: any, options?: { params?: Record<string, any>; headers?: HeadersInit }): Promise<T> {
+    let url = `${API_BASE_URL}${path.startsWith('/') ? path : `/${path}`}`;
+    if (options?.params) {
+      const params = new URLSearchParams();
+      Object.entries(options.params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          params.append(key, String(value));
+        }
+      });
+      const queryString = params.toString();
+      if (queryString) {
+        url += (url.includes('?') ? '&' : '?') + queryString;
+      }
+    }
+    const headers = { ...this.getHeaders(), ...options?.headers };
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: body !== undefined ? JSON.stringify(body) : undefined
+    });
+    return this.handleResponse<T>(response);
+  }
+
+  async put<T = any>(path: string, body?: any): Promise<T> {
+    const response = await fetch(`${API_BASE_URL}${path.startsWith('/') ? path : `/${path}`}`, {
+      method: 'PUT',
+      headers: this.getHeaders(),
+      body: body !== undefined ? JSON.stringify(body) : undefined
+    });
+    return this.handleResponse<T>(response);
+  }
+
+  async delete<T = any>(path: string): Promise<T> {
+    const response = await fetch(`${API_BASE_URL}${path.startsWith('/') ? path : `/${path}`}`, {
+      method: 'DELETE',
+      headers: this.getHeaders()
+    });
+    // Many delete endpoints return no content; handle that gracefully
+    if (response.status === 204 || response.status === 202 || response.status === 200 && !response.headers.get('content-type')) {
+      return undefined as T;
+    }
+    return this.handleResponse<T>(response);
+  }
+
+  async patch<T = any>(path: string, body?: any): Promise<T> {
+    const response = await fetch(`${API_BASE_URL}${path.startsWith('/') ? path : `/${path}`}`, {
+      method: 'PATCH',
+      headers: this.getHeaders(),
+      body: body !== undefined ? JSON.stringify(body) : undefined
+    });
+    return this.handleResponse<T>(response);
   }
 
   async mergeDedupeGroup(groupId: string, canonicalId: string) {
@@ -763,13 +922,7 @@ class ApiService {
     return this.handleResponse(response);
   }
 
-  // Admin APIs
-  async getAdminStats() {
-    const response = await fetch(`${API_BASE_URL}/admin/stats`, {
-      headers: this.getHeaders()
-    });
-    return this.handleResponse(response);
-  }
+  // Admin APIs (getAdminStats removed - using overloaded version above)
 
   async getAllUsers(search?: string, role?: string, page = 0, size = 20) {
     const params = new URLSearchParams();
@@ -871,29 +1024,7 @@ class ApiService {
     return this.handleResponse(response);
   }
 
-  // Analytics APIs
-  async getAnalyticsOverview(startDate?: string, endDate?: string) {
-    const params = new URLSearchParams();
-    if (startDate) params.append('startDate', startDate);
-    if (endDate) params.append('endDate', endDate);
-    
-    const response = await fetch(`${API_BASE_URL}/analytics/overview?${params}`, {
-      headers: this.getHeaders()
-    });
-    return this.handleResponse(response);
-  }
-
-  async getNeedsTrends(startDate?: string, endDate?: string, granularity = 'day') {
-    const params = new URLSearchParams();
-    if (startDate) params.append('startDate', startDate);
-    if (endDate) params.append('endDate', endDate);
-    params.append('granularity', granularity);
-    
-    const response = await fetch(`${API_BASE_URL}/analytics/needs/trends?${params}`, {
-      headers: this.getHeaders()
-    });
-    return this.handleResponse(response);
-  }
+  // Analytics APIs (getAnalyticsOverview and getNeedsTrends removed - using overloaded versions above)
 
   async getTaskPerformance(startDate?: string, endDate?: string) {
     const params = new URLSearchParams();
@@ -970,11 +1101,11 @@ class ApiService {
   }
 
   // Resident Profile APIs
-  async getMyProfile() {
+  async getMyProfile(): Promise<Profile> {
     const response = await fetch(`${API_BASE_URL}/users/me`, {
       headers: this.getHeaders()
     });
-    return this.handleResponse(response);
+    return this.handleResponse<Profile>(response);
   }
 
   async updateMyProfile(payload: {
@@ -997,13 +1128,13 @@ class ApiService {
     longitude?: number;
     consentToContact?: boolean;
     consentToShare?: boolean;
-  }) {
+  }): Promise<Profile> {
     const response = await fetch(`${API_BASE_URL}/users/me`, {
       method: 'PUT',
       headers: this.getHeaders(),
       body: JSON.stringify(payload)
     });
-    return this.handleResponse(response);
+    return this.handleResponse<Profile>(response);
   }
 
   // Financial Management APIs
@@ -1832,13 +1963,13 @@ class ApiService {
     return this.handleResponse(response);
   }
 
-  async findCorrelations(dataSource: string, variables: string[]) {
+  async findDataMiningCorrelations(dataSource: string, variables: string[]): Promise<any> {
     const response = await fetch(`${API_BASE_URL}/analytics/data-mining/correlations/find`, {
       method: 'POST',
       headers: this.getHeaders(),
       body: JSON.stringify({ dataSource, variables })
     });
-    return this.handleResponse(response);
+    return this.handleResponse<any>(response);
   }
 
   async performClustering(dataSource: string, algorithm: string, parameters: any) {
@@ -2042,7 +2173,7 @@ class ApiService {
     return this.handleResponse(response);
   }
 
-  async findCorrelations(source?: string, startTime?: string, endTime?: string) {
+  async findEventCorrelations(source?: string, startTime?: string, endTime?: string): Promise<any> {
     const params = new URLSearchParams();
     if (source) params.append('source', source);
     if (startTime) params.append('startTime', startTime);
@@ -2051,7 +2182,7 @@ class ApiService {
     const response = await fetch(`${API_BASE_URL}/realtime/event-correlation/correlations?${params}`, {
       headers: this.getHeaders()
     });
-    return this.handleResponse(response);
+    return this.handleResponse<any>(response);
   }
 
   async detectEventPattern(source: string, eventType: string, startTime: string, endTime: string) {

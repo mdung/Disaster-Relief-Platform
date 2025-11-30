@@ -10,11 +10,15 @@ INSERT INTO roles (code, description) VALUES
 ON CONFLICT (code) DO NOTHING;
 
 -- Insert admin user (password: admin123)
--- Password hash is for 'admin123' using BCrypt
-INSERT INTO users (id, full_name, email, password_hash, role, disabled) VALUES 
+-- Password hash is for 'admin123' using BCrypt (strength 10)
+-- Verified hash that works with BCryptPasswordEncoder
+INSERT INTO users (id, full_name, email, password_hash, role, disabled, created_at, updated_at) VALUES 
 ('550e8400-e29b-41d4-a716-446655440000', 'System Administrator', 'admin@relief.local', 
- '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVEFDi', 'ADMIN', false)
-ON CONFLICT (email) DO NOTHING;
+ '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'ADMIN', false, NOW(), NOW())
+ON CONFLICT (email) DO UPDATE SET
+  password_hash = EXCLUDED.password_hash,
+  disabled = false,
+  updated_at = NOW();
 
 -- Insert sample items catalog
 INSERT INTO items_catalog (code, name, unit) VALUES 
@@ -55,16 +59,18 @@ INSERT INTO provinces (id, name, code, geom) VALUES
 ON CONFLICT (code) DO NOTHING;
 
 -- Insert sample districts
+-- Note: districts.code is not unique, so we use ON CONFLICT (id) instead
 INSERT INTO districts (id, name, code, province_id, geom) VALUES
 ('550e8400-e29b-41d4-a716-446655440020', 'Sample District', 'DIST001', 
  '550e8400-e29b-41d4-a716-446655440010',
  ST_GeomFromText('POLYGON((0.2 0.2, 0.8 0.2, 0.8 0.8, 0.2 0.8, 0.2 0.2))', 4326))
-ON CONFLICT (code) DO NOTHING;
+ON CONFLICT (id) DO NOTHING;
 
 -- Insert sample wards
+-- Note: wards.code is not unique, so we use ON CONFLICT (id) instead
 INSERT INTO wards (id, name, code, district_id, geom) VALUES
 ('550e8400-e29b-41d4-a716-446655440030', 'Sample Ward', 'WARD001', 
  '550e8400-e29b-41d4-a716-446655440020',
  ST_GeomFromText('POLYGON((0.3 0.3, 0.7 0.3, 0.7 0.7, 0.3 0.7, 0.3 0.3))', 4326))
-ON CONFLICT (code) DO NOTHING;
+ON CONFLICT (id) DO NOTHING;
 

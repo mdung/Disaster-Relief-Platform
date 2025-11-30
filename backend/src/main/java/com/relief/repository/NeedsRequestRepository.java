@@ -23,7 +23,13 @@ public interface NeedsRequestRepository extends JpaRepository<NeedsRequest, UUID
     List<NeedsRequest> findByCreatedByIdOrderByCreatedAtDesc(@Param("userId") UUID userId);
     
     // Smart automation queries
-    @Query("SELECT nr FROM NeedsRequest nr WHERE nr.geomPoint IS NOT NULL AND ST_DWithin(nr.geomPoint, :point, :radius) AND nr.createdAt >= :since ORDER BY nr.createdAt DESC")
+    @Query("""
+           SELECT nr FROM NeedsRequest nr
+           WHERE nr.geomPoint IS NOT NULL
+             AND function('ST_DWithin', nr.geomPoint, :point, :radius) = true
+             AND nr.createdAt >= :since
+           ORDER BY nr.createdAt DESC
+           """)
     List<NeedsRequest> findRecentRequestsInArea(@Param("point") Point point, @Param("radius") double radius, @Param("since") LocalDateTime since);
     
     @Query("SELECT nr FROM NeedsRequest nr WHERE nr.severity >= 4 AND nr.status IN ('OPEN', 'IN_PROGRESS') ORDER BY nr.createdAt ASC")
@@ -75,13 +81,58 @@ public interface NeedsRequestRepository extends JpaRepository<NeedsRequest, UUID
     List<NeedsRequest> findByTypeAndSeverityAndStatusNot(@Param("type") String type, @Param("severity") Integer severity, @Param("status") String status);
     
     // Admin-specific queries
-    @Query("SELECT nr.category as category, COUNT(nr) as count FROM NeedsRequest nr GROUP BY nr.category")
-    java.util.Map<String, Long> countByCategory();
+    @Query("SELECT nr.type, COUNT(nr) FROM NeedsRequest nr GROUP BY nr.type")
+    List<Object[]> _countByTypeGrouped();
+    
+    default java.util.Map<String, Long> countByCategory() {
+        return _countByTypeGrouped().stream()
+            .collect(java.util.stream.Collectors.toMap(
+                row -> (String) row[0],
+                row -> ((Number) row[1]).longValue()
+            ));
+    }
     
     // Analytics queries
     long countByCreatedAtBetween(java.time.LocalDateTime start, java.time.LocalDateTime end);
     long countByStatusAndCreatedAtBetween(String status, java.time.LocalDateTime start, java.time.LocalDateTime end);
-    java.util.Map<String, Long> countByCategoryAndCreatedAtBetween(java.time.LocalDateTime start, java.time.LocalDateTime end);
-    java.util.Map<Integer, Long> countBySeverityAndCreatedAtBetween(java.time.LocalDateTime start, java.time.LocalDateTime end);
-    java.util.Map<String, Long> countByRegionAndCreatedAtBetween(java.time.LocalDateTime start, java.time.LocalDateTime end);
+    
+    @Query("SELECT nr.type, COUNT(nr) FROM NeedsRequest nr WHERE nr.createdAt BETWEEN :start AND :end GROUP BY nr.type")
+    List<Object[]> _countByTypeGroupedBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+    
+    default java.util.Map<String, Long> countByCategoryAndCreatedAtBetween(java.time.LocalDateTime start, java.time.LocalDateTime end) {
+        return _countByTypeGroupedBetween(start, end).stream()
+            .collect(java.util.stream.Collectors.toMap(
+                row -> (String) row[0],
+                row -> ((Number) row[1]).longValue()
+            ));
+    }
+    
+    @Query("SELECT nr.severity, COUNT(nr) FROM NeedsRequest nr WHERE nr.createdAt BETWEEN :start AND :end GROUP BY nr.severity")
+    List<Object[]> _countBySeverityGroupedBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+    
+    default java.util.Map<Integer, Long> countBySeverityAndCreatedAtBetween(java.time.LocalDateTime start, java.time.LocalDateTime end) {
+        return _countBySeverityGroupedBetween(start, end).stream()
+            .collect(java.util.stream.Collectors.toMap(
+                row -> ((Number) row[0]).intValue(),
+                row -> ((Number) row[1]).longValue()
+            ));
+    }
+    
+    @Query("""
+           SELECT COALESCE(w.code, 'UNKNOWN'), COUNT(nr)
+           FROM NeedsRequest nr
+           LEFT JOIN nr.household h
+           LEFT JOIN h.ward w
+           WHERE nr.createdAt BETWEEN :start AND :end
+           GROUP BY COALESCE(w.code, 'UNKNOWN')
+           """)
+    List<Object[]> _countByRegionGroupedBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+    
+    default java.util.Map<String, Long> countByRegionAndCreatedAtBetween(java.time.LocalDateTime start, java.time.LocalDateTime end) {
+        return _countByRegionGroupedBetween(start, end).stream()
+            .collect(java.util.stream.Collectors.toMap(
+                row -> (String) row[0],
+                row -> ((Number) row[1]).longValue()
+            ));
+    }
 }

@@ -23,7 +23,7 @@ const RouteGuard: React.FC<RouteGuardProps> = ({
 
   // Check role requirement
   if (requiredRole && user?.role !== requiredRole) {
-    return fallback || (
+    return (fallback || (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
@@ -35,7 +35,7 @@ const RouteGuard: React.FC<RouteGuardProps> = ({
           </p>
         </div>
       </div>
-    );
+    )) as React.ReactElement;
   }
 
   // Check permission requirements
@@ -65,7 +65,7 @@ const RouteGuard: React.FC<RouteGuardProps> = ({
     });
 
     if (!hasPermission) {
-      return fallback || (
+      return (fallback || (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
@@ -77,11 +77,11 @@ const RouteGuard: React.FC<RouteGuardProps> = ({
             </p>
           </div>
         </div>
-      );
+      )) as React.ReactElement;
     }
   }
 
-  return <>{children}</>;
+  return <>{children}</> as React.ReactElement;
 };
 
 export default RouteGuard;

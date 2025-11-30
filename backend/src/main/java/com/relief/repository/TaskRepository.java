@@ -26,14 +26,32 @@ public interface TaskRepository extends JpaRepository<Task, UUID> {
     
     long countByStatusIn(String... statuses);
     
-    @Query("SELECT t.status as status, COUNT(t) as count FROM Task t GROUP BY t.status")
-    java.util.Map<String, Long> countByStatus();
+    @Query("SELECT t.status, COUNT(t) FROM Task t GROUP BY t.status")
+    List<Object[]> _countByStatusGrouped();
+    
+    default java.util.Map<String, Long> countByStatus() {
+        return _countByStatusGrouped().stream()
+            .collect(java.util.stream.Collectors.toMap(
+                row -> (String) row[0],
+                row -> ((Number) row[1]).longValue()
+            ));
+    }
     
     // Analytics queries
     long countByCreatedAtBetween(java.time.LocalDateTime start, java.time.LocalDateTime end);
     long countByStatusAndUpdatedAtBetween(String status, java.time.LocalDateTime start, java.time.LocalDateTime end);
     long countByStatusInAndUpdatedAtBetween(java.util.List<String> statuses, java.time.LocalDateTime start, java.time.LocalDateTime end);
-    java.util.Map<String, Long> countByStatusAndUpdatedAtBetween(java.time.LocalDateTime start, java.time.LocalDateTime end);
+    
+    @Query("SELECT t.status, COUNT(t) FROM Task t WHERE t.updatedAt BETWEEN :start AND :end GROUP BY t.status")
+    List<Object[]> _countByStatusGroupedBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+    
+    default java.util.Map<String, Long> countByStatusAndUpdatedAtBetween(java.time.LocalDateTime start, java.time.LocalDateTime end) {
+        return _countByStatusGroupedBetween(start, end).stream()
+            .collect(java.util.stream.Collectors.toMap(
+                row -> (String) row[0],
+                row -> ((Number) row[1]).longValue()
+            ));
+    }
     
     // Smart automation queries
     @Query("SELECT t FROM Task t WHERE t.eta < :now AND t.status IN ('assigned', 'picked_up') ORDER BY t.eta ASC")

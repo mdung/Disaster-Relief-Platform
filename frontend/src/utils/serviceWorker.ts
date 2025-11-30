@@ -115,9 +115,13 @@ export class ServiceWorkerMessenger {
 
   // Request background sync
   requestBackgroundSync() {
-    if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
+    if ('serviceWorker' in navigator) {
       navigator.serviceWorker.ready.then((registration) => {
-        registration.sync.register('background-sync');
+        // Safe check for sync manager
+        const syncManager = (registration as any).sync;
+        if (syncManager && typeof syncManager.register === 'function') {
+          syncManager.register('background-sync');
+        }
       });
     }
   }

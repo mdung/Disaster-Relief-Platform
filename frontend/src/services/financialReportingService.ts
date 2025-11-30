@@ -98,14 +98,13 @@ class FinancialReportingService {
   }
 
   async downloadReport(reportId: string, format: ReportFormat): Promise<Blob> {
-    const response = await fetch(`${apiService.baseUrl}${this.baseUrl}/reports/${reportId}/download?format=${format}`, {
-      headers: apiService.getHeaders()
-    });
-    
+    // Use apiService.getHeaders() and baseUrl instead of direct fetch
+    const headers = apiService.getHeaders();
+    const url = `${apiService.baseUrl}${this.baseUrl}/reports/${reportId}/download?format=${format}`;
+    const response = await fetch(url, { headers });
     if (!response.ok) {
-      throw new Error('Failed to download report');
+      throw new Error(`Failed to download report: ${response.status}`);
     }
-    
     return response.blob();
   }
 

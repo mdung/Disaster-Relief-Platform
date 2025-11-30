@@ -1,6 +1,7 @@
 package com.relief.common;
 
 import jakarta.validation.ConstraintViolationException;
+import com.relief.exception.ApiException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -79,8 +80,17 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         body.put("message", ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
-}
 
+    @ExceptionHandler({ ApiException.class })
+    public ResponseEntity<Object> handleApiException(ApiException ex) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", Instant.now());
+        body.put("status", ex.getStatus().value());
+        body.put("error", "API Error");
+        body.put("message", ex.getMessage());
+        return ResponseEntity.status(ex.getStatus()).body(body);
+    }
+}
 
 
 

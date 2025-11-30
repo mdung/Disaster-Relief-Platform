@@ -21,7 +21,7 @@ import java.util.UUID;
 @RequestMapping("/api/notifications")
 @RequiredArgsConstructor
 @Tag(name = "Smart Notifications", description = "Notification management and user preferences")
-public class NotificationController {
+public class SmartNotificationController {
 
     private final SmartNotificationService smartNotificationService;
     private final UserPreferenceService userPreferenceService;
@@ -30,7 +30,6 @@ public class NotificationController {
     @Operation(summary = "Get user notification preferences")
     public ResponseEntity<UserPreferences> getUserPreferences(
             @AuthenticationPrincipal UserDetails principal) {
-        
         UUID userId = UUID.fromString(principal.getUsername());
         UserPreferences preferences = userPreferenceService.getUserPreferences(userId);
         return ResponseEntity.ok(preferences);
@@ -41,7 +40,6 @@ public class NotificationController {
     public ResponseEntity<UserPreferences> updateUserPreferences(
             @AuthenticationPrincipal UserDetails principal,
             @RequestBody UserPreferences preferences) {
-        
         UUID userId = UUID.fromString(principal.getUsername());
         userPreferenceService.updateUserPreferences(userId, preferences);
         return ResponseEntity.ok(preferences);
@@ -51,14 +49,11 @@ public class NotificationController {
     @Operation(summary = "Send smart notification")
     public ResponseEntity<Map<String, String>> sendNotification(
             @RequestBody SendNotificationRequest request) {
-        
-        // In real implementation, this would trigger smart notification
         smartNotificationService.sendContextualNotification(
             request.getRequestId(),
             request.getEventType(),
             request.getMessage()
         );
-        
         return ResponseEntity.ok(Map.of("status", "sent"));
     }
 
@@ -67,16 +62,13 @@ public class NotificationController {
     public ResponseEntity<Map<String, Object>> getNotificationHistory(
             @AuthenticationPrincipal UserDetails principal,
             @RequestParam(defaultValue = "24") int hours) {
-        
         UUID userId = UUID.fromString(principal.getUsername());
         Map<String, Object> history = new java.util.HashMap<>();
         history.put("totalNotifications", userPreferenceService.getNotificationCount(userId, "ALL", hours));
         history.put("last24Hours", userPreferenceService.getNotificationCount(userId, "ALL", 24));
-        
         return ResponseEntity.ok(history);
     }
 
-    // Request DTOs
     public static class SendNotificationRequest {
         private UUID requestId;
         private String eventType;

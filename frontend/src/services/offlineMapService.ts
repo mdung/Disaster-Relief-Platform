@@ -220,11 +220,11 @@ export class OfflineMapService {
     x: number,
     y: number
   ): Promise<Blob> {
-    const response = await apiClient.get(`/api/offline-maps/tiles/${cacheId}/download`, {
+    const response = await apiClient.get<Blob>(`/api/offline-maps/tiles/${cacheId}/download`, {
       params: { z, x, y },
       responseType: 'blob'
     });
-    return response.data;
+    return response;
   }
 
   // Utility methods

@@ -37,7 +37,7 @@ public class AnalyticsService {
         long totalNeeds = needsRequestRepository.countByCreatedAtBetween(startDate, endDate);
         long activeNeeds = needsRequestRepository.countByStatusAndCreatedAtBetween("active", startDate, endDate);
         long completedTasks = taskRepository.countByStatusAndUpdatedAtBetween("delivered", startDate, endDate);
-        long activeUsers = userRepository.countByActiveTrue();
+        long activeUsers = userRepository.countActiveUsers();
         
         // Calculate average response time (mock calculation)
         double averageResponseTime = calculateAverageResponseTime(startDate, endDate);
@@ -96,7 +96,7 @@ public class AnalyticsService {
         Map<String, Object> activity = new HashMap<>();
         
         long totalUsers = userRepository.count();
-        long activeUsers = userRepository.countByActiveTrue();
+        long activeUsers = userRepository.countActiveUsers();
         long newUsers = userRepository.countByCreatedAtBetween(startDate, endDate);
         
         // Get user activity from audit logs

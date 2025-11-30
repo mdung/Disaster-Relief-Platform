@@ -272,7 +272,7 @@ export const SatelliteDashboard: React.FC = () => {
                   zoom={mapZoom}
                   showImages={true}
                   showDamage={true}
-                  selectedImage={selectedImage}
+                  selectedImage={selectedImage || undefined}
                   onImageSelect={handleImageSelect}
                   onDamageSelect={handleDamageSelect}
                 />
@@ -285,7 +285,7 @@ export const SatelliteDashboard: React.FC = () => {
           <div className="max-w-4xl mx-auto">
             <DamageAssessmentPanel
               onAssessmentComplete={handleAssessmentComplete}
-              selectedImage={selectedImage}
+              selectedImage={selectedImage || undefined}
             />
           </div>
         )}

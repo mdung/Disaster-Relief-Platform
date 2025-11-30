@@ -181,8 +181,15 @@ class DocumentCollaborationService {
    * Get user's documents
    */
   async getUserDocuments(): Promise<CollaborativeDocument[]> {
-    const response = await apiService.get('/document-collaboration/my-documents');
+    const response = await apiService.get<CollaborativeDocument[]>('/document-collaboration/my-documents');
     return response;
+  }
+
+  /**
+   * Get collaborative documents (alias for getUserDocuments for compatibility)
+   */
+  async getCollaborativeDocuments(): Promise<CollaborativeDocument[]> {
+    return this.getUserDocuments();
   }
 
   /**
@@ -331,16 +338,16 @@ class DocumentCollaborationService {
   }
 
   /**
-   * Get document participants
+   * Get cached document participants (synchronous, returns cached data)
    */
-  getDocumentParticipants(documentId: string): DocumentParticipant[] {
+  getCachedDocumentParticipants(documentId: string): DocumentParticipant[] {
     return this.documentParticipants.get(documentId) || [];
   }
 
   /**
-   * Get document changes
+   * Get cached document changes (synchronous, returns cached data)
    */
-  getDocumentChanges(documentId: string): DocumentChange[] {
+  getCachedDocumentChanges(documentId: string): DocumentChange[] {
     return this.documentChanges.get(documentId) || [];
   }
 

@@ -127,8 +127,15 @@ const MapPage: React.FC = () => {
 
       // Add click handler for markers
       map.current!.on('click', 'needs-points', (e) => {
-        const coordinates = e.features![0].geometry.coordinates.slice();
-        const properties = e.features![0].properties;
+        const feature = e.features![0];
+        const geometry = feature.geometry;
+        // Type guard for Point geometry
+        if (geometry.type !== 'Point' || !('coordinates' in geometry)) {
+          return;
+        }
+        const coords = geometry.coordinates as [number, number];
+        const coordinates: [number, number] = [coords[0], coords[1]];
+        const properties = feature.properties;
         
         // Create popup content
         const popupContent = `
@@ -368,7 +375,7 @@ const MapPage: React.FC = () => {
   useEffect(() => {
     if (!map.current) return;
     const m = map.current;
-    const onMouseDown = (e: maplibregl.MapMouseEvent & maplibregl.EventData) => {
+    const onMouseDown = (e: maplibregl.MapMouseEvent) => {
       if (!drawingBBox) return;
       bboxStartRef.current = e.lngLat;
       m.getCanvas().style.cursor = 'crosshair';

@@ -77,10 +77,10 @@ const InventoryManager: React.FC = () => {
         apiService.getInventoryStatus()
       ]);
 
-      setHubs(hubsData);
-      setItems(itemsData);
-      setStock(stockData);
-      setAlerts(invStatus);
+      setHubs(hubsData as InventoryHub[]);
+      setItems(itemsData as ItemCatalog[]);
+      setStock(stockData as InventoryStock[]);
+      setAlerts(invStatus as any);
       
       // Mock movements data - in real app, this would come from API
       setMovements([

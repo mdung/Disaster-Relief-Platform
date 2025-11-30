@@ -55,8 +55,8 @@ const AnalyticsDashboard: React.FC = () => {
         apiService.getNeedsTrends(dateRange.start, dateRange.end, 'day')
       ]);
       
-      setAnalyticsData(overview);
-      setTrendsData(trends);
+      setAnalyticsData(overview as AnalyticsData);
+      setTrendsData(trends as TimeSeriesData[]);
     } catch (error) {
       console.error('Failed to fetch analytics data:', error);
     } finally {

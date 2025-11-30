@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import maplibregl from 'maplibre-gl';
 import { IndoorNavigationService, IndoorMap, IndoorNode, IndoorEdge, IndoorRoute } from '../../services/indoorNavigationService';
-import { MapPin, Navigation, Building, Stairs, Elevator, AlertTriangle } from 'lucide-react';
+import { MapPin, Navigation, Building, ArrowUpRightFromCircle, ArrowUpDown, AlertTriangle } from 'lucide-react';
 
 interface IndoorMapViewerProps {
   mapId: number;
@@ -45,6 +45,21 @@ export const IndoorMapViewer: React.FC<IndoorMapViewerProps> = ({
 
   useEffect(() => {
     if (map.current && nodes.length > 0) {
+      // Fit bounds to nodes if map is already initialized
+      if (nodes.length > 0) {
+        const bbox = nodes.reduce((acc: [number, number, number, number], node) => {
+          const [lon, lat] = node.position.coordinates;
+          acc[0] = Math.min(acc[0], lon);
+          acc[1] = Math.min(acc[1], lat);
+          acc[2] = Math.max(acc[2], lon);
+          acc[3] = Math.max(acc[3], lat);
+          return acc;
+        }, [Infinity, Infinity, -Infinity, -Infinity] as [number, number, number, number]);
+        
+        if (isFinite(bbox[0])) {
+          map.current.fitBounds(bbox, { padding: 50 });
+        }
+      }
       addNodesToMap();
     }
   }, [nodes, showNodes]);
@@ -69,7 +84,7 @@ export const IndoorMapViewer: React.FC<IndoorMapViewerProps> = ({
       const [mapData, nodesData, edgesData, routesData] = await Promise.all([
         IndoorNavigationService.getIndoorMap(mapId),
         IndoorNavigationService.getIndoorNodes(mapId),
-        IndoorNavigationService.getIndoorRoutes(mapId),
+        showEdges ? IndoorNavigationService.getIndoorEdges(mapId) : Promise.resolve([]),
         showRoutes ? IndoorNavigationService.getIndoorRoutes(mapId) : Promise.resolve([])
       ]);
 
@@ -88,18 +103,23 @@ export const IndoorMapViewer: React.FC<IndoorMapViewerProps> = ({
   const initializeMap = () => {
     if (!indoorMap || !mapContainer.current) return;
 
-    // Calculate map bounds
-    const bounds = indoorMap.mapBounds?.coordinates || [[0, 0], [1, 1]];
-    const bbox = bounds.flat().reduce((acc, coord, index) => {
-      if (index % 2 === 0) {
-        acc[0] = Math.min(acc[0], coord);
-        acc[2] = Math.max(acc[2], coord);
-      } else {
-        acc[1] = Math.min(acc[1], coord);
-        acc[3] = Math.max(acc[3], coord);
+    // Calculate map bounds from nodes if available, otherwise use default
+    let bbox: [number, number, number, number] = [0, 0, 1, 1];
+    if (nodes.length > 0) {
+      bbox = nodes.reduce((acc: [number, number, number, number], node) => {
+        const [lon, lat] = node.position.coordinates;
+        acc[0] = Math.min(acc[0], lon);
+        acc[1] = Math.min(acc[1], lat);
+        acc[2] = Math.max(acc[2], lon);
+        acc[3] = Math.max(acc[3], lat);
+        return acc;
+      }, [Infinity, Infinity, -Infinity, -Infinity] as [number, number, number, number]);
+      
+      // If no valid bounds found, use default
+      if (!isFinite(bbox[0])) {
+        bbox = [0, 0, 1, 1];
       }
-      return acc;
-    }, [Infinity, Infinity, -Infinity, -Infinity]);
+    }
 
     map.current = new maplibregl.Map({
       container: mapContainer.current,
@@ -136,10 +156,33 @@ export const IndoorMapViewer: React.FC<IndoorMapViewerProps> = ({
 
     // Add map image if available
     if (indoorMap.mapImageUrl) {
+      // Calculate coordinates from nodes if available, otherwise use default
+      let imageCoordinates: [[number, number], [number, number], [number, number], [number, number]] = [[0, 0], [1, 0], [1, 1], [0, 1]];
+      if (nodes.length > 0) {
+        const bbox = nodes.reduce((acc: [number, number, number, number], node) => {
+          const [lon, lat] = node.position.coordinates;
+          acc[0] = Math.min(acc[0], lon);
+          acc[1] = Math.min(acc[1], lat);
+          acc[2] = Math.max(acc[2], lon);
+          acc[3] = Math.max(acc[3], lat);
+          return acc;
+        }, [Infinity, Infinity, -Infinity, -Infinity] as [number, number, number, number]);
+        
+        if (isFinite(bbox[0])) {
+          // Convert bbox [minLng, minLat, maxLng, maxLat] to image coordinates
+          imageCoordinates = [
+            [bbox[0], bbox[1]], // bottom-left
+            [bbox[2], bbox[1]], // bottom-right
+            [bbox[2], bbox[3]], // top-right
+            [bbox[0], bbox[3]]  // top-left
+          ];
+        }
+      }
+      
       map.current.addSource('indoor-map-image', {
         type: 'image',
         url: indoorMap.mapImageUrl,
-        coordinates: indoorMap.mapBounds?.coordinates || [[0, 0], [1, 0], [1, 1], [0, 1]]
+        coordinates: imageCoordinates
       });
 
       map.current.addLayer({
@@ -301,9 +344,9 @@ export const IndoorMapViewer: React.FC<IndoorMapViewerProps> = ({
   const getNodeIcon = (nodeType: string) => {
     switch (nodeType) {
       case 'STAIRS':
-        return <Stairs className="w-4 h-4" />;
+        return <ArrowUpRightFromCircle className="w-4 h-4" />;
       case 'ELEVATOR':
-        return <Elevator className="w-4 h-4" />;
+        return <ArrowUpDown className="w-4 h-4" />;
       case 'EMERGENCY_EXIT':
         return <AlertTriangle className="w-4 h-4" />;
       default:

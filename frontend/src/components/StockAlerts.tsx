@@ -111,7 +111,7 @@ const StockAlerts: React.FC = () => {
   };
 
   const dismissAlert = (alertId: string) => {
-    setDismissedAlerts(prev => new Set([...prev, alertId]));
+    setDismissedAlerts(prev => new Set(Array.from(prev).concat(alertId)));
   };
 
   const getSeverityColor = (severity: string) => {

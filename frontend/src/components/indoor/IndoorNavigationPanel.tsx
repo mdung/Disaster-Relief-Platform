@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { IndoorNavigationService, IndoorMap, IndoorNode, IndoorRoute } from '../../services/indoorNavigationService';
-import { MapPin, Navigation, Building, Stairs, Elevator, AlertTriangle, Search, Route, Clock, Users } from 'lucide-react';
+import { MapPin, Navigation, Building, ArrowUpRightFromCircle, ArrowUpDown, AlertTriangle, Search, Route, Clock, Users } from 'lucide-react';
 
 interface IndoorNavigationPanelProps {
   mapId: number;
@@ -83,9 +83,9 @@ export const IndoorNavigationPanel: React.FC<IndoorNavigationPanelProps> = ({
   const getNodeIcon = (nodeType: string) => {
     switch (nodeType) {
       case 'STAIRS':
-        return <Stairs className="w-4 h-4" />;
+        return <ArrowUpRightFromCircle className="w-4 h-4" />;
       case 'ELEVATOR':
-        return <Elevator className="w-4 h-4" />;
+        return <ArrowUpDown className="w-4 h-4" />;
       case 'EMERGENCY_EXIT':
         return <AlertTriangle className="w-4 h-4" />;
       default:

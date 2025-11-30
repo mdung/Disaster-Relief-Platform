@@ -5,6 +5,7 @@ import com.relief.security.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -33,6 +34,7 @@ public class SecurityConfig {
     private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     @Autowired
+    @Lazy
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
@@ -43,23 +45,24 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authz -> authz
                 // Public endpoints
-                .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/health").permitAll()
-                .requestMatchers("/api/actuator/health").permitAll()
-                .requestMatchers("/api/actuator/prometheus").permitAll()
+                // Note: context-path is /api, so paths are relative to /api
+                .requestMatchers("/auth/**").permitAll()
+                .requestMatchers("/health").permitAll()
+                .requestMatchers("/actuator/health").permitAll()
+                .requestMatchers("/actuator/prometheus").permitAll()
                 .requestMatchers("/swagger-ui/**").permitAll()
                 .requestMatchers("/v3/api-docs/**").permitAll()
                 .requestMatchers("/swagger-resources/**").permitAll()
                 .requestMatchers("/webjars/**").permitAll()
                 
                 // Admin endpoints
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers("/admin/**").hasRole("ADMIN")
                 
                 // Analytics endpoints
-                .requestMatchers("/api/analytics/**").hasAnyRole("ADMIN", "DISPATCHER")
+                .requestMatchers("/analytics/**").hasAnyRole("ADMIN", "DISPATCHER")
                 
                 // Media endpoints
-                .requestMatchers("/api/media/**").authenticated()
+                .requestMatchers("/media/**").authenticated()
                 
                 // All other endpoints require authentication
                 .anyRequest().authenticated()
@@ -93,12 +96,11 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         
-        // Configure allowed origins
-        configuration.setAllowedOriginPatterns(List.of(
+        // Configure allowed origins - use exact origins when allowCredentials is true
+        // For localhost, use exact origins
+        configuration.setAllowedOrigins(Arrays.asList(
             "http://localhost:3000",
-            "http://localhost:3001",
-            "https://*.disaster-relief.local",
-            "https://disaster-relief.herokuapp.com"
+            "http://localhost:3001"
         ));
         
         // Configure allowed methods
@@ -115,7 +117,7 @@ public class SecurityConfig {
         
         // Configure exposed headers
         configuration.setExposedHeaders(Arrays.asList(
-            "X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset",
+            "Authorization", "X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset",
             "X-Content-Type-Options", "X-Frame-Options", "X-XSS-Protection"
         ));
         
@@ -126,7 +128,8 @@ public class SecurityConfig {
         configuration.setMaxAge(3600L);
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/api/**", configuration);
+        // Register CORS for all paths to ensure it works
+        source.registerCorsConfiguration("/**", configuration);
         
         return source;
     }

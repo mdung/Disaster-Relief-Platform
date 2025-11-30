@@ -31,7 +31,8 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     java.util.List<User> findByRoleAndNotDisabled(@Param("role") String role);
     
     // Admin-specific queries
-    long countByActiveTrue();
+    @Query("SELECT COUNT(u) FROM User u WHERE u.disabled = false")
+    long countActiveUsers();
     
     @Query("SELECT u.role as role, COUNT(u) as count FROM User u GROUP BY u.role")
     Map<String, Long> countByRole();
@@ -57,6 +58,10 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     Page<User> findByRole(String role, Pageable pageable);
     
     // Smart automation queries
-    @Query("SELECT u FROM User u WHERE u.geomPoint IS NOT NULL AND ST_DWithin(u.geomPoint, :point, :radius)")
+    @Query("""
+           SELECT u FROM User u
+           WHERE u.geomPoint IS NOT NULL
+             AND function('ST_DWithin', u.geomPoint, :point, :radius) = true
+           """)
     List<User> findUsersInRadius(@Param("point") org.locationtech.jts.geom.Point point, @Param("radius") double radius);
 }

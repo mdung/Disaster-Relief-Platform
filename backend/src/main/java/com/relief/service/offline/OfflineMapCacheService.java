@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -44,7 +46,28 @@ public class OfflineMapCacheService {
     @Value("${app.offline-map.tile-timeout-seconds:30}")
     private int tileTimeoutSeconds;
     
-    private final ExecutorService downloadExecutor = Executors.newFixedThreadPool(maxConcurrentDownloads);
+    private ExecutorService downloadExecutor;
+    
+    @PostConstruct
+    private void initExecutor() {
+        int threads = maxConcurrentDownloads > 0 ? maxConcurrentDownloads : 5;
+        this.downloadExecutor = Executors.newFixedThreadPool(threads);
+    }
+    
+    @PreDestroy
+    private void shutdownExecutor() {
+        if (downloadExecutor != null && !downloadExecutor.isShutdown()) {
+            downloadExecutor.shutdown();
+            try {
+                if (!downloadExecutor.awaitTermination(60, java.util.concurrent.TimeUnit.SECONDS)) {
+                    downloadExecutor.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                downloadExecutor.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
     
     /**
      * Create an offline map cache

@@ -19,6 +19,7 @@ import {
   Download,
   RefreshCw
 } from 'lucide-react';
+import UserForm from './UserForm';
 
 interface AdminStats {
   totalUsers: number;
@@ -67,7 +68,7 @@ const AdminDashboard: React.FC = () => {
   const fetchStats = async () => {
     try {
       const data = await apiService.getAdminStats();
-      setStats(data);
+      setStats(data as AdminStats);
     } catch (error) {
       console.error('Failed to fetch admin stats:', error);
     }

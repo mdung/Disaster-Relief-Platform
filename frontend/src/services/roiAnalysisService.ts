@@ -163,59 +163,59 @@ class ROIAnalysisService {
   private baseUrl = '/api/analytics/roi';
 
   async createAnalysis(name: string, description: string, analysisType: string, projectId: string, parameters: Record<string, any>, userId: string): Promise<ROIAnalysis> {
-    return apiService.createROIAnalysis(name, description, analysisType, projectId, parameters, userId);
+    return apiService.post<ROIAnalysis>(`${this.baseUrl}/analyses`, { name, description, analysisType, projectId, parameters, userId });
   }
 
   async executeAnalysis(analysisId: string): Promise<ROIAnalysis> {
-    return apiService.executeROIAnalysis(analysisId);
+    return apiService.post<ROIAnalysis>(`${this.baseUrl}/analyses/${analysisId}/execute`, {});
   }
 
   async getAnalysis(analysisId: string): Promise<ROIAnalysis> {
-    return apiService.getROIAnalysis(analysisId);
+    return apiService.get<ROIAnalysis>(`${this.baseUrl}/analyses/${analysisId}`);
   }
 
   async getUserAnalyses(userId: string): Promise<ROIAnalysis[]> {
-    return apiService.getROIAnalyses(userId);
+    return apiService.get<ROIAnalysis[]>(`${this.baseUrl}/analyses`, { userId });
   }
 
   async calculateROI(projectId: string, startDate: string, endDate: string, parameters: Record<string, any>): Promise<ROIMetrics> {
-    return apiService.calculateROI(projectId, startDate, endDate, parameters);
+    return apiService.post<ROIMetrics>(`${this.baseUrl}/calculate`, { projectId, startDate, endDate, parameters });
   }
 
   async performCostBenefitAnalysis(projectId: string, costs: CostItem[], benefits: BenefitItem[]): Promise<CostBenefitAnalysis> {
-    return apiService.performCostBenefitAnalysis(projectId, costs, benefits);
+    return apiService.post<CostBenefitAnalysis>(`${this.baseUrl}/cost-benefit`, { projectId, costs, benefits });
   }
 
   async measureEffectiveness(projectId: string, metricType: string, parameters: Record<string, any>): Promise<EffectivenessMetrics> {
-    return apiService.measureEffectiveness(projectId, metricType, parameters);
+    return apiService.post<EffectivenessMetrics>(`${this.baseUrl}/effectiveness`, { projectId, metricType, parameters });
   }
 
   async assessImpact(projectId: string, impactType: string, criteria: Record<string, any>): Promise<ImpactAssessment> {
-    return apiService.assessImpact(projectId, impactType, criteria);
+    return apiService.post<ImpactAssessment>(`${this.baseUrl}/impact`, { projectId, impactType, criteria });
   }
 
   async benchmarkPerformance(projectId: string, benchmarkType: string, parameters: Record<string, any>): Promise<PerformanceBenchmark> {
-    return apiService.benchmarkPerformance(projectId, benchmarkType, parameters);
+    return apiService.post<PerformanceBenchmark>(`${this.baseUrl}/benchmark`, { projectId, benchmarkType, parameters });
   }
 
   async analyzeValueForMoney(projectId: string, parameters: Record<string, any>): Promise<ValueForMoneyAnalysis> {
-    return apiService.analyzeValueForMoney(projectId, parameters);
+    return apiService.post<ValueForMoneyAnalysis>(`${this.baseUrl}/value-for-money`, { projectId, parameters });
   }
 
   async compareROI(projectIds: string[], comparisonType: string, parameters: Record<string, any>): Promise<ROIComparison> {
-    return apiService.compareROI(projectIds, comparisonType, parameters);
+    return apiService.post<ROIComparison>(`${this.baseUrl}/compare`, { projectIds, comparisonType, parameters });
   }
 
   async analyzeTrends(projectId: string, startDate: string, endDate: string): Promise<ROITrend> {
-    return apiService.analyzeROITrends(projectId, startDate, endDate);
+    return apiService.post<ROITrend>(`${this.baseUrl}/trends`, { projectId, startDate, endDate });
   }
 
   async getROIAnalytics(projectId: string): Promise<ROIAnalytics> {
-    return apiService.getROIAnalytics(projectId);
+    return apiService.get<ROIAnalytics>(`${this.baseUrl}/analytics`, { projectId });
   }
 
   async deleteAnalysis(analysisId: string): Promise<void> {
-    return apiService.deleteROIAnalysis(analysisId);
+    return apiService.delete<void>(`${this.baseUrl}/analyses/${analysisId}`);
   }
 }
 

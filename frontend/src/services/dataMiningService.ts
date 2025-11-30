@@ -160,63 +160,63 @@ class DataMiningService {
   private baseUrl = '/api/analytics/data-mining';
 
   async createMiningJob(name: string, description: string, algorithm: string, dataSources: string[], parameters: Record<string, any>, userId: string): Promise<MiningJob> {
-    return apiService.createMiningJob(name, description, algorithm, dataSources, parameters, userId);
+    return apiService.post<MiningJob>(`${this.baseUrl}/jobs`, { name, description, algorithm, dataSources, parameters, userId });
   }
 
   async executeJob(jobId: string): Promise<MiningJob> {
-    return apiService.executeMiningJob(jobId);
+    return apiService.post<MiningJob>(`${this.baseUrl}/jobs/${jobId}/execute`, {});
   }
 
   async getJob(jobId: string): Promise<MiningJob> {
-    return apiService.getMiningJob(jobId);
+    return apiService.get<MiningJob>(`${this.baseUrl}/jobs/${jobId}`);
   }
 
   async getUserJobs(userId: string): Promise<MiningJob[]> {
-    return apiService.getMiningJobs(userId);
+    return apiService.get<MiningJob[]>(`${this.baseUrl}/jobs`, { userId });
   }
 
   async getMiningResult(jobId: string): Promise<MiningResult> {
-    return apiService.getMiningResult(jobId);
+    return apiService.get<MiningResult>(`${this.baseUrl}/jobs/${jobId}/result`);
   }
 
   async discoverPatterns(dataSource: string, patternType: string, filters: Record<string, any>): Promise<DataPattern[]> {
-    return apiService.discoverPatterns(dataSource, patternType, filters);
+    return apiService.post<DataPattern[]>(`${this.baseUrl}/patterns/discover`, { dataSource, patternType, filters });
   }
 
   async generateInsights(dataSource: string, insightType: string, parameters: Record<string, any>): Promise<DataInsight[]> {
-    return apiService.generateInsights(dataSource, insightType, parameters);
+    return apiService.post<DataInsight[]>(`${this.baseUrl}/insights/generate`, { dataSource, insightType, parameters });
   }
 
   async createPredictiveModel(name: string, modelType: string, targetVariable: string, features: string[], parameters: Record<string, any>, userId: string): Promise<PredictiveModel> {
-    return apiService.createPredictiveModel(name, modelType, targetVariable, features, parameters, userId);
+    return apiService.post<PredictiveModel>(`${this.baseUrl}/models`, { name, modelType, targetVariable, features, parameters, userId });
   }
 
   async makePrediction(modelId: string, inputData: Record<string, any>): Promise<ModelPrediction> {
-    return apiService.makePrediction(modelId, inputData);
+    return apiService.post<ModelPrediction>(`${this.baseUrl}/models/${modelId}/predict`, { inputData });
   }
 
   async detectAnomalies(dataSource: string, detectionType: string, parameters: Record<string, any>): Promise<AnomalyDetection> {
-    return apiService.detectAnomalies(dataSource, detectionType, parameters);
+    return apiService.post<AnomalyDetection>(`${this.baseUrl}/anomalies/detect`, { dataSource, detectionType, parameters });
   }
 
   async analyzeTrends(dataSource: string, trendType: string, startDate: string, endDate: string): Promise<TrendAnalysis> {
-    return apiService.analyzeTrends(dataSource, trendType, startDate, endDate);
+    return apiService.post<TrendAnalysis>(`${this.baseUrl}/trends/analyze`, { dataSource, trendType, startDate, endDate });
   }
 
   async findCorrelations(dataSource: string, variables: string[]): Promise<CorrelationAnalysis> {
-    return apiService.findCorrelations(dataSource, variables);
+    return apiService.post<CorrelationAnalysis>(`${this.baseUrl}/correlations/find`, { dataSource, variables });
   }
 
   async performClustering(dataSource: string, algorithm: string, parameters: Record<string, any>): Promise<ClusteringResult> {
-    return apiService.performClustering(dataSource, algorithm, parameters);
+    return apiService.post<ClusteringResult>(`${this.baseUrl}/clustering/perform`, { dataSource, algorithm, parameters });
   }
 
   async getMiningAnalytics(dataSource: string): Promise<MiningAnalytics> {
-    return apiService.getMiningAnalytics(dataSource);
+    return apiService.get<MiningAnalytics>(`${this.baseUrl}/analytics`, { dataSource });
   }
 
   async deleteJob(jobId: string): Promise<void> {
-    return apiService.deleteMiningJob(jobId);
+    return apiService.delete<void>(`${this.baseUrl}/jobs/${jobId}`);
   }
 }
 

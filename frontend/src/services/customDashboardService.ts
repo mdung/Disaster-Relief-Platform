@@ -56,71 +56,71 @@ class CustomDashboardService {
   private baseUrl = '/api/analytics/dashboards';
 
   async createDashboard(name: string, description: string, userId: string, userRole: string, isPublic: boolean = false, layout: Record<string, any> = {}): Promise<Dashboard> {
-    return apiService.createCustomDashboard(name, description, userId, userRole, isPublic, layout);
+    return apiService.post<Dashboard>(`${this.baseUrl}`, { name, description, userId, userRole, isPublic, layout });
   }
 
   async updateDashboard(dashboardId: string, name: string, description: string, layout: Record<string, any>, isPublic: boolean = false): Promise<Dashboard> {
-    return apiService.updateCustomDashboard(dashboardId, name, description, layout, isPublic);
+    return apiService.put<Dashboard>(`${this.baseUrl}/${dashboardId}`, { name, description, layout, isPublic });
   }
 
   async getDashboard(dashboardId: string): Promise<Dashboard> {
-    return apiService.getCustomDashboard(dashboardId);
+    return apiService.get<Dashboard>(`${this.baseUrl}/${dashboardId}`);
   }
 
   async getUserDashboards(userId: string, userRole: string): Promise<Dashboard[]> {
-    return apiService.getCustomDashboards(userId, userRole);
+    return apiService.get<Dashboard[]>(`${this.baseUrl}`, { userId, userRole });
   }
 
   async getPublicDashboards(): Promise<Dashboard[]> {
-    return apiService.getPublicDashboards();
+    return apiService.get<Dashboard[]>(`${this.baseUrl}/public`);
   }
 
   async addWidget(dashboardId: string, widgetType: string, title: string, configuration: Record<string, any>, position: Record<string, any>): Promise<DashboardWidget> {
-    return apiService.addDashboardWidget(dashboardId, widgetType, title, configuration, position);
+    return apiService.post<DashboardWidget>(`${this.baseUrl}/${dashboardId}/widgets`, { widgetType, title, configuration, position });
   }
 
   async updateWidget(widgetId: string, title: string, configuration: Record<string, any>, position: Record<string, any>, isVisible: boolean = true): Promise<DashboardWidget> {
-    return apiService.updateDashboardWidget(widgetId, title, configuration, position, isVisible);
+    return apiService.put<DashboardWidget>(`${this.baseUrl}/widgets/${widgetId}`, { title, configuration, position, isVisible });
   }
 
   async getDashboardWidgets(dashboardId: string): Promise<DashboardWidget[]> {
-    return apiService.getDashboardWidgets(dashboardId);
+    return apiService.get<DashboardWidget[]>(`${this.baseUrl}/${dashboardId}/widgets`);
   }
 
   async getWidget(widgetId: string): Promise<DashboardWidget> {
-    return apiService.getWidget(widgetId);
+    return apiService.get<DashboardWidget>(`${this.baseUrl}/widgets/${widgetId}`);
   }
 
   async getWidgetData(widgetId: string, filters: Record<string, any> = {}): Promise<WidgetData> {
-    return apiService.getWidgetData(widgetId, filters);
+    return apiService.get<WidgetData>(`${this.baseUrl}/widgets/${widgetId}/data`, filters);
   }
 
   async removeWidget(widgetId: string): Promise<void> {
-    return apiService.removeWidget(widgetId);
+    return apiService.delete<void>(`${this.baseUrl}/widgets/${widgetId}`);
   }
 
   async createTemplate(name: string, description: string, userRole: string, template: Record<string, any>, createdBy: string): Promise<DashboardTemplate> {
-    return apiService.createDashboardTemplate(name, description, userRole, template, createdBy);
+    return apiService.post<DashboardTemplate>(`${this.baseUrl}/templates`, { name, description, userRole, template, createdBy });
   }
 
   async getTemplates(userRole: string): Promise<DashboardTemplate[]> {
-    return apiService.getDashboardTemplates(userRole);
+    return apiService.get<DashboardTemplate[]>(`${this.baseUrl}/templates`, { userRole });
   }
 
   async cloneDashboard(dashboardId: string, newName: string, userId: string): Promise<Dashboard> {
-    return apiService.cloneDashboard(dashboardId, newName, userId);
+    return apiService.post<Dashboard>(`${this.baseUrl}/${dashboardId}/clone`, { newName, userId });
   }
 
   async shareDashboard(dashboardId: string, userId: string, permission: string): Promise<void> {
-    return apiService.shareDashboard(dashboardId, userId, permission);
+    return apiService.post<void>(`${this.baseUrl}/${dashboardId}/share`, { userId, permission });
   }
 
   async getDashboardAnalytics(dashboardId: string): Promise<DashboardAnalytics> {
-    return apiService.getDashboardAnalytics(dashboardId);
+    return apiService.get<DashboardAnalytics>(`${this.baseUrl}/${dashboardId}/analytics`);
   }
 
   async deleteDashboard(dashboardId: string): Promise<void> {
-    return apiService.delete(`${this.baseUrl}/${dashboardId}`);
+    return apiService.delete<void>(`${this.baseUrl}/${dashboardId}`);
   }
 }
 

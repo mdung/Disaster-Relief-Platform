@@ -1,4 +1,19 @@
 -- Create geofencing and monitoring tables
+-- Note: This migration replaces the simple geofences table from V1__baseline.sql
+
+-- Drop old tables, views, and functions if they exist (from previous migrations or manual creation)
+DROP VIEW IF EXISTS active_geofence_alerts CASCADE;
+DROP VIEW IF EXISTS active_geofence_events CASCADE;
+DROP VIEW IF EXISTS geofence_summary CASCADE;
+
+DROP FUNCTION IF EXISTS get_geofence_alert_statistics(TIMESTAMP, TIMESTAMP) CASCADE;
+DROP FUNCTION IF EXISTS get_geofence_event_statistics(BIGINT, TIMESTAMP, TIMESTAMP) CASCADE;
+DROP FUNCTION IF EXISTS get_geofence_statistics(TIMESTAMP, TIMESTAMP) CASCADE;
+DROP FUNCTION IF EXISTS check_point_in_geofences(DOUBLE PRECISION, DOUBLE PRECISION) CASCADE;
+
+DROP TABLE IF EXISTS geofence_alerts CASCADE;
+DROP TABLE IF EXISTS geofence_events CASCADE;
+DROP TABLE IF EXISTS geofences CASCADE;
 
 -- Geofences table
 CREATE TABLE geofences (

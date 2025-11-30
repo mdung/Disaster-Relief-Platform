@@ -253,6 +253,15 @@ export class IndoorNavigationService {
     return response.data;
   }
 
+  static async getIndoorEdges(mapId: number, params?: {
+    edgeType?: string;
+    accessibleOnly?: boolean;
+    bidirectionalOnly?: boolean;
+  }): Promise<IndoorEdge[]> {
+    const response = await apiClient.get(`/api/indoor/maps/${mapId}/edges`, { params });
+    return response.data;
+  }
+
   // Indoor Positioning
   static async recordIndoorPosition(request: IndoorPositionRequest): Promise<IndoorPosition> {
     const response = await apiClient.post('/api/indoor/positions', request);

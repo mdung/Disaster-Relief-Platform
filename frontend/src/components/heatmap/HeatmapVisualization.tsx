@@ -103,7 +103,7 @@ export const HeatmapVisualization: React.FC<HeatmapVisualizationProps> = ({
 
       // Add heatmap layer
       if (showHeatmap) {
-        mapRef.current!.addLayer(HeatmapService.generateHeatmapLayer(type));
+        mapRef.current!.addLayer(HeatmapService.generateHeatmapLayerConfig(type));
       }
 
       // Add circle layer for individual points
@@ -128,15 +128,20 @@ export const HeatmapVisualization: React.FC<HeatmapVisualizationProps> = ({
     if (features.length > 0) {
       const feature = features[0];
       const properties = feature.properties;
+      const geometry = feature.geometry;
       
-      // Find the corresponding heatmap data point
-      const point = heatmapData.find(p => 
-        Math.abs(p.longitude - feature.geometry.coordinates[0]) < 0.0001 &&
-        Math.abs(p.latitude - feature.geometry.coordinates[1]) < 0.0001
-      );
-      
-      if (point) {
-        onPointClick(point);
+      // Type guard for Point geometry
+      if (geometry.type === 'Point' && 'coordinates' in geometry) {
+        const coords = geometry.coordinates;
+        // Find the corresponding heatmap data point
+        const point = heatmapData.find(p => 
+          Math.abs(p.longitude - coords[0]) < 0.0001 &&
+          Math.abs(p.latitude - coords[1]) < 0.0001
+        );
+        
+        if (point) {
+          onPointClick(point);
+        }
       }
     }
   };

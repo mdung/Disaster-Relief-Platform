@@ -42,7 +42,7 @@ public class AdminService {
     
     public AdminStatsResponse getSystemStats() {
         long totalUsers = userRepository.count();
-        long activeUsers = userRepository.countByActiveTrue();
+        long activeUsers = userRepository.countActiveUsers();
         long totalNeeds = needsRequestRepository.count();
         long activeNeeds = needsRequestRepository.countByStatus("active");
         long completedTasks = taskRepository.countByStatus("delivered");
