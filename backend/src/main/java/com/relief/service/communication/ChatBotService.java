@@ -33,6 +33,17 @@ public class ChatBotService {
      */
     @Transactional
     public ChatBotResponse processMessage(String sessionId, String message, UUID userId) {
+        // Validate inputs
+        if (sessionId == null || sessionId.trim().isEmpty()) {
+            throw new IllegalArgumentException("Session ID cannot be null or empty");
+        }
+        if (message == null || message.trim().isEmpty()) {
+            throw new IllegalArgumentException("Message cannot be null or empty");
+        }
+        if (userId == null) {
+            throw new IllegalArgumentException("User ID cannot be null");
+        }
+        
         log.info("Processing message from user {} in session {}", userId, sessionId);
         
         User user = userRepository.findById(userId)

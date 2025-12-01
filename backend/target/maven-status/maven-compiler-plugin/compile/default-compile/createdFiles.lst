@@ -1,3 +1,4 @@
 com\relief\config\StorageConfig$StorageService.class
 com\relief\config\StorageConfig.class
+com\relief\controller\DashboardController.class
 com\relief\config\StorageConfig$FileSystemStorageService.class

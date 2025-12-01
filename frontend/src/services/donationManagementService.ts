@@ -83,12 +83,14 @@ export type DonationType = 'CASH' | 'IN_KIND' | 'SERVICES' | 'EQUIPMENT' | 'FOOD
 export type DonationStatus = 'PENDING' | 'CONFIRMED' | 'PROCESSED' | 'REFUNDED' | 'CANCELLED';
 
 export interface RecordDonationRequest {
-  donorId: string;
+  donorName: string;
+  donorEmail?: string;
+  donorPhone?: string;
   amount: number;
-  type: DonationType;
-  description: string;
+  currency?: string;
+  paymentMethod?: string;
   campaignId?: string;
-  referenceId?: string;
+  notes?: string;
 }
 
 export interface RegisterDonorRequest {

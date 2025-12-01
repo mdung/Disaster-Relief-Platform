@@ -53,19 +53,40 @@ const DashboardPage: React.FC = () => {
     try {
       setLoading(true);
       
-      // Fetch recent requests
-      const requestsData = await apiService.getRequests({ page: 0, size: 5 });
+      // Fetch dashboard stats and recent requests in parallel
+      const [statsData, requestsData] = await Promise.all([
+        apiService.get<{
+          activeRequests: number;
+          completedToday: number;
+          activeHelpers: number;
+          responseTime: string;
+        }>('/dashboard/stats').catch(() => ({
+          activeRequests: 0,
+          completedToday: 0,
+          activeHelpers: 0,
+          responseTime: '0h'
+        })),
+        apiService.getRequests({ page: 0, size: 5 }).catch(() => ({ content: [], totalElements: 0 }))
+      ]);
+      
       setRecentRequests(requestsData.content || []);
       
-      // Mock stats - in real app, these would come from dedicated dashboard API
+      // Use real stats from backend
       setStats({
-        activeRequests: requestsData.totalElements || 0,
-        completedToday: Math.floor(Math.random() * 20), // Mock data
-        activeHelpers: Math.floor(Math.random() * 15), // Mock data
-        responseTime: '2.3h' // Mock data
+        activeRequests: statsData.activeRequests || 0,
+        completedToday: statsData.completedToday || 0,
+        activeHelpers: statsData.activeHelpers || 0,
+        responseTime: statsData.responseTime || '0h'
       });
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
+      // Set default values on error
+      setStats({
+        activeRequests: 0,
+        completedToday: 0,
+        activeHelpers: 0,
+        responseTime: '0h'
+      });
     } finally {
       setLoading(false);
     }
@@ -251,20 +272,8 @@ const DashboardPage: React.FC = () => {
       {/* Stock Alerts */}
       <StockAlerts />
 
-      {/* Activity Chart Placeholder */}
-      <div className="bg-white shadow rounded-lg">
-        <div className="px-4 py-5 sm:p-6">
-          <h3 className="text-lg leading-6 font-medium text-gray-900">
-            Activity Overview
-          </h3>
-          <div className="mt-5 h-64 flex items-center justify-center bg-gray-50 rounded-lg">
-            <div className="text-center">
-              <TrendingUp className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">Activity chart will be displayed here</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Activity Chart */}
+      <ActivityChartComponent />
 
       {/* Needs Form Modal */}
       {showNeedsForm && (
@@ -276,6 +285,74 @@ const DashboardPage: React.FC = () => {
           onCancel={() => setShowNeedsForm(false)}
         />
       )}
+    </div>
+  );
+};
+
+// Activity Chart Component
+const ActivityChartComponent: React.FC = () => {
+  const [activityData, setActivityData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchActivityData = async () => {
+      try {
+        setLoading(true);
+        const data = await apiService.get<any[]>('/dashboard/activity');
+        setActivityData(data || []);
+      } catch (error) {
+        console.error('Failed to fetch activity data:', error);
+        setActivityData([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchActivityData();
+  }, []);
+
+  return (
+    <div className="bg-white shadow rounded-lg">
+      <div className="px-4 py-5 sm:p-6">
+        <h3 className="text-lg leading-6 font-medium text-gray-900">
+          Activity Overview
+        </h3>
+        <div className="mt-5 h-64 flex items-center justify-center bg-gray-50 rounded-lg">
+          {loading ? (
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-500">Loading activity data...</p>
+            </div>
+          ) : activityData.length > 0 ? (
+            <div className="w-full h-full p-4">
+              {/* Simple bar chart representation */}
+              <div className="flex items-end justify-between h-full space-x-2">
+                {activityData.map((item, index) => {
+                  const maxValue = Math.max(...activityData.map(d => d.value || 0));
+                  const height = maxValue > 0 ? ((item.value || 0) / maxValue) * 100 : 0;
+                  return (
+                    <div key={index} className="flex-1 flex flex-col items-center">
+                      <div 
+                        className="w-full bg-blue-600 rounded-t hover:bg-blue-700 transition-colors"
+                        style={{ height: `${height}%` }}
+                        title={`${item.label || 'Activity'}: ${item.value || 0}`}
+                      ></div>
+                      <span className="text-xs text-gray-500 mt-2 truncate w-full text-center">
+                        {new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <div className="text-center">
+              <TrendingUp className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500">No activity data available</p>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 };

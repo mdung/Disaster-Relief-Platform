@@ -227,6 +227,7 @@ D:\project\GIS\Disaster-Relief-Platform\backend\src\main\java\com\relief\dto\Res
 D:\project\GIS\Disaster-Relief-Platform\backend\src\main\java\com\relief\service\optimization\LoadBalancingService.java
 D:\project\GIS\Disaster-Relief-Platform\backend\src\main\java\com\relief\domain\geofencing\GeofenceAlertSeverity.java
 D:\project\GIS\Disaster-Relief-Platform\backend\src\main\java\com\relief\service\task\TaskDependencyService.java
+D:\project\GIS\Disaster-Relief-Platform\backend\src\main\java\com\relief\controller\DashboardController.java
 D:\project\GIS\Disaster-Relief-Platform\backend\src\main\java\com\relief\controller\optimization\DynamicRoutingController.java
 D:\project\GIS\Disaster-Relief-Platform\backend\src\main\java\com\relief\repository\indoor\IndoorEdgeRepository.java
 D:\project\GIS\Disaster-Relief-Platform\backend\src\main\java\com\relief\service\realtime\AnomalyDetectionService.java

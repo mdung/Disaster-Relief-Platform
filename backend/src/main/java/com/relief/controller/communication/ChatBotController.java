@@ -51,11 +51,22 @@ public class ChatBotController {
             @RequestBody SendMessageRequest request,
             @AuthenticationPrincipal UserDetails principal) {
         
+        // Validate request
+        if (request == null || request.getMessage() == null || request.getMessage().trim().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        
         UUID userId = getUserIdFromPrincipal(principal);
         
+        // Generate sessionId if not provided
+        String sessionId = request.getSessionId();
+        if (sessionId == null || sessionId.trim().isEmpty()) {
+            sessionId = UUID.randomUUID().toString();
+        }
+        
         ChatBotResponse response = chatBotService.processMessage(
-            request.getSessionId(),
-            request.getMessage(),
+            sessionId,
+            request.getMessage().trim(),
             userId
         );
         

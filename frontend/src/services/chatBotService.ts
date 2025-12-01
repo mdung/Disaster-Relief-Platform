@@ -52,9 +52,12 @@ class ChatBotService {
    * Send message to chat bot
    */
   async sendMessage(message: string, sessionId?: string): Promise<ChatBotResponse> {
-    const response = await apiService.post('/chatbot/message', {
-      sessionId: sessionId || this.currentSessionId,
-      message
+    // Ensure we have a sessionId - generate one if needed
+    const effectiveSessionId = sessionId || this.currentSessionId || this.generateSessionId();
+    
+    const response = await apiService.post<ChatBotResponse>('/chatbot/message', {
+      sessionId: effectiveSessionId,
+      message: message.trim()
     });
 
     // Update current session ID
@@ -63,6 +66,15 @@ class ChatBotService {
     }
 
     return response;
+  }
+
+  /**
+   * Generate a new session ID
+   */
+  private generateSessionId(): string {
+    const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    this.currentSessionId = sessionId;
+    return sessionId;
   }
 
   /**
@@ -96,8 +108,13 @@ class ChatBotService {
    * Start new chat session
    */
   async startNewSession(): Promise<ChatSession> {
+    // Generate a new session ID first
+    const sessionId = this.generateSessionId();
+    
     // Send a greeting message to start new session
-    const response = await this.sendMessage('Hello');
+    const response = await this.sendMessage('Hello', sessionId);
+    
+    // Get the session details
     return this.getChatSession(response.sessionId);
   }
 
