@@ -7,6 +7,7 @@ import {
   Bell,
   BellOff
 } from 'lucide-react';
+import { apiService } from '../services/api';
 
 interface StockAlert {
   id: string;
@@ -45,10 +46,11 @@ const StockAlerts: React.FC = () => {
   const fetchStockAlerts = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/inventory/stock`);
+      // Use apiService to ensure authentication headers are included
+      const stockData = await apiService.getInventoryStock();
       
-      if (response.ok) {
-        const stockData = await response.json();
+      // Check if response is valid array
+      if (stockData && Array.isArray(stockData)) {
         const alerts = generateAlerts(stockData);
         setAlerts(alerts);
         
@@ -62,9 +64,26 @@ const StockAlerts: React.FC = () => {
             });
           }
         }
+      } else {
+        // If not array, might be error response - set empty alerts
+        console.warn('Invalid stock data format:', stockData);
+        setAlerts([]);
       }
-    } catch (error) {
-      console.error('Failed to fetch stock alerts:', error);
+    } catch (error: any) {
+      // Handle connection errors
+      if (error.message?.includes('Failed to fetch') || error.message?.includes('ERR_CONNECTION_REFUSED') || error.message?.includes('Cannot connect')) {
+        console.warn('Backend server not available, stock alerts will not be loaded');
+        setAlerts([]);
+        return;
+      }
+      // Handle JSON parsing errors specifically
+      if (error instanceof SyntaxError || error.message?.includes('JSON') || error.message?.includes('HTML')) {
+        console.warn('Server returned HTML instead of JSON - backend may not be running:', error.message);
+        setAlerts([]);
+      } else {
+        console.error('Failed to fetch stock alerts:', error);
+        setAlerts([]);
+      }
     } finally {
       setLoading(false);
     }

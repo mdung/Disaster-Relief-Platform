@@ -61,22 +61,57 @@ class ApiService {
     };
   }
 
+
   private async handleResponse<T>(response: Response): Promise<T> {
     if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`API Error: ${response.status} - ${error}`);
+      let errorText = '';
+      try {
+        errorText = await response.text();
+        // Check if response is HTML (error page)
+        if (errorText.trim().startsWith('<!DOCTYPE') || errorText.trim().startsWith('<html')) {
+          throw new Error(`API Error: ${response.status} - Server returned HTML instead of JSON. Backend may not be running or endpoint not found.`);
+        }
+      } catch (e) {
+        if (e instanceof Error) {
+          throw e;
+        }
+        errorText = `Failed to read error response: ${e}`;
+      }
+      throw new Error(`API Error: ${response.status} - ${errorText}`);
     }
-    return response.json();
+    
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      try {
+        return await response.json();
+      } catch (e) {
+        const text = await response.text();
+        if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
+          throw new Error('Server returned HTML instead of JSON. Backend may not be running or endpoint not found.');
+        }
+        throw new Error(`Failed to parse JSON response: ${e}`);
+      }
+    }
+    
+    // If not JSON, return as text
+    return response.text() as unknown as T;
   }
 
   // Auth APIs
   async login(emailOrPhone: string, password: string): Promise<LoginResponse> {
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ emailOrPhone, password })
-    });
-    return this.handleResponse<LoginResponse>(response);
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ emailOrPhone, password })
+      });
+      return await this.handleResponse<LoginResponse>(response);
+    } catch (error: any) {
+      if (error.message?.includes('Failed to fetch') || error.message?.includes('ERR_CONNECTION_REFUSED')) {
+        throw new Error('Cannot connect to backend server. Please ensure the backend is running on http://localhost:8080');
+      }
+      throw error;
+    }
   }
 
   async register(userData: any) {
@@ -270,11 +305,11 @@ class ApiService {
     return this.handleResponse(response);
   }
 
-  async updateStock(hubId: string, itemId: string, qtyAvailable?: number, qtyReserved?: number) {
+  async updateStock(hubId: string, itemId: string, qtyAvailable?: number, qtyReserved?: number, reason?: string) {
     const response = await fetch(`${API_BASE_URL}/inventory/stock`, {
       method: 'PUT',
       headers: this.getHeaders(),
-      body: JSON.stringify({ hubId, itemId, qtyAvailable, qtyReserved })
+      body: JSON.stringify({ hubId, itemId, qtyAvailable, qtyReserved, reason })
     });
     return this.handleResponse(response);
   }
@@ -293,6 +328,17 @@ class ApiService {
       method: 'POST',
       headers: this.getHeaders(),
       body: JSON.stringify({ hubId, itemId, quantity })
+    });
+    return this.handleResponse(response);
+  }
+
+  async getStockMovements(hubId?: string, itemId?: string) {
+    const params = new URLSearchParams();
+    if (hubId) params.append('hub', hubId);
+    if (itemId) params.append('item', itemId);
+    
+    const response = await fetch(`${API_BASE_URL}/inventory/movements?${params}`, {
+      headers: this.getHeaders()
     });
     return this.handleResponse(response);
   }
@@ -350,68 +396,96 @@ class ApiService {
   // -------- Generic helpers used by other services (video conferencing, trend analysis, etc.) --------
 
   async get<T = any>(path: string, queryParams?: Record<string, any>): Promise<T> {
-    let url = `${API_BASE_URL}${path.startsWith('/') ? path : `/${path}`}`;
-    if (queryParams) {
-      const params = new URLSearchParams();
-      Object.entries(queryParams).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== '') {
-          params.append(key, String(value));
+    try {
+      let url = `${API_BASE_URL}${path.startsWith('/') ? path : `/${path}`}`;
+      if (queryParams) {
+        const params = new URLSearchParams();
+        Object.entries(queryParams).forEach(([key, value]) => {
+          if (value !== undefined && value !== null && value !== '') {
+            params.append(key, String(value));
+          }
+        });
+        const queryString = params.toString();
+        if (queryString) {
+          url += (url.includes('?') ? '&' : '?') + queryString;
         }
-      });
-      const queryString = params.toString();
-      if (queryString) {
-        url += (url.includes('?') ? '&' : '?') + queryString;
       }
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: this.getHeaders()
+      });
+      return await this.handleResponse<T>(response);
+    } catch (error: any) {
+      if (error.message?.includes('Failed to fetch') || error.message?.includes('ERR_CONNECTION_REFUSED')) {
+        throw new Error('Cannot connect to backend server. Please ensure the backend is running on http://localhost:8080');
+      }
+      throw error;
     }
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: this.getHeaders()
-    });
-    return this.handleResponse<T>(response);
   }
 
   async post<T = any>(path: string, body?: any, options?: { params?: Record<string, any>; headers?: HeadersInit }): Promise<T> {
-    let url = `${API_BASE_URL}${path.startsWith('/') ? path : `/${path}`}`;
-    if (options?.params) {
-      const params = new URLSearchParams();
-      Object.entries(options.params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== '') {
-          params.append(key, String(value));
+    try {
+      let url = `${API_BASE_URL}${path.startsWith('/') ? path : `/${path}`}`;
+      if (options?.params) {
+        const params = new URLSearchParams();
+        Object.entries(options.params).forEach(([key, value]) => {
+          if (value !== undefined && value !== null && value !== '') {
+            params.append(key, String(value));
+          }
+        });
+        const queryString = params.toString();
+        if (queryString) {
+          url += (url.includes('?') ? '&' : '?') + queryString;
         }
-      });
-      const queryString = params.toString();
-      if (queryString) {
-        url += (url.includes('?') ? '&' : '?') + queryString;
       }
+      const headers = { ...this.getHeaders(), ...options?.headers };
+      const response = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: body !== undefined ? JSON.stringify(body) : undefined
+      });
+      return await this.handleResponse<T>(response);
+    } catch (error: any) {
+      if (error.message?.includes('Failed to fetch') || error.message?.includes('ERR_CONNECTION_REFUSED')) {
+        throw new Error('Cannot connect to backend server. Please ensure the backend is running on http://localhost:8080');
+      }
+      throw error;
     }
-    const headers = { ...this.getHeaders(), ...options?.headers };
-    const response = await fetch(url, {
-      method: 'POST',
-      headers,
-      body: body !== undefined ? JSON.stringify(body) : undefined
-    });
-    return this.handleResponse<T>(response);
   }
 
   async put<T = any>(path: string, body?: any): Promise<T> {
-    const response = await fetch(`${API_BASE_URL}${path.startsWith('/') ? path : `/${path}`}`, {
-      method: 'PUT',
-      headers: this.getHeaders(),
-      body: body !== undefined ? JSON.stringify(body) : undefined
-    });
-    return this.handleResponse<T>(response);
+    try {
+      const response = await fetch(`${API_BASE_URL}${path.startsWith('/') ? path : `/${path}`}`, {
+        method: 'PUT',
+        headers: this.getHeaders(),
+        body: body !== undefined ? JSON.stringify(body) : undefined
+      });
+      return await this.handleResponse<T>(response);
+    } catch (error: any) {
+      if (error.message?.includes('Failed to fetch') || error.message?.includes('ERR_CONNECTION_REFUSED')) {
+        throw new Error('Cannot connect to backend server. Please ensure the backend is running on http://localhost:8080');
+      }
+      throw error;
+    }
   }
 
   async delete<T = any>(path: string): Promise<T> {
-    const response = await fetch(`${API_BASE_URL}${path.startsWith('/') ? path : `/${path}`}`, {
-      method: 'DELETE',
-      headers: this.getHeaders()
-    });
-    // Many delete endpoints return no content; handle that gracefully
-    if (response.status === 204 || response.status === 202 || response.status === 200 && !response.headers.get('content-type')) {
-      return undefined as T;
+    try {
+      const response = await fetch(`${API_BASE_URL}${path.startsWith('/') ? path : `/${path}`}`, {
+        method: 'DELETE',
+        headers: this.getHeaders()
+      });
+      // Many delete endpoints return no content; handle that gracefully
+      if (response.status === 204 || response.status === 202 || (response.status === 200 && !response.headers.get('content-type'))) {
+        return undefined as T;
+      }
+      return await this.handleResponse<T>(response);
+    } catch (error: any) {
+      if (error.message?.includes('Failed to fetch') || error.message?.includes('ERR_CONNECTION_REFUSED')) {
+        throw new Error('Cannot connect to backend server. Please ensure the backend is running on http://localhost:8080');
+      }
+      throw error;
     }
-    return this.handleResponse<T>(response);
   }
 
   async patch<T = any>(path: string, body?: any): Promise<T> {

@@ -62,6 +62,12 @@ const InventoryManager: React.FC = () => {
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [alerts, setAlerts] = useState<any | null>(null);
   const [editing, setEditing] = useState<{ hubId: string; itemId: string; qtyAvailable: number; qtyReserved: number } | null>(null);
+  const [newStock, setNewStock] = useState<{ hubId: string; itemId: string; qtyAvailable: number; reason: string }>({
+    hubId: '',
+    itemId: '',
+    qtyAvailable: 0,
+    reason: ''
+  });
 
   useEffect(() => {
     fetchData();
@@ -82,25 +88,24 @@ const InventoryManager: React.FC = () => {
       setStock(stockData as InventoryStock[]);
       setAlerts(invStatus as any);
       
-      // Mock movements data - in real app, this would come from API
-      setMovements([
-        {
-          id: '1',
-          type: 'in',
-          quantity: 50,
-          reason: 'Restock from supplier',
-          timestamp: new Date().toISOString(),
-          user: 'Admin User'
-        },
-        {
-          id: '2',
-          type: 'out',
-          quantity: 10,
-          reason: 'Task delivery',
-          timestamp: new Date(Date.now() - 3600000).toISOString(),
-          user: 'Helper User'
-        }
-      ]);
+      // Fetch real movements data
+      try {
+        const movementsData = await apiService.getStockMovements() as any[];
+        const formattedMovements = Array.isArray(movementsData) 
+          ? movementsData.map((m: any) => ({
+              id: m.id,
+              type: m.movementType === 'in' ? 'in' : m.movementType === 'out' ? 'out' : m.movementType,
+              quantity: m.quantity,
+              reason: m.reason || 'Stock movement',
+              timestamp: m.createdAt,
+              user: m.user ? m.user.fullName || m.user.email : 'System'
+            }))
+          : [];
+        setMovements(formattedMovements);
+      } catch (error) {
+        console.error('Failed to fetch movements:', error);
+        setMovements([]);
+      }
     } catch (error) {
       console.error('Failed to fetch inventory data:', error);
     } finally {
@@ -109,12 +114,13 @@ const InventoryManager: React.FC = () => {
   };
 
   const filteredStock = stock.filter(s => {
+    if (!s.hub || !s.item) return false; // Skip items with missing hub or item
     const matchesHub = !selectedHub || s.hub.id === selectedHub;
     const matchesItem = !selectedItem || s.item.id === selectedItem;
     const matchesSearch = !searchTerm || 
-      s.item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.item.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.hub.name.toLowerCase().includes(searchTerm.toLowerCase());
+      s.item.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.item.code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.hub.name?.toLowerCase().includes(searchTerm.toLowerCase());
     
     return matchesHub && matchesItem && matchesSearch;
   });
@@ -134,12 +140,33 @@ const InventoryManager: React.FC = () => {
     };
   };
 
-  const handleStockUpdate = async (hubId: string, itemId: string, qtyAvailable: number, qtyReserved: number) => {
+  const handleStockUpdate = async (hubId: string, itemId: string, qtyAvailable: number, qtyReserved: number, reason?: string) => {
     try {
       await apiService.updateStock(hubId, itemId, qtyAvailable, qtyReserved);
       await fetchData(); // Refresh data
     } catch (error) {
       console.error('Failed to update stock:', error);
+    }
+  };
+  
+  const handleAddStock = async () => {
+    if (!newStock.hubId || !newStock.itemId || newStock.qtyAvailable <= 0) {
+      alert('Please fill in all required fields');
+      return;
+    }
+    try {
+      // Get current stock to calculate new quantity
+      const currentStock = stock.find(s => s.hub.id === newStock.hubId && s.item.id === newStock.itemId);
+      const currentQty = currentStock ? currentStock.qtyAvailable : 0;
+      const newQty = currentQty + newStock.qtyAvailable;
+      
+      await apiService.updateStock(newStock.hubId, newStock.itemId, newQty, currentStock?.qtyReserved || 0, newStock.reason);
+      await fetchData(); // Refresh data
+      setShowAddStock(false);
+      setNewStock({ hubId: '', itemId: '', qtyAvailable: 0, reason: '' });
+    } catch (error) {
+      console.error('Failed to add stock:', error);
+      alert('Failed to add stock');
     }
   };
 
@@ -175,9 +202,9 @@ const InventoryManager: React.FC = () => {
     const csvContent = [
       ['Hub', 'Item', 'Code', 'Available', 'Reserved', 'Total', 'Last Updated'],
       ...filteredStock.map(s => [
-        s.hub.name,
-        s.item.name,
-        s.item.code,
+        s.hub?.name || 'N/A',
+        s.item?.name || 'N/A',
+        s.item?.code || 'N/A',
         s.qtyAvailable.toString(),
         s.qtyReserved.toString(),
         (s.qtyAvailable + s.qtyReserved).toString(),
@@ -380,12 +407,12 @@ const InventoryManager: React.FC = () => {
               {filteredStock.map(item => (
                 <tr key={item.id}>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{item.hub.name}</div>
-                    <div className="text-sm text-gray-500">{item.hub.address}</div>
+                    <div className="text-sm font-medium text-gray-900">{item.hub?.name || 'N/A'}</div>
+                    <div className="text-sm text-gray-500">{item.hub?.address || ''}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{item.item.name}</div>
-                    <div className="text-sm text-gray-500">{item.item.code} • {item.item.unit}</div>
+                    <div className="text-sm font-medium text-gray-900">{item.item?.name || 'N/A'}</div>
+                    <div className="text-sm text-gray-500">{item.item?.code || ''} • {item.item?.unit || ''}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {item.qtyAvailable}
@@ -407,18 +434,24 @@ const InventoryManager: React.FC = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                     <button
-                      onClick={() => handleReserveStock(item.hub.id, item.item.id, 1)}
+                      onClick={() => item.hub?.id && item.item?.id && handleReserveStock(item.hub.id, item.item.id, 1)}
                       className="text-blue-600 hover:text-blue-900"
+                      disabled={!item.hub?.id || !item.item?.id}
                     >
                       Reserve
                     </button>
                     <button
-                      onClick={() => handleReleaseStock(item.hub.id, item.item.id, 1)}
+                      onClick={() => item.hub?.id && item.item?.id && handleReleaseStock(item.hub.id, item.item.id, 1)}
                       className="text-green-600 hover:text-green-900"
+                      disabled={!item.hub?.id || !item.item?.id}
                     >
                       Release
                     </button>
-                    <button className="text-gray-600 hover:text-gray-900" onClick={() => startEdit(item)}>
+                    <button 
+                      className="text-gray-600 hover:text-gray-900" 
+                      onClick={() => startEdit(item)}
+                      disabled={!item.hub?.id || !item.item?.id}
+                    >
                       Edit
                     </button>
                   </td>
@@ -462,6 +495,70 @@ const InventoryManager: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Add Stock Modal */}
+      {showAddStock && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+          <div className="bg-white rounded shadow-lg w-full max-w-md p-6">
+            <h3 className="text-lg font-semibold mb-4">Add Stock</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Hub</label>
+                <select
+                  value={newStock.hubId}
+                  onChange={(e) => setNewStock({ ...newStock, hubId: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                >
+                  <option value="">Select Hub</option>
+                  {hubs.map(hub => (
+                    <option key={hub.id} value={hub.id}>{hub.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Item</label>
+                <select
+                  value={newStock.itemId}
+                  onChange={(e) => setNewStock({ ...newStock, itemId: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                >
+                  <option value="">Select Item</option>
+                  {items.map(item => (
+                    <option key={item.id} value={item.id}>{item.name} ({item.code})</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Quantity to Add</label>
+                <input
+                  type="number"
+                  min="1"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  value={newStock.qtyAvailable}
+                  onChange={(e) => setNewStock({ ...newStock, qtyAvailable: Number(e.target.value) })}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Reason (optional)</label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  placeholder="e.g., Restock from supplier"
+                  value={newStock.reason}
+                  onChange={(e) => setNewStock({ ...newStock, reason: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end gap-2">
+              <button className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50" onClick={() => {
+                setShowAddStock(false);
+                setNewStock({ hubId: '', itemId: '', qtyAvailable: 0, reason: '' });
+              }}>Cancel</button>
+              <button className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700" onClick={handleAddStock}>Add Stock</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Edit Stock Modal */}
       {editing && (

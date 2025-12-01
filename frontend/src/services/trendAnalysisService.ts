@@ -60,7 +60,7 @@ export interface TrendAnalytics {
 }
 
 class TrendAnalysisService {
-  private baseUrl = '/api/realtime/trend-analysis';
+  private baseUrl = '/realtime/trend-analysis';
 
   async createAnalyzer(
     name: string,
@@ -135,7 +135,7 @@ class TrendAnalysisService {
     description: string,
     configuration: Record<string, any>
   ): Promise<void> {
-    return apiService.put(`${this.baseUrl}/analyzers/${analyzerId}`, {
+    return apiService.put(`/realtime/trend-analysis/analyzers/${analyzerId}`, {
       name,
       description,
       configuration
@@ -143,7 +143,7 @@ class TrendAnalysisService {
   }
 
   async deleteAnalyzer(analyzerId: string): Promise<void> {
-    return apiService.delete(`${this.baseUrl}/analyzers/${analyzerId}`);
+    return apiService.delete(`/realtime/trend-analysis/analyzers/${analyzerId}`);
   }
 }
 

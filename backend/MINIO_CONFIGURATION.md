@@ -152,3 +152,4 @@ After configuration, verify the MinIO client is created successfully:
 - Default ports: HTTP=9000, HTTPS=443
 - For production, always use HTTPS with proper SSL certificates
 
+

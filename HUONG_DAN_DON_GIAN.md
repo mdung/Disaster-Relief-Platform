@@ -75,3 +75,4 @@ Nếu sau này bạn muốn dùng MinIO:
 
 **Bây giờ bạn có thể test upload file mà không cần MinIO!** 🎉
 
+

@@ -3,12 +3,17 @@ package com.relief.controller;
 import com.relief.entity.InventoryHub;
 import com.relief.entity.InventoryStock;
 import com.relief.entity.ItemCatalog;
+import com.relief.entity.StockMovement;
+import com.relief.entity.User;
+import com.relief.repository.UserRepository;
 import com.relief.service.InventoryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,6 +26,20 @@ import java.util.UUID;
 public class InventoryController {
 
     private final InventoryService inventoryService;
+    private final UserRepository userRepository;
+    
+    private UUID getUserIdFromPrincipal(UserDetails principal) {
+        if (principal == null) return null;
+        String username = principal.getUsername();
+        try {
+            return UUID.fromString(username);
+        } catch (IllegalArgumentException e) {
+            User user = userRepository.findByEmail(username)
+                    .orElseGet(() -> userRepository.findByPhone(username)
+                            .orElse(null));
+            return user != null ? user.getId() : null;
+        }
+    }
 
     @GetMapping("/hubs")
     @Operation(summary = "List all inventory hubs")
@@ -35,7 +54,7 @@ public class InventoryController {
     }
 
     @GetMapping("/stock")
-    @Operation(summary = "Get stock by hub or item")
+    @Operation(summary = "Get stock by hub or item, or all stock if no parameters")
     public ResponseEntity<List<InventoryStock>> getStock(
             @RequestParam(required = false) UUID hub,
             @RequestParam(required = false) UUID item
@@ -45,39 +64,61 @@ public class InventoryController {
         } else if (item != null) {
             return ResponseEntity.ok(inventoryService.getStockByItem(item));
         } else {
-            return ResponseEntity.badRequest().build();
+            // Return all stock when no parameters provided
+            return ResponseEntity.ok(inventoryService.getAllStock());
         }
     }
 
     @PutMapping("/stock")
     @Operation(summary = "Update stock quantities")
-    public ResponseEntity<InventoryStock> updateStock(@RequestBody UpdateStockRequest request) {
+    public ResponseEntity<InventoryStock> updateStock(
+            @RequestBody UpdateStockRequest request,
+            @AuthenticationPrincipal UserDetails principal) {
+        UUID userId = getUserIdFromPrincipal(principal);
         return ResponseEntity.ok(inventoryService.updateStock(
                 request.getHubId(), 
                 request.getItemId(), 
                 request.getQtyAvailable(), 
-                request.getQtyReserved()
+                request.getQtyReserved(),
+                userId,
+                request.getReason()
         ));
     }
 
     @PostMapping("/reserve")
     @Operation(summary = "Reserve stock for a task")
-    public ResponseEntity<InventoryStock> reserveStock(@RequestBody ReserveStockRequest request) {
+    public ResponseEntity<InventoryStock> reserveStock(
+            @RequestBody ReserveStockRequest request,
+            @AuthenticationPrincipal UserDetails principal) {
+        UUID userId = getUserIdFromPrincipal(principal);
         return ResponseEntity.ok(inventoryService.reserveStock(
                 request.getHubId(), 
                 request.getItemId(), 
-                request.getQuantity()
+                request.getQuantity(),
+                userId
         ));
     }
 
     @PostMapping("/release")
     @Operation(summary = "Release reserved stock")
-    public ResponseEntity<InventoryStock> releaseStock(@RequestBody ReserveStockRequest request) {
+    public ResponseEntity<InventoryStock> releaseStock(
+            @RequestBody ReserveStockRequest request,
+            @AuthenticationPrincipal UserDetails principal) {
+        UUID userId = getUserIdFromPrincipal(principal);
         return ResponseEntity.ok(inventoryService.releaseReservation(
                 request.getHubId(), 
                 request.getItemId(), 
-                request.getQuantity()
+                request.getQuantity(),
+                userId
         ));
+    }
+    
+    @GetMapping("/movements")
+    @Operation(summary = "Get stock movements")
+    public ResponseEntity<List<StockMovement>> getStockMovements(
+            @RequestParam(required = false) UUID hub,
+            @RequestParam(required = false) UUID item) {
+        return ResponseEntity.ok(inventoryService.getStockMovements(hub, item));
     }
 
     @Data
@@ -99,6 +140,10 @@ public class InventoryController {
 
         public Integer getQtyReserved() { return qtyReserved; }
         public void setQtyReserved(Integer qtyReserved) { this.qtyReserved = qtyReserved; }
+        
+        private String reason;
+        public String getReason() { return reason; }
+        public void setReason(String reason) { this.reason = reason; }
     }
 
     @Data

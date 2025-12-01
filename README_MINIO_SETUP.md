@@ -103,3 +103,4 @@ docker rm -f minio1
 3. Verify credentials match in `application.yml`
 4. Restart backend application
 
+

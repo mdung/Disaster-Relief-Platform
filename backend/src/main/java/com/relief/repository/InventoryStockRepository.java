@@ -12,14 +12,18 @@ import java.util.UUID;
 @Repository
 public interface InventoryStockRepository extends JpaRepository<InventoryStock, UUID> {
 
-    @Query("SELECT s FROM InventoryStock s WHERE s.hub.id = :hubId")
+    @Query("SELECT s FROM InventoryStock s JOIN FETCH s.hub JOIN FETCH s.item WHERE s.hub.id = :hubId")
     List<InventoryStock> findByHubId(@Param("hubId") UUID hubId);
 
-    @Query("SELECT s FROM InventoryStock s WHERE s.item.id = :itemId")
+    @Query("SELECT s FROM InventoryStock s JOIN FETCH s.hub JOIN FETCH s.item WHERE s.item.id = :itemId")
     List<InventoryStock> findByItemId(@Param("itemId") UUID itemId);
 
-    @Query("SELECT s FROM InventoryStock s WHERE s.hub.id = :hubId AND s.item.id = :itemId")
+    @Query("SELECT s FROM InventoryStock s JOIN FETCH s.hub JOIN FETCH s.item WHERE s.hub.id = :hubId AND s.item.id = :itemId")
     InventoryStock findByHubIdAndItemId(@Param("hubId") UUID hubId, @Param("itemId") UUID itemId);
+    
+    @Query("SELECT s FROM InventoryStock s JOIN FETCH s.hub JOIN FETCH s.item")
+    @Override
+    List<InventoryStock> findAll();
     
     // Admin-specific queries
     long countByQtyAvailableLessThan(Integer threshold);

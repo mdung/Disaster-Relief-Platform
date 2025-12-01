@@ -55,11 +55,14 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-resources/**").permitAll()
                 .requestMatchers("/webjars/**").permitAll()
                 
+                // SSE/Streaming endpoints - allow with token parameter (for EventSource)
+                .requestMatchers("/requests/stream", "/requests/stream/**").permitAll()
+                
                 // Admin endpoints
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 
-                // Analytics endpoints
-                .requestMatchers("/analytics/**").hasAnyRole("ADMIN", "DISPATCHER")
+                // Analytics endpoints - allow authenticated users
+                .requestMatchers("/analytics/**").authenticated()
                 
                 // Media endpoints
                 .requestMatchers("/media/**").authenticated()
@@ -103,22 +106,24 @@ public class SecurityConfig {
             "http://localhost:3001"
         ));
         
-        // Configure allowed methods
+        // Configure allowed methods - OPTIONS must be included for preflight
         configuration.setAllowedMethods(Arrays.asList(
-            "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"
+            "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"
         ));
         
-        // Configure allowed headers
+        // Configure allowed headers - include Cache-Control for SSE
         configuration.setAllowedHeaders(Arrays.asList(
             "Authorization", "Content-Type", "X-Requested-With", "Accept",
             "Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers",
-            "X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset"
+            "X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset",
+            "Cache-Control", "Last-Event-ID"
         ));
         
         // Configure exposed headers
         configuration.setExposedHeaders(Arrays.asList(
             "Authorization", "X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset",
-            "X-Content-Type-Options", "X-Frame-Options", "X-XSS-Protection"
+            "X-Content-Type-Options", "X-Frame-Options", "X-XSS-Protection",
+            "Content-Type", "Cache-Control"
         ));
         
         // Configure credentials

@@ -100,16 +100,47 @@ export const TerrainVisualization: React.FC<TerrainVisualizationProps> = ({
       return;
     }
 
+    // Check if map is fully loaded
+    if (!mapRef.current.isStyleLoaded()) {
+      console.warn('Map style not loaded yet, waiting...');
+      mapRef.current.once('styledata', () => addElevationLayer(points));
+      return;
+    }
+
     const minElev = Math.min(...points.map(p => p.elevation));
     const maxElev = Math.max(...points.map(p => p.elevation));
 
     // Add elevation points as circles
-    if (mapRef.current.getSource('elevation-points')) {
-      mapRef.current.removeLayer('elevation-points');
-      mapRef.current.removeSource('elevation-points');
+    // Double-check map is still available and has getSource method
+    if (!mapRef.current || typeof mapRef.current.getSource !== 'function') {
+      console.warn('Map ref is null or not ready, cannot add elevation layer');
+      return;
     }
 
-    mapRef.current.addSource('elevation-points', {
+    try {
+      const existingSource = mapRef.current.getSource('elevation-points');
+      if (existingSource) {
+        if (mapRef.current.getLayer('elevation-points')) {
+          mapRef.current.removeLayer('elevation-points');
+        }
+        if (mapRef.current.getLayer('elevation-labels')) {
+          mapRef.current.removeLayer('elevation-labels');
+        }
+        mapRef.current.removeSource('elevation-points');
+      }
+    } catch (error) {
+      // Source might not exist, which is fine
+      console.log('No existing elevation source to remove:', error);
+    }
+
+    // Final check before adding source
+    if (!mapRef.current || !mapRef.current.isStyleLoaded() || typeof mapRef.current.addSource !== 'function') {
+      console.warn('Map not ready, cannot add elevation source');
+      return;
+    }
+
+    try {
+      mapRef.current.addSource('elevation-points', {
       type: 'geojson',
       data: {
         type: 'FeatureCollection',
@@ -129,25 +160,29 @@ export const TerrainVisualization: React.FC<TerrainVisualizationProps> = ({
       }
     });
 
-    mapRef.current.addLayer({
-      id: 'elevation-points',
-      type: 'circle',
-      source: 'elevation-points',
-      paint: {
-        'circle-radius': 4,
-        'circle-color': [
-          'interpolate',
-          ['linear'],
-          ['get', 'elevation'],
-          minElev, '#0066cc',
-          maxElev, '#cc0000'
-        ],
-        'circle-opacity': 0.8
-      }
-    });
+      if (!mapRef.current || typeof mapRef.current.addLayer !== 'function') return;
 
-    // Add elevation labels
-    mapRef.current.addLayer({
+      mapRef.current.addLayer({
+        id: 'elevation-points',
+        type: 'circle',
+        source: 'elevation-points',
+        paint: {
+          'circle-radius': 4,
+          'circle-color': [
+            'interpolate',
+            ['linear'],
+            ['get', 'elevation'],
+            minElev, '#0066cc',
+            maxElev, '#cc0000'
+          ],
+          'circle-opacity': 0.8
+        }
+      });
+
+      // Add elevation labels
+      if (!mapRef.current || typeof mapRef.current.addLayer !== 'function') return;
+
+      mapRef.current.addLayer({
       id: 'elevation-labels',
       type: 'symbol',
       source: 'elevation-points',
@@ -163,6 +198,10 @@ export const TerrainVisualization: React.FC<TerrainVisualizationProps> = ({
         'text-halo-width': 1
       }
     });
+    } catch (error) {
+      console.error('Error adding elevation layer:', error);
+      setError('Failed to add elevation layer to map');
+    }
   };
 
   const addTerrainAnalysisLayer = (analysis: TerrainAnalysis[]) => {
@@ -171,16 +210,44 @@ export const TerrainVisualization: React.FC<TerrainVisualizationProps> = ({
       return;
     }
 
-    // Add terrain analysis areas
-    if (mapRef.current.getSource('terrain-analysis')) {
-      mapRef.current.removeLayer('terrain-analysis');
-      mapRef.current.removeSource('terrain-analysis');
+    // Check if map is fully loaded
+    if (!mapRef.current.isStyleLoaded()) {
+      console.warn('Map style not loaded yet, waiting...');
+      mapRef.current.once('styledata', () => addTerrainAnalysisLayer(analysis));
+      return;
     }
 
-    // For demonstration, create simple rectangular areas
-    // In a real implementation, you'd use the actual polygon data
-    const features = analysis.map((item, index) => ({
-      type: 'Feature',
+    // Add terrain analysis areas
+    // Double-check map is still available and has getSource method
+    if (!mapRef.current || typeof mapRef.current.getSource !== 'function') {
+      console.warn('Map ref is null or not ready, cannot add terrain analysis layer');
+      return;
+    }
+
+    try {
+      const existingSource = mapRef.current.getSource('terrain-analysis');
+      if (existingSource) {
+        if (mapRef.current.getLayer('terrain-analysis')) {
+          mapRef.current.removeLayer('terrain-analysis');
+        }
+        mapRef.current.removeSource('terrain-analysis');
+      }
+    } catch (error) {
+      // Source might not exist, which is fine
+      console.log('No existing terrain analysis source to remove:', error);
+    }
+
+    // Final check before adding source
+    if (!mapRef.current || !mapRef.current.isStyleLoaded() || typeof mapRef.current.addSource !== 'function') {
+      console.warn('Map not ready, cannot add terrain analysis source');
+      return;
+    }
+
+    try {
+      // For demonstration, create simple rectangular areas
+      // In a real implementation, you'd use the actual polygon data
+      const features = analysis.map((item, index) => ({
+        type: 'Feature',
       geometry: {
         type: 'Polygon',
         coordinates: [[
@@ -199,18 +266,21 @@ export const TerrainVisualization: React.FC<TerrainVisualizationProps> = ({
         slopeAverage: item.slopeAverage,
         slopeMaximum: item.slopeMaximum
       }
-    }));
+      }));
 
-    mapRef.current.addSource('terrain-analysis', {
-      type: 'geojson',
-      data: {
-        type: 'FeatureCollection',
-        features
-      }
-    });
+      if (!mapRef.current || typeof mapRef.current.addSource !== 'function') return;
 
-    if (showAccessibility) {
-      mapRef.current.addLayer({
+      mapRef.current.addSource('terrain-analysis', {
+        type: 'geojson',
+        data: {
+          type: 'FeatureCollection',
+          features
+        }
+      });
+
+      if (showAccessibility) {
+        if (!mapRef.current || typeof mapRef.current.addLayer !== 'function') return;
+        mapRef.current.addLayer({
         id: 'terrain-analysis',
         type: 'fill',
         source: 'terrain-analysis',
@@ -228,8 +298,9 @@ export const TerrainVisualization: React.FC<TerrainVisualizationProps> = ({
       });
     }
 
-    if (showSlope) {
-      mapRef.current.addLayer({
+      if (showSlope) {
+        if (!mapRef.current || typeof mapRef.current.addLayer !== 'function') return;
+        mapRef.current.addLayer({
         id: 'terrain-slope',
         type: 'fill',
         source: 'terrain-analysis',
@@ -246,6 +317,10 @@ export const TerrainVisualization: React.FC<TerrainVisualizationProps> = ({
           'fill-opacity': 0.4
         }
       });
+      }
+    } catch (error) {
+      console.error('Error adding terrain analysis layer:', error);
+      setError('Failed to add terrain analysis layer to map');
     }
   };
 

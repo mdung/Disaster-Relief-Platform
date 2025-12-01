@@ -1,5 +1,10 @@
 import { useAuthStore } from '../store/authStore';
 
+// Import API_BASE_URL from api.ts to ensure consistency
+const getApiBaseUrl = () => {
+  return process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+};
+
 export type RealtimeEventType = 
   | 'needs.created'
   | 'needs.updated'
@@ -30,8 +35,14 @@ export class RealtimeService {
     }
 
     const { token } = useAuthStore.getState();
-    const url = `${process.env.REACT_APP_API_URL}/requests/stream${token ? `?token=${token}` : ''}`;
+    const baseUrl = getApiBaseUrl();
+    if (!baseUrl || baseUrl === 'undefined') {
+      console.error('API_BASE_URL is undefined. Please set REACT_APP_API_URL environment variable.');
+      return;
+    }
+    const url = `${baseUrl}/requests/stream${token ? `?token=${token}` : ''}`;
     
+    console.log('Connecting to SSE:', url);
     this.eventSource = new EventSource(url);
     
     this.eventSource.onopen = () => {
@@ -49,7 +60,10 @@ export class RealtimeService {
     };
 
     this.eventSource.onerror = (error) => {
-      console.error('SSE connection error:', error);
+      // Only log error if not already reconnecting
+      if (this.reconnectAttempts === 0) {
+        console.warn('SSE connection error. Will attempt to reconnect...');
+      }
       this.handleReconnect();
     };
 
@@ -110,14 +124,20 @@ export class RealtimeService {
 
   private handleReconnect(): void {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.error('Max reconnection attempts reached');
+      // Only log once when max attempts reached
+      if (this.reconnectAttempts === this.maxReconnectAttempts) {
+        console.warn('Max reconnection attempts reached for SSE. Backend may not be running.');
+      }
       return;
     }
 
     this.reconnectAttempts++;
     const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1);
     
-    console.log(`Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts})`);
+    // Only log first few reconnection attempts
+    if (this.reconnectAttempts <= 3) {
+      console.log(`Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts})`);
+    }
     
     setTimeout(() => {
       this.connect();

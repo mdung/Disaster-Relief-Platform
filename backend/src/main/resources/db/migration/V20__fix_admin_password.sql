@@ -21,3 +21,4 @@ SELECT
     NOW()
 WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'admin@relief.local');
 
+

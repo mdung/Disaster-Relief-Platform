@@ -30,3 +30,4 @@ SELECT id, email, role, disabled, created_at, updated_at
 FROM users 
 WHERE email = 'admin@relief.local';
 
+

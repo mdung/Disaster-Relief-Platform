@@ -18,7 +18,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/analytics")
-@RequiresPermission(Permission.REPORTS_READ)
 @Tag(name = "Analytics", description = "Analytics and reporting endpoints")
 public class AnalyticsController {
     
@@ -80,6 +79,7 @@ public class AnalyticsController {
     
     @GetMapping("/inventory/status")
     @Operation(summary = "Get inventory status and alerts")
+    @RequiresPermission(Permission.REPORTS_READ)
     public ResponseEntity<Map<String, Object>> getInventoryStatus() {
         Map<String, Object> status = analyticsService.getInventoryStatus();
         return ResponseEntity.ok(status);

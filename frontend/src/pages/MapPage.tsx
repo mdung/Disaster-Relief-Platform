@@ -20,6 +20,7 @@ const MapPage: React.FC = () => {
     status: 'all',
     shelter: searchParams.get('shelter') === 'true'
   });
+  const [showFiltersPanel, setShowFiltersPanel] = useState(false);
   const [drawingBBox, setDrawingBBox] = useState(false);
   const bboxStartRef = useRef<maplibregl.LngLat | null>(null);
   const [bbox, setBbox] = useState<[number, number, number, number] | null>(null); // [minLng,minLat,maxLng,maxLat]
@@ -309,7 +310,18 @@ const MapPage: React.FC = () => {
   const fetchRequests = async () => {
     try {
       setLoading(true);
-      const params = { ...filters } as any;
+      const params: any = {};
+      
+      // Apply filters to API params (only when not 'all')
+      if (filters.type !== 'all') {
+        params.type = filters.type;
+      }
+      if (filters.status !== 'all') {
+        params.status = filters.status;
+      }
+      if (filters.severity !== 'all') {
+        params.severity = filters.severity;
+      }
       
       // If shelter filter is active, filter by type "Shelter"
       if (filters.shelter) {
@@ -333,10 +345,23 @@ const MapPage: React.FC = () => {
   useEffect(() => {
     if (!map.current || !isMapLoaded) return;
     
-    // Filter by shelter type if shelter filter is active
-    const filteredRequests = filters.shelter 
-      ? (requests || []).filter((r: any) => r.type === 'Shelter' || r.category === 'Shelter')
-      : (requests || []);
+    let filteredRequests = (requests || []) as any[];
+
+    // Apply filters on client as an extra safety (in case backend ignores some filters)
+    if (filters.shelter) {
+      filteredRequests = filteredRequests.filter((r: any) => r.type === 'Shelter' || r.category === 'Shelter');
+    }
+    if (filters.type !== 'all') {
+      filteredRequests = filteredRequests.filter((r: any) =>
+        (r.type || r.category || '').toLowerCase() === filters.type.toLowerCase()
+      );
+    }
+    if (filters.status !== 'all') {
+      filteredRequests = filteredRequests.filter((r: any) => (r.status || '').toLowerCase() === filters.status.toLowerCase());
+    }
+    if (filters.severity !== 'all') {
+      filteredRequests = filteredRequests.filter((r: any) => String(r.severity || '') === String(filters.severity));
+    }
     
     // Use real data if available, otherwise show demo markers
     const realFeatures = filteredRequests
@@ -358,10 +383,47 @@ const MapPage: React.FC = () => {
       }));
     
     // Use demo markers if enabled, otherwise use real data
-    // If shelter filter is active, also filter demo markers
-    const demoFeatures = filters.shelter 
-      ? demoMarkers.filter((m: any) => m.properties.category === 'Shelter')
-      : demoMarkers;
+    // Apply same filters to demo markers for consistent UX
+    const demoFeatures = demoMarkers.filter((m: any) => {
+      const p = m.properties || {};
+      
+      if (filters.shelter && p.category !== 'Shelter') {
+        return false;
+      }
+      if (filters.type !== 'all') {
+        // Map logical type to demo category text
+        const typeToCategory: Record<string, string[]> = {
+          food: ['Food Request'],
+          water: ['Water Request'],
+          medical: ['Medical Emergency'],
+          evacuation: ['Evacuation'],
+          shelter: ['Shelter'],
+          sos: [],
+          other: []
+        };
+        const allowedCategories = typeToCategory[filters.type] || [];
+        if (allowedCategories.length && !allowedCategories.includes(p.category)) {
+          return false;
+        }
+      }
+      if (filters.severity !== 'all' && String(p.severity || '') !== String(filters.severity)) {
+        return false;
+      }
+      if (filters.status !== 'all') {
+        const statusMap: Record<string, string[]> = {
+          new: ['OPEN'],
+          assigned: ['OPEN'],
+          in_progress: ['IN_PROGRESS'],
+          completed: ['COMPLETED'],
+          cancelled: []
+        };
+        const allowedStatuses = statusMap[filters.status] || [];
+        if (allowedStatuses.length && !allowedStatuses.includes(p.status)) {
+          return false;
+        }
+      }
+      return true;
+    });
     const features = showDemoData ? demoFeatures : realFeatures;
     
     const data = { type: 'FeatureCollection', features } as any;
@@ -369,7 +431,7 @@ const MapPage: React.FC = () => {
     if (src) {
       src.setData(data as any);
     }
-  }, [isMapLoaded, requests, showDemoData, filters.shelter]);
+  }, [isMapLoaded, requests, showDemoData, filters.shelter, filters.type, filters.status, filters.severity]);
 
   // Set up real-time updates
   useEffect(() => {
@@ -478,11 +540,36 @@ const MapPage: React.FC = () => {
             </>
           )}
           <div className="flex items-center space-x-2">
-            <button className="flex items-center px-3 py-2 text-sm bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200">
+            <button
+              className={`flex items-center px-3 py-2 text-sm rounded-md ${
+                showFiltersPanel
+                  ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+              onClick={() => setShowFiltersPanel(v => !v)}
+            >
               <Filter className="w-4 h-4 mr-1" />
               Filters
             </button>
-            <button className="flex items-center px-3 py-2 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200" onClick={() => setDrawingBBox((v) => !v)}>
+            <button
+              className="flex items-center px-3 py-2 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+              onClick={() => {
+                if (drawingBBox) {
+                  // Cancel current drawing and clear existing bbox filter
+                  setDrawingBBox(false);
+                  if (bbox) {
+                    setBbox(null);
+                    if (map.current) {
+                      const src = map.current.getSource('bbox') as maplibregl.GeoJSONSource;
+                      src?.setData({ type: 'FeatureCollection', features: [] } as any);
+                    }
+                  }
+                } else {
+                  // Start drawing mode
+                  setDrawingBBox(true);
+                }
+              }}
+            >
               <Layers className="w-4 h-4 mr-1" />
               {drawingBBox ? 'Cancel BBox' : 'Draw BBox'}
             </button>
@@ -516,6 +603,71 @@ const MapPage: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Filters panel */}
+      {showFiltersPanel && (
+        <div className="bg-white border-b px-4 py-3 flex flex-wrap items-center gap-4">
+          <div className="flex items-center space-x-2">
+            <label className="text-sm text-gray-600">Severity</label>
+            <select
+              className="border rounded-md px-2 py-1 text-sm"
+              value={filters.severity}
+              onChange={e => setFilters(prev => ({ ...prev, severity: e.target.value }))}
+            >
+              <option value="all">All</option>
+              <option value="5">5 - Critical</option>
+              <option value="4">4 - High</option>
+              <option value="3">3 - Medium</option>
+              <option value="2">2 - Low</option>
+            </select>
+          </div>
+          <div className="flex items-center space-x-2">
+            <label className="text-sm text-gray-600">Type</label>
+            <select
+              className="border rounded-md px-2 py-1 text-sm"
+              value={filters.type}
+              onChange={e => setFilters(prev => ({ ...prev, type: e.target.value }))}
+            >
+              <option value="all">All</option>
+              <option value="food">Food</option>
+              <option value="water">Water</option>
+              <option value="medical">Medical</option>
+              <option value="evacuation">Evacuation</option>
+              <option value="shelter">Shelter</option>
+              <option value="sos">SOS</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div className="flex items-center space-x-2">
+            <label className="text-sm text-gray-600">Status</label>
+            <select
+              className="border rounded-md px-2 py-1 text-sm"
+              value={filters.status}
+              onChange={e => setFilters(prev => ({ ...prev, status: e.target.value }))}
+            >
+              <option value="all">All</option>
+              <option value="new">New</option>
+              <option value="assigned">Assigned</option>
+              <option value="in_progress">In progress</option>
+              <option value="completed">Completed</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+          <button
+            className="ml-auto px-3 py-1 text-sm text-gray-600 hover:text-gray-900"
+            onClick={() =>
+              setFilters(prev => ({
+                ...prev,
+                severity: 'all',
+                type: 'all',
+                status: 'all'
+              }))
+            }
+          >
+            Clear filters
+          </button>
+        </div>
+      )}
 
       {/* Map Container */}
       <div className="flex-1 relative">

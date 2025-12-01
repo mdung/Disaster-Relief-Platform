@@ -48,3 +48,4 @@ Sau khi MinIO chạy, restart backend Spring Boot để kết nối.
 - Để dừng MinIO, đóng cửa sổ đó hoặc nhấn `Ctrl+C`
 - Dữ liệu được lưu trong thư mục `minio-data`
 
+

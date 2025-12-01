@@ -62,3 +62,4 @@ if ($minioProcess) {
     exit 1
 }
 
+

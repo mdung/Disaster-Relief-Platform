@@ -51,6 +51,7 @@ D:\project\GIS\Disaster-Relief-Platform\backend\src\main\java\com\relief\domain\
 D:\project\GIS\Disaster-Relief-Platform\backend\src\main\java\com\relief\domain\satellite\DamageType.java
 D:\project\GIS\Disaster-Relief-Platform\backend\src\main\java\com\relief\exception\BadRequestException.java
 D:\project\GIS\Disaster-Relief-Platform\backend\src\main\java\com\relief\dto\CreateNeedRequest.java
+D:\project\GIS\Disaster-Relief-Platform\backend\src\main\java\com\relief\entity\StockMovement.java
 D:\project\GIS\Disaster-Relief-Platform\backend\src\main\java\com\relief\controller\location\LocationAnalyticsController.java
 D:\project\GIS\Disaster-Relief-Platform\backend\src\main\java\com\relief\controller\optimization\SmartInventoryController.java
 D:\project\GIS\Disaster-Relief-Platform\backend\src\main\java\com\relief\common\GlobalExceptionHandler.java
@@ -194,6 +195,7 @@ D:\project\GIS\Disaster-Relief-Platform\backend\src\main\java\com\relief\config\
 D:\project\GIS\Disaster-Relief-Platform\backend\src\main\java\com\relief\controller\AdminController.java
 D:\project\GIS\Disaster-Relief-Platform\backend\src\main\java\com\relief\controller\communication\ChatBotController.java
 D:\project\GIS\Disaster-Relief-Platform\backend\src\main\java\com\relief\domain\indoor\IndoorPosition.java
+D:\project\GIS\Disaster-Relief-Platform\backend\src\main\java\com\relief\config\DataSeeder.java
 D:\project\GIS\Disaster-Relief-Platform\backend\src\main\java\com\relief\service\integration\GovernmentApiService.java
 D:\project\GIS\Disaster-Relief-Platform\backend\src\main\java\com\relief\controller\TaskController.java
 D:\project\GIS\Disaster-Relief-Platform\backend\src\main\java\com\relief\controller\financial\FinancialReportingController.java
@@ -203,6 +205,7 @@ D:\project\GIS\Disaster-Relief-Platform\backend\src\main\java\com\relief\domain\
 D:\project\GIS\Disaster-Relief-Platform\backend\src\main\java\com\relief\controller\notification\SmartNotificationController.java
 D:\project\GIS\Disaster-Relief-Platform\backend\src\main\java\com\relief\entity\DedupeGroup.java
 D:\project\GIS\Disaster-Relief-Platform\backend\src\main\java\com\relief\controller\ai\ResourceForecastingController.java
+D:\project\GIS\Disaster-Relief-Platform\backend\src\main\java\com\relief\repository\StockMovementRepository.java
 D:\project\GIS\Disaster-Relief-Platform\backend\src\main\java\com\relief\repository\terrain\TerrainAnalysisRepository.java
 D:\project\GIS\Disaster-Relief-Platform\backend\src\main\java\com\relief\service\communication\VideoConferencingService.java
 D:\project\GIS\Disaster-Relief-Platform\backend\src\main\java\com\relief\service\TaskStateService.java
