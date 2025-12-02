@@ -33,6 +33,7 @@ export const GeofencingDashboard: React.FC = () => {
         GeofencingService.getActiveAlerts().catch(() => [])
       ]);
 
+      // Ensure we always set arrays, never undefined or null
       setGeofences(Array.isArray(geofencesData) ? geofencesData : []);
       setAlerts(Array.isArray(alertsData) ? alertsData : []);
 
@@ -46,6 +47,10 @@ export const GeofencingDashboard: React.FC = () => {
     } catch (err) {
       setError('Failed to load geofencing data');
       console.error('Data loading error:', err);
+      // Ensure arrays are set even on error
+      setGeofences([]);
+      setAlerts([]);
+      setEvents([]);
     } finally {
       setLoading(false);
     }
@@ -137,7 +142,7 @@ export const GeofencingDashboard: React.FC = () => {
             </div>
             <div className="flex items-center space-x-4">
               <div className="text-sm text-gray-500">
-                {geofences.length} geofences • {events.length} events • {alerts.length} alerts
+                {(geofences?.length || 0)} geofences • {(events?.length || 0)} events • {(alerts?.length || 0)} alerts
               </div>
               <button
                 onClick={loadData}
@@ -283,7 +288,7 @@ export const GeofencingDashboard: React.FC = () => {
                       </div>
                       <div className="flex justify-between">
                         <span>Events:</span>
-                        <span>{events.length}</span>
+                        <span>{events?.length || 0}</span>
                       </div>
                     </div>
                   </div>
@@ -374,7 +379,7 @@ export const GeofencingDashboard: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {events.map((event) => (
+                  {events && events.length > 0 ? events.map((event) => (
                     <tr key={event.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
@@ -411,7 +416,13 @@ export const GeofencingDashboard: React.FC = () => {
                         </span>
                       </td>
                     </tr>
-                  ))}
+                  )) : (
+                    <tr>
+                      <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+                        No events found
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -436,7 +447,7 @@ export const GeofencingDashboard: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {alerts.map((alert) => (
+                  {alerts && alerts.length > 0 ? alerts.map((alert) => (
                     <tr key={alert.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
@@ -496,7 +507,13 @@ export const GeofencingDashboard: React.FC = () => {
                         </div>
                       </td>
                     </tr>
-                  ))}
+                  )) : (
+                    <tr>
+                      <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+                        No alerts found
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>

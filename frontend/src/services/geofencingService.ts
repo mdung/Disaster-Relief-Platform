@@ -168,7 +168,8 @@ export class GeofencingService {
   static async getActiveGeofences(): Promise<Geofence[]> {
     try {
       const response = await apiClient.get('/geofencing/geofences/active');
-      return response.data;
+      const data = response?.data;
+      return Array.isArray(data) ? data : [];
     } catch (error) {
       console.error('Failed to get active geofences:', error);
       return [];
@@ -236,7 +237,8 @@ export class GeofencingService {
   static async getGeofenceEvents(geofenceId: number): Promise<GeofenceEvent[]> {
     try {
       const response = await apiClient.get(`/geofencing/geofences/${geofenceId}/events`);
-      return response.data;
+      const data = response?.data;
+      return Array.isArray(data) ? data : [];
     } catch (error) {
       console.error('Failed to get geofence events:', error);
       return [];
@@ -262,7 +264,8 @@ export class GeofencingService {
   static async getActiveAlerts(): Promise<GeofenceAlert[]> {
     try {
       const response = await apiClient.get('/geofencing/alerts/active');
-      return response.data;
+      const data = response?.data;
+      return Array.isArray(data) ? data : [];
     } catch (error) {
       console.error('Failed to get active alerts:', error);
       return [];

@@ -45,6 +45,37 @@ export const GeofenceManagement: React.FC<GeofenceManagementProps> = ({
       return;
     }
 
+    // Validate JSON fields
+    let parsedNotificationChannels: string | undefined;
+    if (formData.notificationChannels?.trim()) {
+      try {
+        parsedNotificationChannels = JSON.parse(formData.notificationChannels);
+      } catch (err) {
+        setError('Invalid JSON in Notification Channels field');
+        return;
+      }
+    }
+
+    let parsedAutoActions: string | undefined;
+    if (formData.autoActions?.trim()) {
+      try {
+        parsedAutoActions = JSON.parse(formData.autoActions);
+      } catch (err) {
+        setError('Invalid JSON in Auto Actions field');
+        return;
+      }
+    }
+
+    let parsedMetadata: string | undefined;
+    if (formData.metadata?.trim()) {
+      try {
+        parsedMetadata = JSON.parse(formData.metadata);
+      } catch (err) {
+        setError('Invalid JSON in Metadata field. Please check your JSON syntax.');
+        return;
+      }
+    }
+
     setIsSubmitting(true);
     setError(null);
 
@@ -60,9 +91,9 @@ export const GeofenceManagement: React.FC<GeofenceManagementProps> = ({
         checkIntervalSeconds: formData.checkIntervalSeconds,
         alertThreshold: formData.alertThreshold,
         cooldownPeriodSeconds: formData.cooldownPeriodSeconds,
-        notificationChannels: formData.notificationChannels,
-        autoActions: formData.autoActions,
-        metadata: formData.metadata,
+        notificationChannels: parsedNotificationChannels ? JSON.stringify(parsedNotificationChannels) : undefined,
+        autoActions: parsedAutoActions ? JSON.stringify(parsedAutoActions) : undefined,
+        metadata: parsedMetadata ? JSON.stringify(parsedMetadata) : undefined,
         createdBy: formData.createdBy!
       };
 
