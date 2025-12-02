@@ -30,13 +30,47 @@ export const HeatmapVisualization: React.FC<HeatmapVisualizationProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const lastLoadParamsRef = useRef<string>('');
+  const isLoadingRef = useRef(false);
+
   useEffect(() => {
-    if (mapRef.current) {
-      loadHeatmapData();
+    if (!mapRef.current || loading || isLoadingRef.current) return;
+
+    // Create a unique key for current load parameters
+    const heatmapTypesKey = Array.isArray(heatmapTypes) ? heatmapTypes.sort().join(',') : '';
+    const loadKey = `${center[0]}-${center[1]}-${zoom}-${heatmapTypesKey}-${selectedHeatmapType || ''}`;
+    
+    // Only load if parameters actually changed
+    if (lastLoadParamsRef.current === loadKey) {
+      return;
     }
-  }, [center, zoom, heatmapTypes, selectedHeatmapType]);
+
+    lastLoadParamsRef.current = loadKey;
+    
+    // Add a small delay to debounce rapid changes
+    const timer = setTimeout(() => {
+      if (!loading && mapRef.current && !isLoadingRef.current) {
+        isLoadingRef.current = true;
+        loadHeatmapData();
+        // Reset after a delay to allow loading to complete
+        setTimeout(() => {
+          isLoadingRef.current = false;
+        }, 1000);
+      }
+    }, 300);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [center, zoom, heatmapTypes, selectedHeatmapType]); // Removed 'loading' from dependencies to prevent infinite loop
 
   const loadHeatmapData = async () => {
+    // Prevent overlapping loads which can cause the loading UI to flicker
+    if (loading) {
+      console.warn('Heatmap data load already in progress, skipping duplicate call');
+      return;
+    }
+
     if (!mapRef.current) return;
 
     setLoading(true);
@@ -55,7 +89,9 @@ export const HeatmapVisualization: React.FC<HeatmapVisualizationProps> = ({
       );
       
       const dataResults = await Promise.all(dataPromises);
-      const allData = dataResults.flat();
+      const allData = dataResults.flat().filter((point): point is HeatmapData => 
+        point != null && typeof point === 'object' && 'heatmapType' in point
+      );
       setHeatmapData(allData);
 
       // Load heatmap layers
@@ -91,7 +127,12 @@ export const HeatmapVisualization: React.FC<HeatmapVisualizationProps> = ({
 
     // Add heatmap sources and layers
     heatmapTypes.forEach(type => {
-      const typeData = data.filter(point => point.heatmapType === type);
+      const typeData = data.filter(point => 
+        point != null && 
+        typeof point === 'object' && 
+        'heatmapType' in point && 
+        point.heatmapType === type
+      );
       if (typeData.length === 0) return;
 
       const sourceId = `heatmap-${type.toLowerCase()}-source`;
@@ -135,6 +176,10 @@ export const HeatmapVisualization: React.FC<HeatmapVisualizationProps> = ({
         const coords = geometry.coordinates;
         // Find the corresponding heatmap data point
         const point = heatmapData.find(p => 
+          p != null &&
+          typeof p === 'object' &&
+          'longitude' in p &&
+          'latitude' in p &&
           Math.abs(p.longitude - coords[0]) < 0.0001 &&
           Math.abs(p.latitude - coords[1]) < 0.0001
         );
@@ -147,10 +192,23 @@ export const HeatmapVisualization: React.FC<HeatmapVisualizationProps> = ({
   };
 
   const getHeatmapTypeStats = (heatmapType: string) => {
-    const typeData = heatmapData.filter(point => point.heatmapType === heatmapType);
+    if (!heatmapData || heatmapData.length === 0) return null;
+    
+    const typeData = heatmapData.filter(point => 
+      point != null && 
+      typeof point === 'object' && 
+      'heatmapType' in point && 
+      point.heatmapType === heatmapType
+    );
+    
     if (typeData.length === 0) return null;
 
-    const intensities = typeData.map(point => point.intensity);
+    const intensities = typeData
+      .map(point => point?.intensity)
+      .filter((intensity): intensity is number => typeof intensity === 'number');
+    
+    if (intensities.length === 0) return null;
+
     const avgIntensity = intensities.reduce((sum, intensity) => sum + intensity, 0) / intensities.length;
     const maxIntensity = Math.max(...intensities);
     const minIntensity = Math.min(...intensities);

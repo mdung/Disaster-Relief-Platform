@@ -39,7 +39,7 @@ export const TerrainVisualization: React.FC<TerrainVisualizationProps> = ({
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [center, zoom, showElevation, showSlope, showAccessibility, loading]);
+  }, [center, zoom, showElevation, showSlope, showAccessibility]); // Removed 'loading' from dependencies to prevent infinite loop
 
   const loadTerrainData = async () => {
     // Prevent overlapping loads which can cause the loading UI to flicker
@@ -527,9 +527,9 @@ export const TerrainVisualization: React.FC<TerrainVisualizationProps> = ({
               checked={showElevation}
               onChange={(e) => {
                 // Toggle elevation display
-                if (e.target.checked) {
+                if (e.target.checked && !loading) {
                   loadTerrainData();
-                } else {
+                } else if (!e.target.checked) {
                   if (mapRef.current?.getLayer('elevation-points')) {
                     mapRef.current.removeLayer('elevation-points');
                     mapRef.current.removeLayer('elevation-labels');
@@ -547,9 +547,9 @@ export const TerrainVisualization: React.FC<TerrainVisualizationProps> = ({
               checked={showSlope}
               onChange={(e) => {
                 // Toggle slope display
-                if (e.target.checked) {
+                if (e.target.checked && !loading) {
                   loadTerrainData();
-                } else {
+                } else if (!e.target.checked) {
                   if (mapRef.current?.getLayer('terrain-slope')) {
                     mapRef.current.removeLayer('terrain-slope');
                   }
@@ -565,9 +565,9 @@ export const TerrainVisualization: React.FC<TerrainVisualizationProps> = ({
               checked={showAccessibility}
               onChange={(e) => {
                 // Toggle accessibility display
-                if (e.target.checked) {
+                if (e.target.checked && !loading) {
                   loadTerrainData();
-                } else {
+                } else if (!e.target.checked) {
                   if (mapRef.current?.getLayer('terrain-analysis')) {
                     mapRef.current.removeLayer('terrain-analysis');
                   }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { HeatmapVisualization } from '../components/heatmap/HeatmapVisualization';
 import { HeatmapConfigurationPanel } from '../components/heatmap/HeatmapConfigurationPanel';
 import { HeatmapService, HeatmapData, HeatmapLayer, HeatmapStatistics } from '../services/heatmapService';
@@ -15,7 +15,8 @@ export const HeatmapDashboard: React.FC = () => {
   const [statistics, setStatistics] = useState<Map<string, HeatmapStatistics>>(new Map());
 
   const availableHeatmapTypes = HeatmapService.getAvailableHeatmapTypes();
-  const heatmapTypes = availableHeatmapTypes.map(type => type.value);
+  // Memoize heatmapTypes to prevent unnecessary re-renders
+  const heatmapTypes = useMemo(() => availableHeatmapTypes.map(type => type.value), []);
 
   const handleHeatmapTypeSelect = (heatmapType: string) => {
     setSelectedHeatmapType(heatmapType);

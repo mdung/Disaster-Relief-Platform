@@ -27,7 +27,23 @@ public class SocialMediaMonitoringService {
     private final RestTemplate restTemplate;
     private final IntegrationConfigService integrationConfigService;
 
+    /**
+     * Check if social media API is configured
+     */
+    private boolean isApiConfigured() {
+        String apiUrl = integrationConfigService.getSocialMediaApiUrl();
+        String apiKey = integrationConfigService.getSocialMediaApiKey();
+        // Skip if using placeholder URL or no API key
+        return apiUrl != null && !apiUrl.isEmpty() && 
+               !apiUrl.contains("api.socialmedia.com") && 
+               apiKey != null && !apiKey.isEmpty();
+    }
+
     public List<SocialMediaPost> searchPosts(String query, String platform, int limit) {
+        if (!isApiConfigured()) {
+            return Collections.emptyList();
+        }
+        
         try {
             String apiUrl = integrationConfigService.getSocialMediaApiUrl();
             String endpoint = String.format("%s/posts/search?query=%s&platform=%s&limit=%d", 
@@ -43,13 +59,21 @@ public class SocialMediaMonitoringService {
             
             log.info("Retrieved {} social media posts for query: {}", response.getBody().length, query);
             return Arrays.asList(response.getBody());
+        } catch (org.springframework.web.client.ResourceAccessException e) {
+            // Connection timeout or network error - expected when API is not available
+            log.debug("Social media API unavailable (connection timeout): {}", e.getMessage());
+            return Collections.emptyList();
         } catch (Exception e) {
-            log.error("Error searching social media posts", e);
+            log.warn("Error searching social media posts: {}", e.getMessage());
             return Collections.emptyList();
         }
     }
 
     public List<SocialMediaPost> getTrendingPosts(String platform, String category) {
+        if (!isApiConfigured()) {
+            return Collections.emptyList();
+        }
+        
         try {
             String apiUrl = integrationConfigService.getSocialMediaApiUrl();
             String endpoint = String.format("%s/posts/trending?platform=%s&category=%s", apiUrl, platform, category);
@@ -64,13 +88,20 @@ public class SocialMediaMonitoringService {
             
             log.info("Retrieved {} trending posts from platform: {}", response.getBody().length, platform);
             return Arrays.asList(response.getBody());
+        } catch (org.springframework.web.client.ResourceAccessException e) {
+            log.debug("Social media API unavailable (connection timeout): {}", e.getMessage());
+            return Collections.emptyList();
         } catch (Exception e) {
-            log.error("Error retrieving trending posts", e);
+            log.warn("Error retrieving trending posts: {}", e.getMessage());
             return Collections.emptyList();
         }
     }
 
     public SocialMediaAnalytics getAnalytics(String platform, String timeRange) {
+        if (!isApiConfigured()) {
+            return new SocialMediaAnalytics();
+        }
+        
         try {
             String apiUrl = integrationConfigService.getSocialMediaApiUrl();
             String endpoint = String.format("%s/analytics?platform=%s&timeRange=%s", apiUrl, platform, timeRange);
@@ -85,13 +116,20 @@ public class SocialMediaMonitoringService {
             
             log.info("Retrieved social media analytics for platform: {}", platform);
             return response.getBody();
+        } catch (org.springframework.web.client.ResourceAccessException e) {
+            log.debug("Social media API unavailable (connection timeout): {}", e.getMessage());
+            return new SocialMediaAnalytics();
         } catch (Exception e) {
-            log.error("Error retrieving social media analytics", e);
+            log.warn("Error retrieving social media analytics: {}", e.getMessage());
             return new SocialMediaAnalytics();
         }
     }
 
     public List<SocialMediaInfluencer> getInfluencers(String platform, String category) {
+        if (!isApiConfigured()) {
+            return Collections.emptyList();
+        }
+        
         try {
             String apiUrl = integrationConfigService.getSocialMediaApiUrl();
             String endpoint = String.format("%s/influencers?platform=%s&category=%s", apiUrl, platform, category);
@@ -106,13 +144,20 @@ public class SocialMediaMonitoringService {
             
             log.info("Retrieved {} influencers from platform: {}", response.getBody().length, platform);
             return Arrays.asList(response.getBody());
+        } catch (org.springframework.web.client.ResourceAccessException e) {
+            log.debug("Social media API unavailable (connection timeout): {}", e.getMessage());
+            return Collections.emptyList();
         } catch (Exception e) {
-            log.error("Error retrieving social media influencers", e);
+            log.warn("Error retrieving social media influencers: {}", e.getMessage());
             return Collections.emptyList();
         }
     }
 
     public SocialMediaSentiment getSentimentAnalysis(String text, String language) {
+        if (!isApiConfigured()) {
+            return new SocialMediaSentiment();
+        }
+        
         try {
             String apiUrl = integrationConfigService.getSocialMediaApiUrl();
             String endpoint = apiUrl + "/sentiment";
@@ -132,13 +177,20 @@ public class SocialMediaMonitoringService {
             
             log.info("Analyzed sentiment for text");
             return response.getBody();
+        } catch (org.springframework.web.client.ResourceAccessException e) {
+            log.debug("Social media API unavailable (connection timeout): {}", e.getMessage());
+            return new SocialMediaSentiment();
         } catch (Exception e) {
-            log.error("Error analyzing sentiment", e);
+            log.warn("Error analyzing sentiment: {}", e.getMessage());
             return new SocialMediaSentiment();
         }
     }
 
     public List<SocialMediaHashtag> getTrendingHashtags(String platform, String category) {
+        if (!isApiConfigured()) {
+            return Collections.emptyList();
+        }
+        
         try {
             String apiUrl = integrationConfigService.getSocialMediaApiUrl();
             String endpoint = String.format("%s/hashtags/trending?platform=%s&category=%s", apiUrl, platform, category);
@@ -153,13 +205,20 @@ public class SocialMediaMonitoringService {
             
             log.info("Retrieved {} trending hashtags from platform: {}", response.getBody().length, platform);
             return Arrays.asList(response.getBody());
+        } catch (org.springframework.web.client.ResourceAccessException e) {
+            log.debug("Social media API unavailable (connection timeout): {}", e.getMessage());
+            return Collections.emptyList();
         } catch (Exception e) {
-            log.error("Error retrieving trending hashtags", e);
+            log.warn("Error retrieving trending hashtags: {}", e.getMessage());
             return Collections.emptyList();
         }
     }
 
     public SocialMediaCrisisDetection detectCrisis(String location, String timeRange) {
+        if (!isApiConfigured()) {
+            return new SocialMediaCrisisDetection();
+        }
+        
         try {
             String apiUrl = integrationConfigService.getSocialMediaApiUrl();
             String endpoint = String.format("%s/crisis/detect?location=%s&timeRange=%s", apiUrl, location, timeRange);
@@ -174,13 +233,20 @@ public class SocialMediaMonitoringService {
             
             log.info("Detected crisis indicators for location: {}", location);
             return response.getBody();
+        } catch (org.springframework.web.client.ResourceAccessException e) {
+            log.debug("Social media API unavailable (connection timeout): {}", e.getMessage());
+            return new SocialMediaCrisisDetection();
         } catch (Exception e) {
-            log.error("Error detecting crisis indicators", e);
+            log.warn("Error detecting crisis indicators: {}", e.getMessage());
             return new SocialMediaCrisisDetection();
         }
     }
 
     public List<SocialMediaAlert> getAlerts(String platform, String severity) {
+        if (!isApiConfigured()) {
+            return Collections.emptyList();
+        }
+        
         try {
             String apiUrl = integrationConfigService.getSocialMediaApiUrl();
             String endpoint = String.format("%s/alerts?platform=%s&severity=%s", apiUrl, platform, severity);
@@ -195,13 +261,20 @@ public class SocialMediaMonitoringService {
             
             log.info("Retrieved {} social media alerts", response.getBody().length);
             return Arrays.asList(response.getBody());
+        } catch (org.springframework.web.client.ResourceAccessException e) {
+            log.debug("Social media API unavailable (connection timeout): {}", e.getMessage());
+            return Collections.emptyList();
         } catch (Exception e) {
-            log.error("Error retrieving social media alerts", e);
+            log.warn("Error retrieving social media alerts: {}", e.getMessage());
             return Collections.emptyList();
         }
     }
 
     public void subscribeToKeywords(List<String> keywords, String callbackUrl) {
+        if (!isApiConfigured()) {
+            return;
+        }
+        
         try {
             String apiUrl = integrationConfigService.getSocialMediaApiUrl();
             String endpoint = apiUrl + "/subscriptions";
@@ -221,12 +294,18 @@ public class SocialMediaMonitoringService {
             );
             
             log.info("Subscribed to keywords: {}", keywords);
+        } catch (org.springframework.web.client.ResourceAccessException e) {
+            log.debug("Social media API unavailable (connection timeout): {}", e.getMessage());
         } catch (Exception e) {
-            log.error("Error subscribing to keywords", e);
+            log.warn("Error subscribing to keywords: {}", e.getMessage());
         }
     }
 
     public SocialMediaReport generateReport(String platform, String timeRange, String reportType) {
+        if (!isApiConfigured()) {
+            return new SocialMediaReport();
+        }
+        
         try {
             String apiUrl = integrationConfigService.getSocialMediaApiUrl();
             String endpoint = String.format("%s/reports?platform=%s&timeRange=%s&type=%s", 
@@ -242,8 +321,11 @@ public class SocialMediaMonitoringService {
             
             log.info("Generated social media report for platform: {}", platform);
             return response.getBody();
+        } catch (org.springframework.web.client.ResourceAccessException e) {
+            log.debug("Social media API unavailable (connection timeout): {}", e.getMessage());
+            return new SocialMediaReport();
         } catch (Exception e) {
-            log.error("Error generating social media report", e);
+            log.warn("Error generating social media report: {}", e.getMessage());
             return new SocialMediaReport();
         }
     }
