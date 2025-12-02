@@ -65,19 +65,31 @@ class ApiService {
   private async handleResponse<T>(response: Response): Promise<T> {
     if (!response.ok) {
       let errorText = '';
+      let errorMessage = '';
       try {
         errorText = await response.text();
         // Check if response is HTML (error page)
         if (errorText.trim().startsWith('<!DOCTYPE') || errorText.trim().startsWith('<html')) {
           throw new Error(`API Error: ${response.status} - Server returned HTML instead of JSON. Backend may not be running or endpoint not found.`);
         }
+        // Try to parse as JSON to extract message
+        try {
+          const errorJson = JSON.parse(errorText);
+          errorMessage = errorJson.message || errorJson.error || errorText;
+        } catch {
+          // Not JSON, use raw text
+          errorMessage = errorText;
+        }
       } catch (e) {
         if (e instanceof Error) {
           throw e;
         }
-        errorText = `Failed to read error response: ${e}`;
+        errorMessage = `Failed to read error response: ${e}`;
       }
-      throw new Error(`API Error: ${response.status} - ${errorText}`);
+      const error = new Error(errorMessage);
+      (error as any).status = response.status;
+      (error as any).originalError = errorText;
+      throw error;
     }
     
     const contentType = response.headers.get('content-type');

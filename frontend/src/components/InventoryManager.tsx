@@ -33,7 +33,8 @@ interface ItemCatalog {
 interface InventoryStock {
   id: string;
   hub: InventoryHub;
-  item: ItemCatalog;
+  item?: ItemCatalog;
+  itemId?: string;
   qtyAvailable: number;
   qtyReserved: number;
   updatedAt: string;
@@ -76,15 +77,63 @@ const InventoryManager: React.FC = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
+      console.log('🔄 Starting to fetch inventory data...');
+      
       const [hubsData, itemsData, stockData, invStatus] = await Promise.all([
-        apiService.getInventoryHubs(),
-        apiService.getInventoryItems(),
-        apiService.getInventoryStock(),
-        apiService.getInventoryStatus()
+        apiService.getInventoryHubs().catch(err => {
+          console.error('❌ Error fetching hubs:', err);
+          return [];
+        }),
+        apiService.getInventoryItems().catch(err => {
+          console.error('❌ Error fetching items:', err);
+          return [];
+        }),
+        apiService.getInventoryStock().catch(err => {
+          console.error('❌ Error fetching stock:', err);
+          console.error('Error details:', err.message, err);
+          return [];
+        }),
+        apiService.getInventoryStatus().catch(err => {
+          console.error('❌ Error fetching status:', err);
+          return null;
+        })
       ]);
+
+      console.log('✅ Fetch completed:', {
+        hubs: Array.isArray(hubsData) ? hubsData.length : typeof hubsData,
+        items: Array.isArray(itemsData) ? itemsData.length : typeof itemsData,
+        stock: Array.isArray(stockData) ? stockData.length : typeof stockData
+      });
 
       setHubs(hubsData as InventoryHub[]);
       setItems(itemsData as ItemCatalog[]);
+      
+      // Debug: Log stock data to see what we're getting
+      console.log('=== STOCK DATA DEBUG ===');
+      console.log('Stock data received:', stockData);
+      console.log('Stock data type:', typeof stockData);
+      console.log('Stock data length:', Array.isArray(stockData) ? stockData.length : 'Not an array');
+      if (Array.isArray(stockData) && stockData.length > 0) {
+        console.log('First stock item (full):', JSON.stringify(stockData[0], null, 2));
+        console.log('First stock item hub:', stockData[0]?.hub);
+        console.log('First stock item hub type:', typeof stockData[0]?.hub);
+        console.log('First stock item item:', stockData[0]?.item);
+        console.log('First stock item item type:', typeof stockData[0]?.item);
+        console.log('All stock items:', stockData.map(s => ({
+          id: s.id,
+          hasHub: !!s.hub,
+          hasItem: !!s.item,
+          hubId: s.hub?.id,
+          hubName: s.hub?.name,
+          itemId: s.item?.id,
+          itemName: s.item?.name,
+          qtyAvailable: s.qtyAvailable
+        })));
+      } else {
+        console.warn('Stock data is empty or not an array!');
+      }
+      console.log('=== END STOCK DATA DEBUG ===');
+      
       setStock(stockData as InventoryStock[]);
       setAlerts(invStatus as any);
       
@@ -114,16 +163,31 @@ const InventoryManager: React.FC = () => {
   };
 
   const filteredStock = stock.filter(s => {
-    if (!s.hub || !s.item) return false; // Skip items with missing hub or item
-    const matchesHub = !selectedHub || s.hub.id === selectedHub;
-    const matchesItem = !selectedItem || s.item.id === selectedItem;
+    // Allow items without linked ItemCatalog; show them as 'N/A' in UI instead of hiding
+    if (!s.hub) {
+      console.warn('=== STOCK FILTERED OUT - Missing Hub ===');
+      console.warn('Stock item:', s);
+      return false;
+    }
+    
+    const matchesHub = !selectedHub || (s.hub && s.hub.id === selectedHub);
+    const matchesItem = !selectedItem || (s.item && s.item.id === selectedItem);
     const matchesSearch = !searchTerm || 
-      s.item.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.item.code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.item?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.item?.code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       s.hub.name?.toLowerCase().includes(searchTerm.toLowerCase());
     
     return matchesHub && matchesItem && matchesSearch;
   });
+  
+  // Debug: Log filter results
+  console.log('=== FILTER RESULTS ===');
+  console.log('Total stock:', stock.length);
+  console.log('Filtered stock:', filteredStock.length);
+  console.log('Selected hub:', selectedHub);
+  console.log('Selected item:', selectedItem);
+  console.log('Search term:', searchTerm);
+  console.log('=== END FILTER RESULTS ===');
 
   const getStockAnalytics = () => {
     const totalStock = stock.reduce((sum, s) => sum + s.qtyAvailable, 0);
@@ -156,7 +220,12 @@ const InventoryManager: React.FC = () => {
     }
     try {
       // Get current stock to calculate new quantity
-      const currentStock = stock.find(s => s.hub.id === newStock.hubId && s.item.id === newStock.itemId);
+      // Add null safety checks for hub and item
+      const currentStock = stock.find(s => 
+        s.hub && s.item && 
+        s.hub.id === newStock.hubId && 
+        s.item.id === newStock.itemId
+      );
       const currentQty = currentStock ? currentStock.qtyAvailable : 0;
       const newQty = currentQty + newStock.qtyAvailable;
       
@@ -164,14 +233,21 @@ const InventoryManager: React.FC = () => {
       await fetchData(); // Refresh data
       setShowAddStock(false);
       setNewStock({ hubId: '', itemId: '', qtyAvailable: 0, reason: '' });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to add stock:', error);
-      alert('Failed to add stock');
+      const errorMessage = error?.message || error?.error || 'Failed to add stock. Please check that the hub and item exist.';
+      alert(errorMessage);
     }
   };
 
   const startEdit = (s: InventoryStock) => {
-    setEditing({ hubId: s.hub.id, itemId: s.item.id, qtyAvailable: s.qtyAvailable, qtyReserved: s.qtyReserved });
+    const hubId = s.hub?.id;
+    const itemId = s.item?.id || s.itemId;
+    if (!hubId || !itemId) {
+      console.error('Cannot edit stock: hub or item id is missing', s);
+      return;
+    }
+    setEditing({ hubId, itemId, qtyAvailable: s.qtyAvailable, qtyReserved: s.qtyReserved });
   };
 
   const saveEdit = async () => {
@@ -223,6 +299,20 @@ const InventoryManager: React.FC = () => {
 
   const analytics = getStockAnalytics();
 
+  // Debug panel - always visible to help diagnose
+  const debugInfo = {
+    stockCount: stock.length,
+    filteredCount: filteredStock.length,
+    hubsCount: hubs.length,
+    itemsCount: items.length,
+    selectedHub,
+    selectedItem,
+    searchTerm,
+    hasStockWithHub: stock.filter(s => s.hub).length,
+    hasStockWithItem: stock.filter(s => s.item).length,
+    hasStockWithBoth: stock.filter(s => s.hub && s.item).length
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -233,6 +323,36 @@ const InventoryManager: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Debug Panel - Remove this after fixing */}
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <h3 className="text-sm font-semibold text-yellow-900 mb-2">🔍 Debug Information</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+          <div><strong>Stock Count:</strong> {debugInfo.stockCount}</div>
+          <div><strong>Filtered:</strong> {debugInfo.filteredCount}</div>
+          <div><strong>Hubs:</strong> {debugInfo.hubsCount}</div>
+          <div><strong>Items:</strong> {debugInfo.itemsCount}</div>
+          <div><strong>Selected Hub:</strong> {debugInfo.selectedHub || 'None'}</div>
+          <div><strong>Selected Item:</strong> {debugInfo.selectedItem || 'None'}</div>
+          <div><strong>Stock w/ Hub:</strong> {debugInfo.hasStockWithHub}</div>
+          <div><strong>Stock w/ Item:</strong> {debugInfo.hasStockWithItem}</div>
+          <div><strong>Stock w/ Both:</strong> {debugInfo.hasStockWithBoth}</div>
+        </div>
+        <button 
+          onClick={() => {
+            console.log('=== MANUAL DEBUG TRIGGER ===');
+            console.log('Stock array:', stock);
+            console.log('Filtered stock:', filteredStock);
+            console.log('Hubs:', hubs);
+            console.log('Items:', items);
+            console.log('Debug info:', debugInfo);
+            console.log('=== END MANUAL DEBUG ===');
+          }}
+          className="mt-2 px-3 py-1 bg-yellow-600 text-white text-xs rounded hover:bg-yellow-700"
+        >
+          Log to Console
+        </button>
+      </div>
+
       {/* Header */}
       <div className="bg-white shadow rounded-lg p-6">
         <div className="flex items-center justify-between">
@@ -324,7 +444,11 @@ const InventoryManager: React.FC = () => {
             <label className="block text-sm font-medium text-gray-700 mb-1">Hub</label>
             <select
               value={selectedHub}
-              onChange={(e) => setSelectedHub(e.target.value)}
+              onChange={(e) => {
+                const newValue = e.target.value;
+                console.log('Hub filter changed:', newValue);
+                setSelectedHub(newValue);
+              }}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="">All Hubs</option>
@@ -404,59 +528,86 @@ const InventoryManager: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredStock.map(item => (
-                <tr key={item.id}>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{item.hub?.name || 'N/A'}</div>
-                    <div className="text-sm text-gray-500">{item.hub?.address || ''}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{item.item?.name || 'N/A'}</div>
-                    <div className="text-sm text-gray-500">{item.item?.code || ''} • {item.item?.unit || ''}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {item.qtyAvailable}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {item.qtyReserved}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      item.qtyAvailable === 0
-                        ? 'bg-red-100 text-red-800'
-                        : item.qtyAvailable < 10
-                        ? 'bg-yellow-100 text-yellow-800'
-                        : 'bg-green-100 text-green-800'
-                    }`}>
-                      {item.qtyAvailable === 0 ? 'Out of Stock' : 
-                       item.qtyAvailable < 10 ? 'Low Stock' : 'In Stock'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                    <button
-                      onClick={() => item.hub?.id && item.item?.id && handleReserveStock(item.hub.id, item.item.id, 1)}
-                      className="text-blue-600 hover:text-blue-900"
-                      disabled={!item.hub?.id || !item.item?.id}
-                    >
-                      Reserve
-                    </button>
-                    <button
-                      onClick={() => item.hub?.id && item.item?.id && handleReleaseStock(item.hub.id, item.item.id, 1)}
-                      className="text-green-600 hover:text-green-900"
-                      disabled={!item.hub?.id || !item.item?.id}
-                    >
-                      Release
-                    </button>
-                    <button 
-                      className="text-gray-600 hover:text-gray-900" 
-                      onClick={() => startEdit(item)}
-                      disabled={!item.hub?.id || !item.item?.id}
-                    >
-                      Edit
-                    </button>
+              {filteredStock.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                    {stock.length === 0 
+                      ? 'No stock data available. Add stock using the "+ Add Stock" button.'
+                      : 'No stock matches the current filters. Try clearing filters or adjusting your search.'}
+                    {stock.length > 0 && (
+                      <div className="mt-2 text-xs text-gray-400">
+                        Total stock entries: {stock.length} | Filtered: {filteredStock.length}
+                      </div>
+                    )}
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filteredStock.map(item => (
+                  <tr key={item.id}>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">{item.hub?.name || 'N/A'}</div>
+                      <div className="text-sm text-gray-500">{item.hub?.address || ''}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">{item.item?.name || 'N/A'}</div>
+                      <div className="text-sm text-gray-500">{item.item?.code || ''} • {item.item?.unit || ''}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {item.qtyAvailable}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {item.qtyReserved}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        item.qtyAvailable === 0
+                          ? 'bg-red-100 text-red-800'
+                          : item.qtyAvailable < 10
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : 'bg-green-100 text-green-800'
+                      }`}>
+                        {item.qtyAvailable === 0 ? 'Out of Stock' : 
+                         item.qtyAvailable < 10 ? 'Low Stock' : 'In Stock'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                      <button
+                      onClick={() => {
+                        const hubId = item.hub?.id;
+                        const itemId = item.item?.id || item.itemId;
+                        if (hubId && itemId) {
+                          handleReserveStock(hubId, itemId, 1);
+                        }
+                      }}
+                        className="text-blue-600 hover:text-blue-900"
+                      disabled={!item.hub?.id || !(item.item?.id || item.itemId)}
+                      >
+                        Reserve
+                      </button>
+                      <button
+                      onClick={() => {
+                        const hubId = item.hub?.id;
+                        const itemId = item.item?.id || item.itemId;
+                        if (hubId && itemId) {
+                          handleReleaseStock(hubId, itemId, 1);
+                        }
+                      }}
+                        className="text-green-600 hover:text-green-900"
+                      disabled={!item.hub?.id || !(item.item?.id || item.itemId)}
+                      >
+                        Release
+                      </button>
+                      <button 
+                        className="text-gray-600 hover:text-gray-900" 
+                        onClick={() => startEdit(item)}
+                      disabled={!item.hub?.id || !(item.item?.id || item.itemId)}
+                      >
+                        Edit
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

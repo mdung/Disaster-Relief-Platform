@@ -76,8 +76,14 @@ const NeedsForm: React.FC<NeedsFormProps> = ({ onSuccess, onCancel }) => {
         }));
         setLocationError('');
         
-        // Reverse geocoding to get address
-        fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${process.env.REACT_APP_MAPBOX_TOKEN}`)
+        // Reverse geocoding to get address (optional - depends on Mapbox token)
+        const mapboxToken = process.env.REACT_APP_MAPBOX_TOKEN;
+        if (!mapboxToken) {
+          console.warn('Mapbox token (REACT_APP_MAPBOX_TOKEN) is not configured. Skipping reverse geocoding.');
+          return;
+        }
+
+        fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${mapboxToken}`)
           .then(response => response.json())
           .then(data => {
             if (data.features && data.features.length > 0) {
@@ -163,18 +169,14 @@ const NeedsForm: React.FC<NeedsFormProps> = ({ onSuccess, onCancel }) => {
         console.warn('AI categorization failed, using manual values:', error);
       }
 
-      // Create need request
+      // Create need request - align payload with backend CreateNeedRequest DTO
       await apiService.createNeed({
-        category: finalCategory,
-        description: formData.description,
-        severity: finalSeverity,
-        urgency: formData.urgency,
-        location: {
-          type: 'Point',
-          coordinates: [formData.location.lng, formData.location.lat]
-        },
-        address: formData.location.address,
-        mediaIds
+        type: finalCategory,                 // backend expects 'type'
+        severity: finalSeverity,             // integer 1-5
+        notes: formData.description,         // optional notes/description
+        lat: formData.location.lat,
+        lng: formData.location.lng,
+        mediaIds                              // optional list of UUIDs
       });
 
       onSuccess?.();

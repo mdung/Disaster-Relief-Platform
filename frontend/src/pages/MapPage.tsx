@@ -26,6 +26,7 @@ const MapPage: React.FC = () => {
   const [bbox, setBbox] = useState<[number, number, number, number] | null>(null); // [minLng,minLat,maxLng,maxLat]
   const [showDemoData, setShowDemoData] = useState(true);
   const { token } = useAuthStore();
+  const [visibleCount, setVisibleCount] = useState(0);
 
   useEffect(() => {
     if (map.current) return; // Initialize map only once
@@ -362,6 +363,15 @@ const MapPage: React.FC = () => {
     if (filters.severity !== 'all') {
       filteredRequests = filteredRequests.filter((r: any) => String(r.severity || '') === String(filters.severity));
     }
+    if (bbox) {
+      const [minLng, minLat, maxLng, maxLat] = bbox;
+      filteredRequests = filteredRequests.filter((r: any) => {
+        const coords = r.location?.coordinates;
+        if (!coords || coords.length < 2) return false;
+        const [lng, lat] = coords;
+        return lng >= minLng && lng <= maxLng && lat >= minLat && lat <= maxLat;
+      });
+    }
     
     // Use real data if available, otherwise show demo markers
     const realFeatures = filteredRequests
@@ -422,6 +432,15 @@ const MapPage: React.FC = () => {
           return false;
         }
       }
+      if (bbox) {
+        const [minLng, minLat, maxLng, maxLat] = bbox;
+        const coords = m.geometry?.coordinates;
+        if (!coords || coords.length < 2) return false;
+        const [lng, lat] = coords;
+        if (!(lng >= minLng && lng <= maxLng && lat >= minLat && lat <= maxLat)) {
+          return false;
+        }
+      }
       return true;
     });
     const features = showDemoData ? demoFeatures : realFeatures;
@@ -431,7 +450,8 @@ const MapPage: React.FC = () => {
     if (src) {
       src.setData(data as any);
     }
-  }, [isMapLoaded, requests, showDemoData, filters.shelter, filters.type, filters.status, filters.severity]);
+    setVisibleCount(features.length);
+  }, [isMapLoaded, requests, showDemoData, filters.shelter, filters.type, filters.status, filters.severity, bbox]);
 
   // Set up real-time updates
   useEffect(() => {
@@ -467,8 +487,15 @@ const MapPage: React.FC = () => {
     const m = map.current;
     const onMouseDown = (e: maplibregl.MapMouseEvent) => {
       if (!drawingBBox) return;
+      
+      // Start drawing interaction
       bboxStartRef.current = e.lngLat;
       m.getCanvas().style.cursor = 'crosshair';
+      // Temporarily disable drag-to-pan so drawing feels natural
+      if (m.dragPan && m.dragPan.isEnabled()) {
+        m.dragPan.disable();
+      }
+
       const onMove = (ev: any) => {
         if (!bboxStartRef.current) return;
         const minLng = Math.min(bboxStartRef.current.lng, ev.lngLat.lng);
@@ -494,6 +521,10 @@ const MapPage: React.FC = () => {
       };
       const onUp = (ev: any) => {
         m.getCanvas().style.cursor = '';
+        // Re-enable map panning
+        if (m.dragPan && !m.dragPan.isEnabled()) {
+          m.dragPan.enable();
+        }
         m.off('mousemove', onMove);
         m.off('mouseup', onUp);
         if (!bboxStartRef.current) return;
@@ -589,7 +620,10 @@ const MapPage: React.FC = () => {
         
         <div className="flex items-center space-x-2">
           <div className="text-sm text-gray-600 flex items-center gap-3">
-            <span><span className="font-medium">{showDemoData ? demoMarkers.length : requests.length}</span> {showDemoData ? 'demo' : 'active'} requests</span>
+            <span>
+              <span className="font-medium">{visibleCount}</span>{' '}
+              {showDemoData ? 'demo' : 'active'} requests
+            </span>
             {bbox && (
               <span className="px-2 py-1 bg-gray-100 rounded text-xs">BBox active</span>
             )}

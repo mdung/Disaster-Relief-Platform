@@ -21,13 +21,21 @@ export class MediaService {
       // Check if it's a direct upload endpoint (file system) or presigned URL (MinIO)
       if (presignedData.url.includes('/media/upload-direct')) {
         // File system storage - upload directly
-        const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+        const RAW_API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+        // Backend already prefixes file-system URLs with context-path (/api),
+        // so avoid generating "/api/api/..." when building the full URL.
+        const API_BASE_ORIGIN = RAW_API_BASE_URL.replace(/\/api\/?$/, '');
+
         const { token } = useAuthStore.getState();
         const formData = new FormData();
         formData.append('file', file);
         formData.append('objectName', objectName);
         
-        const response = await fetch(presignedData.url.startsWith('http') ? presignedData.url : `${API_BASE_URL}${presignedData.url}`, {
+        const uploadUrl = presignedData.url.startsWith('http')
+          ? presignedData.url
+          : `${API_BASE_ORIGIN}${presignedData.url}`;
+
+        const response = await fetch(uploadUrl, {
           method: 'POST',
           headers: {
             ...(token && { 'Authorization': `Bearer ${token}` })

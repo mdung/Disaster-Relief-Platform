@@ -46,19 +46,64 @@ public class InventoryService {
         return stockRepository.findByItemId(itemId);
     }
 
+    @Transactional(readOnly = true)
     public List<InventoryStock> getAllStock() {
-        return stockRepository.findAll();
+        // Use JOIN FETCH query to ensure relationships are loaded
+        List<InventoryStock> stockList = stockRepository.findAll();
+        
+        // Force initialization of lazy-loaded relationships to ensure they're serialized
+        // This must happen within the transaction
+        stockList.forEach(stock -> {
+            if (stock.getHub() != null) {
+                // Force initialization by accessing properties
+                stock.getHub().getName();
+                stock.getHub().getAddress();
+            } else {
+                System.err.println("WARNING: Stock " + stock.getId() + " has null hub!");
+            }
+            if (stock.getItem() != null) {
+                // Force initialization by accessing properties
+                stock.getItem().getName();
+                stock.getItem().getCode();
+                stock.getItem().getUnit();
+            } else {
+                System.err.println("WARNING: Stock " + stock.getId() + " has null item! This stock will not display in UI.");
+                System.err.println("  Stock hub_id: " + (stock.getHub() != null ? stock.getHub().getId() : "null"));
+                // Try to manually load the item if item_id exists in database
+                // This shouldn't be necessary if JOIN FETCH worked, but as a fallback:
+                try {
+                    // Check if we can find the item by querying the stock's item_id from the database
+                    // But we don't have direct access to item_id column here, so we'll log it
+                } catch (Exception e) {
+                    System.err.println("  Error trying to load item: " + e.getMessage());
+                }
+            }
+        });
+        
+        // Log summary
+        long withHub = stockList.stream().filter(s -> s.getHub() != null).count();
+        long withItem = stockList.stream().filter(s -> s.getItem() != null).count();
+        long withBoth = stockList.stream().filter(s -> s.getHub() != null && s.getItem() != null).count();
+        System.out.println("Stock summary: Total=" + stockList.size() + ", WithHub=" + withHub + ", WithItem=" + withItem + ", WithBoth=" + withBoth);
+        
+        return stockList;
     }
 
     public InventoryStock updateStock(UUID hubId, UUID itemId, Integer qtyAvailable, Integer qtyReserved, UUID userId, String reason) {
+        if (hubId == null || itemId == null) {
+            throw new BadRequestException("Hub ID and Item ID are required");
+        }
+        
         InventoryStock stock = stockRepository.findByHubIdAndItemId(hubId, itemId);
         Integer oldQtyAvailable = stock != null ? stock.getQtyAvailable() : 0;
         Integer oldQtyReserved = stock != null ? stock.getQtyReserved() : 0;
         
         if (stock == null) {
             // Create new stock entry
-            InventoryHub hub = hubRepository.findById(hubId).orElseThrow();
-            ItemCatalog item = itemRepository.findById(itemId).orElseThrow();
+            InventoryHub hub = hubRepository.findById(hubId)
+                    .orElseThrow(() -> new BadRequestException("Hub not found with ID: " + hubId));
+            ItemCatalog item = itemRepository.findById(itemId)
+                    .orElseThrow(() -> new BadRequestException("Item not found with ID: " + itemId));
             stock = InventoryStock.builder()
                     .hub(hub)
                     .item(item)

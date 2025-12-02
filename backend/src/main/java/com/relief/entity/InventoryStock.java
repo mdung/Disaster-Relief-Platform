@@ -1,5 +1,6 @@
 package com.relief.entity;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,11 +27,18 @@ public class InventoryStock {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "hub_id")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private InventoryHub hub;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "item_id")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private ItemCatalog item;
+
+    // Expose raw item_id so frontend can still perform actions even if the
+    // ItemCatalog relationship is not serialized correctly
+    @Column(name = "item_id", insertable = false, updatable = false)
+    private UUID itemId;
 
     @Column(name = "qty_available")
     @Builder.Default
@@ -53,6 +61,9 @@ public class InventoryStock {
 
     public ItemCatalog getItem() { return item; }
     public void setItem(ItemCatalog item) { this.item = item; }
+
+    public UUID getItemId() { return itemId; }
+    public void setItemId(UUID itemId) { this.itemId = itemId; }
 
     public Integer getQtyAvailable() { return qtyAvailable; }
     public void setQtyAvailable(Integer qtyAvailable) { this.qtyAvailable = qtyAvailable; }

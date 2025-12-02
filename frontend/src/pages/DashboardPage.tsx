@@ -299,7 +299,11 @@ const ActivityChartComponent: React.FC = () => {
       try {
         setLoading(true);
         const data = await apiService.get<any[]>('/dashboard/activity');
-        setActivityData(data || []);
+        // Handle both plain array and wrapped { data: [...] }
+        const normalized = Array.isArray(data)
+          ? data
+          : (data && Array.isArray((data as any).data) ? (data as any).data : []);
+        setActivityData(normalized || []);
       } catch (error) {
         console.error('Failed to fetch activity data:', error);
         setActivityData([]);
@@ -317,38 +321,72 @@ const ActivityChartComponent: React.FC = () => {
         <h3 className="text-lg leading-6 font-medium text-gray-900">
           Activity Overview
         </h3>
-        <div className="mt-5 h-64 flex items-center justify-center bg-gray-50 rounded-lg">
+        <div className="mt-5 bg-gray-50 rounded-lg p-4">
           {loading ? (
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-500">Loading activity data...</p>
+            <div className="h-64 flex items-center justify-center">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p className="text-gray-500">Loading activity data...</p>
+              </div>
             </div>
           ) : activityData.length > 0 ? (
-            <div className="w-full h-full p-4">
-              {/* Simple bar chart representation */}
-              <div className="flex items-end justify-between h-full space-x-2">
-                {activityData.map((item, index) => {
-                  const maxValue = Math.max(...activityData.map(d => d.value || 0));
-                  const height = maxValue > 0 ? ((item.value || 0) / maxValue) * 100 : 0;
-                  return (
-                    <div key={index} className="flex-1 flex flex-col items-center">
-                      <div 
-                        className="w-full bg-blue-600 rounded-t hover:bg-blue-700 transition-colors"
-                        style={{ height: `${height}%` }}
-                        title={`${item.label || 'Activity'}: ${item.value || 0}`}
-                      ></div>
-                      <span className="text-xs text-gray-500 mt-2 truncate w-full text-center">
-                        {new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                      </span>
-                    </div>
-                  );
-                })}
+            <div className="w-full">
+              {/* Bar chart with fixed height container */}
+              <div className="relative h-48 mb-4">
+                <div className="absolute inset-0 flex items-end justify-between space-x-1">
+                  {(() => {
+                    const maxValue = Math.max(...activityData.map(d => Number(d.value) || 0), 1);
+                    return activityData.map((item, index) => {
+                      const value = Number(item.value) || 0;
+                      // Calculate height as percentage of container, with minimum 4px for visibility
+                      const heightPercent = maxValue > 0 ? (value / maxValue) * 100 : 0;
+                      const minHeightPx = value > 0 ? 4 : 0;
+                      const barHeight = Math.max((heightPercent / 100) * 192, minHeightPx); // 192px = h-48 (12rem)
+                      
+                      return (
+                        <div 
+                          key={index} 
+                          className="flex-1 flex flex-col items-center justify-end h-full"
+                          style={{ maxWidth: `${100 / activityData.length}%` }}
+                        >
+                          <div 
+                            className="w-full bg-blue-600 rounded-t hover:bg-blue-700 transition-colors cursor-pointer relative group"
+                            style={{ 
+                              height: `${barHeight}px`,
+                              minHeight: value > 0 ? '4px' : '0px'
+                            }}
+                            title={`${item.label || 'Activity'}: ${value} on ${new Date(item.date).toLocaleDateString()}`}
+                          >
+                            {/* Value label on hover or always visible for small bars */}
+                            {barHeight < 20 && value > 0 && (
+                              <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-xs font-semibold text-blue-700 whitespace-nowrap">
+                                {value}
+                              </div>
+                            )}
+                          </div>
+                          {/* Value label below bar (for larger bars) */}
+                          {barHeight >= 20 && (
+                            <div className="text-xs font-semibold text-blue-700 mt-1">
+                              {value}
+                            </div>
+                          )}
+                          {/* Date label */}
+                          <div className="text-xs text-gray-500 mt-1 truncate w-full text-center">
+                            {new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                          </div>
+                        </div>
+                      );
+                    });
+                  })()}
+                </div>
               </div>
             </div>
           ) : (
-            <div className="text-center">
-              <TrendingUp className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">No activity data available</p>
+            <div className="h-64 flex items-center justify-center">
+              <div className="text-center">
+                <TrendingUp className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500">No activity data available</p>
+              </div>
             </div>
           )}
         </div>
