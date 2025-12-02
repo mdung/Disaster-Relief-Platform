@@ -29,17 +29,19 @@ export const GeofencingDashboard: React.FC = () => {
 
     try {
       const [geofencesData, alertsData] = await Promise.all([
-        GeofencingService.getActiveGeofences(),
-        GeofencingService.getActiveAlerts()
+        GeofencingService.getActiveGeofences().catch(() => []),
+        GeofencingService.getActiveAlerts().catch(() => [])
       ]);
 
-      setGeofences(geofencesData);
-      setAlerts(alertsData);
+      setGeofences(Array.isArray(geofencesData) ? geofencesData : []);
+      setAlerts(Array.isArray(alertsData) ? alertsData : []);
 
       // Load events for selected geofence if any
       if (selectedGeofence) {
-        const eventsData = await GeofencingService.getGeofenceEvents(selectedGeofence.id);
-        setEvents(eventsData);
+        const eventsData = await GeofencingService.getGeofenceEvents(selectedGeofence.id).catch(() => []);
+        setEvents(Array.isArray(eventsData) ? eventsData : []);
+      } else {
+        setEvents([]);
       }
     } catch (err) {
       setError('Failed to load geofencing data');
@@ -82,10 +84,11 @@ export const GeofencingDashboard: React.FC = () => {
 
   const loadGeofenceEvents = async (geofenceId: number) => {
     try {
-      const eventsData = await GeofencingService.getGeofenceEvents(geofenceId);
-      setEvents(eventsData);
+      const eventsData = await GeofencingService.getGeofenceEvents(geofenceId).catch(() => []);
+      setEvents(Array.isArray(eventsData) ? eventsData : []);
     } catch (err) {
       console.error('Failed to load geofence events:', err);
+      setEvents([]);
     }
   };
 

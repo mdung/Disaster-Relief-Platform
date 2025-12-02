@@ -33,15 +33,21 @@ export const TerrainVisualization: React.FC<TerrainVisualizationProps> = ({
 
   useEffect(() => {
     // Wait a bit for map to be fully initialized
-    if (mapRef.current && mapRef.current.loaded()) {
+    if (mapRef.current && mapRef.current.loaded() && !loading) {
       const timer = setTimeout(() => {
         loadTerrainData();
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [center, zoom, showElevation, showSlope, showAccessibility]);
+  }, [center, zoom, showElevation, showSlope, showAccessibility, loading]);
 
   const loadTerrainData = async () => {
+    // Prevent overlapping loads which can cause the loading UI to flicker
+    if (loading) {
+      console.warn('Terrain data load already in progress, skipping duplicate call');
+      return;
+    }
+
     if (!mapRef.current || !mapRef.current.loaded()) {
       console.warn('Map not loaded yet, skipping terrain data load');
       return;

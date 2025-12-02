@@ -309,6 +309,12 @@ const MapPage: React.FC = () => {
   }, [filters, bbox]);
 
   const fetchRequests = async () => {
+    // Prevent overlapping calls
+    if (loading) {
+      console.warn('Requests fetch already in progress, skipping duplicate call');
+      return;
+    }
+    
     try {
       setLoading(true);
       const params: any = {};

@@ -36,10 +36,20 @@ export const GeofenceMap: React.FC<GeofenceMapProps> = ({
   const [mapLoaded, setMapLoaded] = useState(false);
 
   useEffect(() => {
-    if (mapRef.current && mapLoaded) {
+    if (mapRef.current && mapLoaded && mapRef.current.loaded() && mapRef.current.isStyleLoaded()) {
       updateMapLayers();
+    } else if (mapRef.current && mapLoaded) {
+      // Wait for style to load
+      const checkStyle = () => {
+        if (mapRef.current && mapRef.current.isStyleLoaded()) {
+          updateMapLayers();
+        } else {
+          setTimeout(checkStyle, 100);
+        }
+      };
+      checkStyle();
     }
-  }, [geofences, events, alerts, showGeofences, showEvents, showAlerts, selectedGeofenceId]);
+  }, [geofences, events, alerts, showGeofences, showEvents, showAlerts, selectedGeofenceId, mapLoaded]);
 
   const handleMapLoad = (map: maplibregl.Map) => {
     mapRef.current = map;
@@ -48,26 +58,77 @@ export const GeofenceMap: React.FC<GeofenceMapProps> = ({
   };
 
   const updateMapLayers = () => {
-    if (!mapRef.current) return;
+    if (!mapRef.current || !mapRef.current.loaded() || !mapRef.current.isStyleLoaded()) {
+      console.warn('Map not ready, skipping layer update');
+      return;
+    }
+
+    // Check if map has required methods
+    if (typeof mapRef.current.getLayer !== 'function' || typeof mapRef.current.getSource !== 'function') {
+      console.warn('Map methods not available, skipping layer update');
+      return;
+    }
 
     // Remove existing layers
     const layerIds = [
       'geofence-fill', 'geofence-border', 'geofence-events', 'geofence-alerts'
     ];
     layerIds.forEach(layerId => {
-      if (mapRef.current?.getLayer(layerId)) {
-        mapRef.current.removeLayer(layerId);
+      try {
+        if (mapRef.current && mapRef.current.getLayer(layerId)) {
+          mapRef.current.removeLayer(layerId);
+        }
+      } catch (error) {
+        console.warn(`Failed to remove layer ${layerId}:`, error);
       }
     });
+
+    // Remove dynamic geofence layers (by type)
+    if (geofences && geofences.length > 0) {
+      geofences.forEach(geofence => {
+        const type = geofence.geofenceType.toLowerCase();
+        const fillLayerId = `geofence-${type}-fill`;
+        const borderLayerId = `geofence-${type}-border`;
+        try {
+          if (mapRef.current && mapRef.current.getLayer(fillLayerId)) {
+            mapRef.current.removeLayer(fillLayerId);
+          }
+          if (mapRef.current && mapRef.current.getLayer(borderLayerId)) {
+            mapRef.current.removeLayer(borderLayerId);
+          }
+        } catch (error) {
+          console.warn(`Failed to remove geofence layer:`, error);
+        }
+      });
+    }
 
     const sourceIds = [
       'geofence-source', 'geofence-events-source', 'geofence-alerts-source'
     ];
     sourceIds.forEach(sourceId => {
-      if (mapRef.current?.getSource(sourceId)) {
-        mapRef.current.removeSource(sourceId);
+      try {
+        if (mapRef.current && mapRef.current.getSource(sourceId)) {
+          mapRef.current.removeSource(sourceId);
+        }
+      } catch (error) {
+        console.warn(`Failed to remove source ${sourceId}:`, error);
       }
     });
+
+    // Remove dynamic geofence sources (by type)
+    if (geofences && geofences.length > 0) {
+      geofences.forEach(geofence => {
+        const type = geofence.geofenceType.toLowerCase();
+        const sourceId = `geofence-${type}-source`;
+        try {
+          if (mapRef.current && mapRef.current.getSource(sourceId)) {
+            mapRef.current.removeSource(sourceId);
+          }
+        } catch (error) {
+          console.warn(`Failed to remove geofence source:`, error);
+        }
+      });
+    }
 
     // Add geofence layers
     if (showGeofences && geofences.length > 0) {
@@ -86,7 +147,15 @@ export const GeofenceMap: React.FC<GeofenceMapProps> = ({
   };
 
   const addGeofenceLayers = () => {
-    if (!mapRef.current) return;
+    if (!mapRef.current || !mapRef.current.loaded() || !mapRef.current.isStyleLoaded()) {
+      console.warn('Map not ready, cannot add geofence layers');
+      return;
+    }
+
+    if (typeof mapRef.current.addSource !== 'function' || typeof mapRef.current.addLayer !== 'function') {
+      console.warn('Map methods not available, cannot add geofence layers');
+      return;
+    }
 
     // Group geofences by type
     const geofencesByType = geofences.reduce((acc, geofence) => {
@@ -161,7 +230,15 @@ export const GeofenceMap: React.FC<GeofenceMapProps> = ({
   };
 
   const addEventLayers = () => {
-    if (!mapRef.current) return;
+    if (!mapRef.current || !mapRef.current.loaded() || !mapRef.current.isStyleLoaded()) {
+      console.warn('Map not ready, cannot add event layers');
+      return;
+    }
+
+    if (typeof mapRef.current.addSource !== 'function' || typeof mapRef.current.addLayer !== 'function') {
+      console.warn('Map methods not available, cannot add event layers');
+      return;
+    }
 
     const sourceId = 'geofence-events-source';
     const layerId = 'geofence-events';
@@ -232,7 +309,15 @@ export const GeofenceMap: React.FC<GeofenceMapProps> = ({
   };
 
   const addAlertLayers = () => {
-    if (!mapRef.current) return;
+    if (!mapRef.current || !mapRef.current.loaded() || !mapRef.current.isStyleLoaded()) {
+      console.warn('Map not ready, cannot add alert layers');
+      return;
+    }
+
+    if (typeof mapRef.current.addSource !== 'function' || typeof mapRef.current.addLayer !== 'function') {
+      console.warn('Map methods not available, cannot add alert layers');
+      return;
+    }
 
     const sourceId = 'geofence-alerts-source';
     const layerId = 'geofence-alerts';

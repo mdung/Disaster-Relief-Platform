@@ -50,6 +50,12 @@ const DashboardPage: React.FC = () => {
   }, []);
 
   const fetchDashboardData = async () => {
+    // Prevent overlapping calls
+    if (loading) {
+      console.warn('Dashboard data fetch already in progress, skipping duplicate call');
+      return;
+    }
+    
     try {
       setLoading(true);
       
