@@ -160,7 +160,8 @@ export interface ROIAnalytics {
 }
 
 class ROIAnalysisService {
-  private baseUrl = '/api/analytics/roi';
+  // Controllers are mapped under /analytics/roi; apiService adds /api prefix
+  private baseUrl = '/analytics/roi';
 
   async createAnalysis(name: string, description: string, analysisType: string, projectId: string, parameters: Record<string, any>, userId: string): Promise<ROIAnalysis> {
     return apiService.post<ROIAnalysis>(`${this.baseUrl}/analyses`, { name, description, analysisType, projectId, parameters, userId });

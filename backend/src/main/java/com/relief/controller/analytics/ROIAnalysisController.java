@@ -28,7 +28,7 @@ import java.util.Map;
  * ROI analysis controller for measuring effectiveness and return on investment of relief efforts
  */
 @RestController
-@RequestMapping("/api/analytics/roi")
+@RequestMapping("/analytics/roi")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "ROI Analysis", description = "Measure effectiveness and return on investment of relief efforts")

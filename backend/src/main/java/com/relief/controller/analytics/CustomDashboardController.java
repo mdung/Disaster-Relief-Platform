@@ -20,7 +20,7 @@ import java.util.Map;
  * Custom dashboard controller for drag-and-drop dashboard builder
  */
 @RestController
-@RequestMapping("/api/analytics/dashboards")
+@RequestMapping("/analytics/dashboards")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Custom Dashboards", description = "Drag-and-drop dashboard builder for different user roles")

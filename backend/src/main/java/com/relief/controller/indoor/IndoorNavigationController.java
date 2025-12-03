@@ -137,12 +137,30 @@ public class IndoorNavigationController {
             @Parameter(description = "Filter accessible nodes only") @RequestParam(defaultValue = "false") boolean accessibleOnly) {
         log.info("Getting indoor nodes for map: {}", mapId);
         
-        // This would need to be implemented in the service
-        // For now, return empty list
-        return ResponseEntity.ok(List.of());
+        List<IndoorNode> nodes = indoorNavigationService.getIndoorNodes(mapId, nodeType, floorLevel, accessibleOnly);
+        return ResponseEntity.ok(nodes);
     }
     
     // Indoor Edges
+    
+    @GetMapping("/maps/{mapId}/edges")
+    @Operation(summary = "Get indoor edges", description = "Get edges in an indoor map")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('DISPATCHER') or hasRole('HELPER') or hasRole('RESIDENT')")
+    public ResponseEntity<List<IndoorEdge>> getIndoorEdges(
+            @PathVariable Long mapId,
+            @Parameter(description = "Filter by edge type") @RequestParam(required = false) IndoorEdgeType edgeType,
+            @Parameter(description = "Filter accessible edges only") @RequestParam(required = false) Boolean accessibleOnly,
+            @Parameter(description = "Filter bidirectional edges only") @RequestParam(required = false) Boolean bidirectionalOnly) {
+        
+        log.info("Getting indoor edges for map: {}", mapId);
+        List<IndoorEdge> edges = indoorNavigationService.getIndoorEdges(
+                mapId,
+                edgeType,
+                accessibleOnly != null && accessibleOnly,
+                bidirectionalOnly != null && bidirectionalOnly
+        );
+        return ResponseEntity.ok(edges);
+    }
     
     @PostMapping("/maps/{mapId}/edges")
     @Operation(summary = "Create indoor edge", description = "Create a new connection between nodes in an indoor map")

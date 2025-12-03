@@ -96,7 +96,8 @@ export interface ReportExport {
 }
 
 class AdvancedReportingService {
-  private baseUrl = '/api/analytics/reports';
+  // Controllers are mapped under /analytics/reports; apiService adds /api prefix
+  private baseUrl = '/analytics/reports';
 
   async createReport(name: string, description: string, reportType: string, userId: string, dataSources: ReportDataSource[], configuration: Record<string, any>): Promise<Report> {
     return apiService.post<Report>(`${this.baseUrl}`, { name, description, reportType, userId, dataSources, configuration });

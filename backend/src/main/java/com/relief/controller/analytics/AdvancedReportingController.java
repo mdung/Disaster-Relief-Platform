@@ -23,7 +23,7 @@ import java.util.Map;
  * Advanced reporting controller for complex reports with multiple data sources and visualizations
  */
 @RestController
-@RequestMapping("/api/analytics/reports")
+@RequestMapping("/analytics/reports")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Advanced Reporting", description = "Complex reports with multiple data sources and visualizations")

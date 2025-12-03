@@ -85,12 +85,18 @@ public class CustomDashboardService {
         // Implementation for getting dashboard
         Dashboard dashboard = new Dashboard();
         dashboard.setId(dashboardId);
-        dashboard.setName("Sample Dashboard");
-        dashboard.setDescription("Sample dashboard description");
+        dashboard.setName("Operations Overview");
+        dashboard.setDescription("Key KPIs for current relief operations");
         dashboard.setUserId("user-123");
         dashboard.setUserRole("ADMIN");
         dashboard.setIsPublic(true);
-        dashboard.setLayout(Collections.emptyMap());
+        Map<String, Object> layout = new HashMap<>();
+        layout.put("widgets", Arrays.asList(
+            Map.of("id", "w-requests", "type", "kpi", "title", "Active Requests"),
+            Map.of("id", "w-responseTime", "type", "kpi", "title", "Avg Response Time"),
+            Map.of("id", "w-trends", "type", "chart", "title", "Needs Trends (7 days)")
+        ));
+        dashboard.setLayout(layout);
         dashboard.setCreatedAt(LocalDateTime.now());
         dashboard.setUpdatedAt(LocalDateTime.now());
         dashboard.setIsActive(true);
@@ -99,18 +105,88 @@ public class CustomDashboardService {
     }
 
     public List<Dashboard> getUserDashboards(String userId, String userRole) {
-        // Implementation for getting user dashboards
-        return Collections.emptyList();
+        // Return a small set of demo dashboards for the current user
+        Dashboard main = getDashboard("dashboard-main");
+        main.setUserId(userId);
+        main.setUserRole(userRole);
+
+        Dashboard finance = new Dashboard();
+        finance.setId("dashboard-finance");
+        finance.setName("Funding & ROI");
+        finance.setDescription("Donations, spending, and ROI");
+        finance.setUserId(userId);
+        finance.setUserRole(userRole);
+        finance.setIsPublic(false);
+        finance.setLayout(Map.of(
+            "widgets", Arrays.asList(
+                Map.of("id", "w-donations", "type", "kpi", "title", "Total Donations"),
+                Map.of("id", "w-roi", "type", "chart", "title", "ROI by Campaign")
+            )
+        ));
+        finance.setCreatedAt(LocalDateTime.now().minusDays(5));
+        finance.setUpdatedAt(LocalDateTime.now().minusDays(1));
+        finance.setIsActive(true);
+
+        return Arrays.asList(main, finance);
     }
 
     public List<Dashboard> getPublicDashboards() {
-        // Implementation for getting public dashboards
-        return Collections.emptyList();
+        Dashboard overview = getDashboard("dashboard-public-overview");
+        overview.setUserId("public");
+        overview.setUserRole("VIEWER");
+        return List.of(overview);
     }
 
     public List<DashboardWidget> getDashboardWidgets(String dashboardId) {
-        // Implementation for getting dashboard widgets
-        return Collections.emptyList();
+        List<DashboardWidget> widgets = new ArrayList<>();
+
+        if ("dashboard-finance".equals(dashboardId)) {
+          DashboardWidget donations = new DashboardWidget();
+          donations.setId("w-donations");
+          donations.setDashboardId(dashboardId);
+          donations.setWidgetType("kpi");
+          donations.setTitle("Total Donations");
+          donations.setConfiguration(Map.of("metric", "total_donations", "currency", "USD"));
+          donations.setPosition(Map.of("row", 0, "col", 0, "width", 3, "height", 1));
+          donations.setCreatedAt(LocalDateTime.now().minusDays(5));
+          donations.setIsVisible(true);
+          widgets.add(donations);
+
+          DashboardWidget roi = new DashboardWidget();
+          roi.setId("w-roi");
+          roi.setDashboardId(dashboardId);
+          roi.setWidgetType("chart");
+          roi.setTitle("ROI by Campaign");
+          roi.setConfiguration(Map.of("type", "bar", "metric", "roi_percentage"));
+          roi.setPosition(Map.of("row", 1, "col", 0, "width", 6, "height", 3));
+          roi.setCreatedAt(LocalDateTime.now().minusDays(5));
+          roi.setIsVisible(true);
+          widgets.add(roi);
+        } else {
+          DashboardWidget requests = new DashboardWidget();
+          requests.setId("w-requests");
+          requests.setDashboardId(dashboardId);
+          requests.setWidgetType("kpi");
+          requests.setTitle("Active Requests");
+          requests.setConfiguration(Map.of("metric", "active_requests"));
+          requests.setPosition(Map.of("row", 0, "col", 0, "width", 3, "height", 1));
+          requests.setCreatedAt(LocalDateTime.now().minusDays(10));
+          requests.setIsVisible(true);
+          widgets.add(requests);
+
+          DashboardWidget responseTime = new DashboardWidget();
+          responseTime.setId("w-responseTime");
+          responseTime.setDashboardId(dashboardId);
+          responseTime.setWidgetType("kpi");
+          responseTime.setTitle("Avg Response Time");
+          responseTime.setConfiguration(Map.of("metric", "avg_response_time_hours"));
+          responseTime.setPosition(Map.of("row", 0, "col", 3, "width", 3, "height", 1));
+          responseTime.setCreatedAt(LocalDateTime.now().minusDays(9));
+          responseTime.setIsVisible(true);
+          widgets.add(responseTime);
+        }
+
+        return widgets;
     }
 
     public DashboardWidget getWidget(String widgetId) {
@@ -156,8 +232,19 @@ public class CustomDashboardService {
     }
 
     public List<DashboardTemplate> getTemplates(String userRole) {
-        // Implementation for getting templates
-        return Collections.emptyList();
+        DashboardTemplate opsTemplate = new DashboardTemplate();
+        opsTemplate.setId("template-ops");
+        opsTemplate.setName("Operations Template");
+        opsTemplate.setDescription("Layout for operations KPIs and trends");
+        opsTemplate.setUserRole(userRole);
+        opsTemplate.setTemplate(Map.of(
+            "sections", List.of("KPIs", "Trends", "Maps")
+        ));
+        opsTemplate.setCreatedBy("system");
+        opsTemplate.setCreatedAt(LocalDateTime.now().minusDays(30));
+        opsTemplate.setIsPublic(true);
+
+        return List.of(opsTemplate);
     }
 
     public Dashboard cloneDashboard(String dashboardId, String newName, String userId) {
@@ -189,11 +276,15 @@ public class CustomDashboardService {
     public DashboardAnalytics getDashboardAnalytics(String dashboardId) {
         DashboardAnalytics analytics = new DashboardAnalytics();
         analytics.setDashboardId(dashboardId);
-        analytics.setViewCount(0);
-        analytics.setUniqueViewers(0);
-        analytics.setLastViewed(LocalDateTime.now());
-        analytics.setPopularWidgets(Collections.emptyList());
-        analytics.setUserEngagement(Collections.emptyMap());
+        analytics.setViewCount(124);
+        analytics.setUniqueViewers(37);
+        analytics.setLastViewed(LocalDateTime.now().minusHours(2));
+        analytics.setPopularWidgets(Arrays.asList("w-requests", "w-trends"));
+        analytics.setUserEngagement(Map.of(
+            "clicks", 420,
+            "shares", 12,
+            "downloads", 7
+        ));
         
         return analytics;
     }

@@ -157,7 +157,8 @@ export interface MiningAnalytics {
 }
 
 class DataMiningService {
-  private baseUrl = '/api/analytics/data-mining';
+  // Controllers are mapped under /analytics/data-mining; apiService adds /api prefix
+  private baseUrl = '/analytics/data-mining';
 
   async createMiningJob(name: string, description: string, algorithm: string, dataSources: string[], parameters: Record<string, any>, userId: string): Promise<MiningJob> {
     return apiService.post<MiningJob>(`${this.baseUrl}/jobs`, { name, description, algorithm, dataSources, parameters, userId });

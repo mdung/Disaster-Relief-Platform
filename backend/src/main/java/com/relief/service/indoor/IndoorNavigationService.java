@@ -62,6 +62,92 @@ public class IndoorNavigationService {
     }
     
     /**
+     * Get indoor nodes for a map with optional filters
+     */
+    @Transactional(readOnly = true)
+    public List<IndoorNode> getIndoorNodes(Long mapId, IndoorNodeType nodeType,
+                                           Integer floorLevel, boolean accessibleOnly) {
+        log.info("Fetching indoor nodes for map {} with type={}, floorLevel={}, accessibleOnly={}",
+                mapId, nodeType, floorLevel, accessibleOnly);
+
+        if (nodeType != null && floorLevel != null) {
+            return nodeRepository.findByIndoorMapIdAndFloorLevel(mapId, floorLevel).stream()
+                    .filter(n -> n.getNodeType() == nodeType)
+                    .toList();
+        }
+
+        if (nodeType != null) {
+            return nodeRepository.findByIndoorMapIdAndNodeType(mapId, nodeType);
+        }
+
+        if (floorLevel != null) {
+            return nodeRepository.findByIndoorMapIdAndFloorLevel(mapId, floorLevel);
+        }
+
+        if (accessibleOnly) {
+            return nodeRepository.findByIndoorMapIdAndIsAccessibleTrue(mapId);
+        }
+
+        return nodeRepository.findByIndoorMapId(mapId);
+    }
+
+    /**
+     * Get indoor edges for a map with optional filters
+     */
+    @Transactional(readOnly = true)
+    public List<IndoorEdge> getIndoorEdges(Long mapId, IndoorEdgeType edgeType,
+                                           Boolean accessibleOnly, Boolean bidirectionalOnly) {
+        log.info("Fetching indoor edges for map {} with type={}, accessibleOnly={}, bidirectionalOnly={}",
+                mapId, edgeType, accessibleOnly, bidirectionalOnly);
+
+        List<IndoorEdge> edges = edgeRepository.findByIndoorMapId(mapId);
+
+        if (edgeType != null) {
+            edges = edges.stream()
+                    .filter(e -> e.getEdgeType() == edgeType)
+                    .toList();
+        }
+
+        if (Boolean.TRUE.equals(accessibleOnly)) {
+            edges = edges.stream()
+                    .filter(IndoorEdge::getIsAccessible)
+                    .toList();
+        }
+
+        if (Boolean.TRUE.equals(bidirectionalOnly)) {
+            edges = edges.stream()
+                    .filter(IndoorEdge::getIsBidirectional)
+                    .toList();
+        }
+
+        return edges;
+    }
+
+    /**
+     * Get indoor routes for a map with optional filters
+     */
+    @Transactional(readOnly = true)
+    public List<IndoorRoute> getIndoorRoutes(Long mapId, IndoorRouteType routeType,
+                                             boolean accessibleOnly, boolean emergencyOnly) {
+        log.info("Fetching indoor routes for map {} with type={}, accessibleOnly={}, emergencyOnly={}",
+                mapId, routeType, accessibleOnly, emergencyOnly);
+
+        if (routeType != null) {
+            return routeRepository.findByIndoorMapIdAndRouteType(mapId, routeType);
+        }
+
+        if (accessibleOnly) {
+            return routeRepository.findByIndoorMapIdAndIsAccessibleTrue(mapId);
+        }
+
+        if (emergencyOnly) {
+            return routeRepository.findByIndoorMapIdAndIsEmergencyRouteTrue(mapId);
+        }
+
+        return routeRepository.findByIndoorMapId(mapId);
+    }
+
+    /**
      * Update an indoor map
      */
     @Transactional

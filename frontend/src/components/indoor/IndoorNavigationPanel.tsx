@@ -75,10 +75,20 @@ export const IndoorNavigationPanel: React.FC<IndoorNavigationPanelProps> = ({
     }
   };
 
-  const filteredNodes = nodes.filter(node =>
-    node.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    node.nodeId.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const normalizedQuery = searchQuery.toLowerCase();
+
+  const filteredNodes = nodes.filter(node => {
+    const name = (node.name || '').toLowerCase();
+    const nodeId = typeof node.nodeId === 'string'
+      ? node.nodeId.toLowerCase()
+      : '';
+
+    if (!normalizedQuery) {
+      return true;
+    }
+
+    return name.includes(normalizedQuery) || nodeId.includes(normalizedQuery);
+  });
 
   const getNodeIcon = (nodeType: string) => {
     switch (nodeType) {

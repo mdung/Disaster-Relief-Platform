@@ -213,20 +213,48 @@ public class DataMiningService {
     }
 
     public List<MiningJob> getUserJobs(String userId) {
-        // Implementation for getting user jobs
-        return Collections.emptyList();
+        // Return a small set of synthetic mining jobs for the overview
+        MiningJob jobsTrend = new MiningJob();
+        jobsTrend.setId("job-trends-7d");
+        jobsTrend.setName("Needs Trends - Last 7 Days");
+        jobsTrend.setDescription("Analyze needs trends over the last 7 days");
+        jobsTrend.setAlgorithm("TIME_SERIES");
+        jobsTrend.setDataSources(List.of("needs_requests"));
+        jobsTrend.setParameters(Map.of("window_days", 7));
+        jobsTrend.setUserId(userId);
+        jobsTrend.setCreatedAt(LocalDateTime.now().minusDays(2));
+        jobsTrend.setStartedAt(LocalDateTime.now().minusDays(2).plusMinutes(5));
+        jobsTrend.setCompletedAt(LocalDateTime.now().minusDays(2).plusMinutes(7));
+        jobsTrend.setStatus(JobStatus.COMPLETED);
+        jobsTrend.setIsActive(true);
+
+        MiningJob jobsHotspots = new MiningJob();
+        jobsHotspots.setId("job-hotspots");
+        jobsHotspots.setName("Location Hotspots");
+        jobsHotspots.setDescription("Cluster historical locations to find hotspots");
+        jobsHotspots.setAlgorithm("DBSCAN");
+        jobsHotspots.setDataSources(List.of("location_history"));
+        jobsHotspots.setParameters(Map.of("min_points", 10, "eps", 0.5));
+        jobsHotspots.setUserId(userId);
+        jobsHotspots.setCreatedAt(LocalDateTime.now().minusDays(5));
+        jobsHotspots.setStartedAt(LocalDateTime.now().minusDays(5).plusMinutes(3));
+        jobsHotspots.setCompletedAt(LocalDateTime.now().minusDays(5).plusMinutes(8));
+        jobsHotspots.setStatus(JobStatus.COMPLETED);
+        jobsHotspots.setIsActive(true);
+
+        return Arrays.asList(jobsTrend, jobsHotspots);
     }
 
     public MiningAnalytics getMiningAnalytics(String dataSource) {
         MiningAnalytics analytics = new MiningAnalytics();
         analytics.setDataSource(dataSource);
-        analytics.setTotalJobs(0);
-        analytics.setSuccessfulJobs(0);
-        analytics.setAverageExecutionTime(0);
-        analytics.setDiscoveredPatterns(0);
-        analytics.setGeneratedInsights(0);
-        analytics.setModelAccuracy(0.0);
-        analytics.setLastAnalyzed(LocalDateTime.now());
+        analytics.setTotalJobs(12);
+        analytics.setSuccessfulJobs(10);
+        analytics.setAverageExecutionTime(95);
+        analytics.setDiscoveredPatterns(4);
+        analytics.setGeneratedInsights(7);
+        analytics.setModelAccuracy(0.82);
+        analytics.setLastAnalyzed(LocalDateTime.now().minusHours(1));
         
         return analytics;
     }

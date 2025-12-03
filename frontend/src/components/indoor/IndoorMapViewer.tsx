@@ -48,7 +48,11 @@ export const IndoorMapViewer: React.FC<IndoorMapViewerProps> = ({
       // Fit bounds to nodes if map is already initialized
       if (nodes.length > 0) {
         const bbox = nodes.reduce((acc: [number, number, number, number], node) => {
-          const [lon, lat] = node.position.coordinates;
+          const coords = (node.position as any)?.coordinates as [number, number] | undefined;
+          if (!coords || !Array.isArray(coords) || coords.length < 2) {
+            return acc;
+          }
+          const [lon, lat] = coords;
           acc[0] = Math.min(acc[0], lon);
           acc[1] = Math.min(acc[1], lat);
           acc[2] = Math.max(acc[2], lon);
@@ -107,7 +111,11 @@ export const IndoorMapViewer: React.FC<IndoorMapViewerProps> = ({
     let bbox: [number, number, number, number] = [0, 0, 1, 1];
     if (nodes.length > 0) {
       bbox = nodes.reduce((acc: [number, number, number, number], node) => {
-        const [lon, lat] = node.position.coordinates;
+        const coords = (node.position as any)?.coordinates as [number, number] | undefined;
+        if (!coords || !Array.isArray(coords) || coords.length < 2) {
+          return acc;
+        }
+        const [lon, lat] = coords;
         acc[0] = Math.min(acc[0], lon);
         acc[1] = Math.min(acc[1], lat);
         acc[2] = Math.max(acc[2], lon);
@@ -160,7 +168,11 @@ export const IndoorMapViewer: React.FC<IndoorMapViewerProps> = ({
       let imageCoordinates: [[number, number], [number, number], [number, number], [number, number]] = [[0, 0], [1, 0], [1, 1], [0, 1]];
       if (nodes.length > 0) {
         const bbox = nodes.reduce((acc: [number, number, number, number], node) => {
-          const [lon, lat] = node.position.coordinates;
+          const coords = (node.position as any)?.coordinates as [number, number] | undefined;
+          if (!coords || !Array.isArray(coords) || coords.length < 2) {
+            return acc;
+          }
+          const [lon, lat] = coords;
           acc[0] = Math.min(acc[0], lon);
           acc[1] = Math.min(acc[1], lat);
           acc[2] = Math.max(acc[2], lon);
@@ -198,20 +210,25 @@ export const IndoorMapViewer: React.FC<IndoorMapViewerProps> = ({
       type: 'geojson',
       data: {
         type: 'FeatureCollection',
-        features: nodes.map(node => ({
-          type: 'Feature',
-          geometry: node.position,
-          properties: {
-            nodeId: node.nodeId,
-            name: node.name,
-            nodeType: node.nodeType,
-            isAccessible: node.isAccessible,
-            isEmergencyExit: node.isEmergencyExit,
-            isElevator: node.isElevator,
-            isStairs: node.isStairs,
-            floorLevel: node.floorLevel
-          }
-        }))
+        features: nodes
+          .filter(node => {
+            const coords = (node.position as any)?.coordinates as [number, number] | undefined;
+            return coords && Array.isArray(coords) && coords.length >= 2;
+          })
+          .map(node => ({
+            type: 'Feature',
+            geometry: node.position,
+            properties: {
+              nodeId: node.nodeId,
+              name: node.name,
+              nodeType: node.nodeType,
+              isAccessible: node.isAccessible,
+              isEmergencyExit: node.isEmergencyExit,
+              isElevator: node.isElevator,
+              isStairs: node.isStairs,
+              floorLevel: node.floorLevel
+            }
+          }))
       }
     });
 
@@ -265,80 +282,126 @@ export const IndoorMapViewer: React.FC<IndoorMapViewerProps> = ({
   const addNodesToMap = () => {
     if (!map.current || !showNodes) return;
 
+    // Ensure style is fully loaded before adding layers
+    if (!map.current.isStyleLoaded()) {
+      map.current.once('styledata', () => addNodesToMap());
+      return;
+    }
+
+    // Avoid adding duplicate layers
+    if (map.current.getLayer('indoor-nodes')) {
+      return;
+    }
+
     // Add node markers
-    map.current.addLayer({
-      id: 'indoor-nodes',
-      type: 'circle',
-      source: 'indoor-nodes',
-      paint: {
-        'circle-radius': 8,
-        'circle-color': [
-          'case',
-          ['get', 'isEmergencyExit'], '#ef4444',
-          ['get', 'isElevator'], '#3b82f6',
-          ['get', 'isStairs'], '#f59e0b',
-          '#10b981'
-        ],
-        'circle-stroke-width': 2,
-        'circle-stroke-color': '#ffffff'
-      }
-    });
+    try {
+      map.current.addLayer({
+        id: 'indoor-nodes',
+        type: 'circle',
+        source: 'indoor-nodes',
+        paint: {
+          'circle-radius': 8,
+          'circle-color': [
+            'case',
+            ['get', 'isEmergencyExit'], '#ef4444',
+            ['get', 'isElevator'], '#3b82f6',
+            ['get', 'isStairs'], '#f59e0b',
+            '#10b981'
+          ],
+          'circle-stroke-width': 2,
+          'circle-stroke-color': '#ffffff'
+        }
+      });
+    } catch (err) {
+      console.error('Error adding indoor node layer:', err);
+      return;
+    }
 
     // Add node labels
-    map.current.addLayer({
-      id: 'indoor-node-labels',
-      type: 'symbol',
-      source: 'indoor-nodes',
-      layout: {
-        'text-field': ['get', 'name'],
-        'text-font': ['Open Sans Regular'],
-        'text-size': 12,
-        'text-offset': [0, -2]
-      },
-      paint: {
-        'text-color': '#374151',
-        'text-halo-color': '#ffffff',
-        'text-halo-width': 2
-      }
-    });
+    try {
+      map.current.addLayer({
+        id: 'indoor-node-labels',
+        type: 'symbol',
+        source: 'indoor-nodes',
+        layout: {
+          'text-field': ['get', 'name'],
+          'text-font': ['Open Sans Regular'],
+          'text-size': 12,
+          'text-offset': [0, -2]
+        },
+        paint: {
+          'text-color': '#374151',
+          'text-halo-color': '#ffffff',
+          'text-halo-width': 2
+        }
+      });
+    } catch (err) {
+      console.error('Error adding indoor node label layer:', err);
+    }
   };
 
   const addEdgesToMap = () => {
     if (!map.current || !showEdges) return;
 
+    if (!map.current.isStyleLoaded()) {
+      map.current.once('styledata', () => addEdgesToMap());
+      return;
+    }
+
+    if (map.current.getLayer('indoor-edges')) {
+      return;
+    }
+
     // Add edge lines
-    map.current.addLayer({
-      id: 'indoor-edges',
-      type: 'line',
-      source: 'indoor-edges',
-      paint: {
-        'line-width': 3,
-        'line-color': [
-          'case',
-          ['get', 'isEmergencyRoute'], '#ef4444',
-          ['get', 'isAccessible'], '#10b981',
-          '#6b7280'
-        ],
-        'line-opacity': 0.8
-      }
-    });
+    try {
+      map.current.addLayer({
+        id: 'indoor-edges',
+        type: 'line',
+        source: 'indoor-edges',
+        paint: {
+          'line-width': 3,
+          'line-color': [
+            'case',
+            ['get', 'isEmergencyRoute'], '#ef4444',
+            ['get', 'isAccessible'], '#10b981',
+            '#6b7280'
+          ],
+          'line-opacity': 0.8
+        }
+      });
+    } catch (err) {
+      console.error('Error adding indoor edge layer:', err);
+    }
   };
 
   const addRoutesToMap = () => {
     if (!map.current || !showRoutes) return;
 
+    if (!map.current.isStyleLoaded()) {
+      map.current.once('styledata', () => addRoutesToMap());
+      return;
+    }
+
+    if (map.current.getLayer('indoor-routes')) {
+      return;
+    }
+
     // Add route lines
-    map.current.addLayer({
-      id: 'indoor-routes',
-      type: 'line',
-      source: 'indoor-routes',
-      paint: {
-        'line-width': 4,
-        'line-color': '#8b5cf6',
-        'line-opacity': 0.9,
-        'line-dasharray': [2, 2]
-      }
-    });
+    try {
+      map.current.addLayer({
+        id: 'indoor-routes',
+        type: 'line',
+        source: 'indoor-routes',
+        paint: {
+          'line-width': 4,
+          'line-color': '#8b5cf6',
+          'line-opacity': 0.9,
+          'line-dasharray': [2, 2]
+        }
+      });
+    } catch (err) {
+      console.error('Error adding indoor route layer:', err);
+    }
   };
 
   const getNodeIcon = (nodeType: string) => {

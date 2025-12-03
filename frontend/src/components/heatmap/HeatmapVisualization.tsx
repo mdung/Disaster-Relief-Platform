@@ -174,25 +174,28 @@ export const HeatmapVisualization: React.FC<HeatmapVisualizationProps> = ({
 
     if (features.length > 0) {
       const feature = features[0];
-      const properties = feature.properties;
-      const geometry = feature.geometry;
+      const geometry: any = feature && feature.geometry;
+
+      // Type guard for Point geometry with coordinates
+      if (!geometry || geometry.type !== 'Point' || !('coordinates' in geometry)) {
+        return;
+      }
+
+      const coords = geometry.coordinates as [number, number];
+      if (!Array.isArray(coords) || coords.length < 2) return;
+
+      // Find the corresponding heatmap data point
+      const point = heatmapData.find(p => 
+        p != null &&
+        typeof p === 'object' &&
+        'longitude' in p &&
+        'latitude' in p &&
+        Math.abs(p.longitude - coords[0]) < 0.0001 &&
+        Math.abs(p.latitude - coords[1]) < 0.0001
+      );
       
-      // Type guard for Point geometry
-      if (geometry.type === 'Point' && 'coordinates' in geometry) {
-        const coords = geometry.coordinates;
-        // Find the corresponding heatmap data point
-        const point = heatmapData.find(p => 
-          p != null &&
-          typeof p === 'object' &&
-          'longitude' in p &&
-          'latitude' in p &&
-          Math.abs(p.longitude - coords[0]) < 0.0001 &&
-          Math.abs(p.latitude - coords[1]) < 0.0001
-        );
-        
-        if (point) {
-          onPointClick(point);
-        }
+      if (point) {
+        onPointClick(point);
       }
     }
   };

@@ -27,7 +27,7 @@ import java.util.Map;
  * Data mining controller for discovering hidden patterns and insights in historical data
  */
 @RestController
-@RequestMapping("/api/analytics/data-mining")
+@RequestMapping("/analytics/data-mining")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Data Mining", description = "Discover hidden patterns and insights in historical data")

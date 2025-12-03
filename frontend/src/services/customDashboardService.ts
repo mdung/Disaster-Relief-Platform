@@ -53,7 +53,8 @@ export interface DashboardAnalytics {
 }
 
 class CustomDashboardService {
-  private baseUrl = '/api/analytics/dashboards';
+  // Backend controllers are mapped under /analytics/...; apiService already prefixes /api
+  private baseUrl = '/analytics/dashboards';
 
   async createDashboard(name: string, description: string, userId: string, userRole: string, isPublic: boolean = false, layout: Record<string, any> = {}): Promise<Dashboard> {
     return apiService.post<Dashboard>(`${this.baseUrl}`, { name, description, userId, userRole, isPublic, layout });

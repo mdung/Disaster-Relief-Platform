@@ -228,8 +228,13 @@ export class IndoorNavigationService {
     floorNumber?: number;
     activeOnly?: boolean;
   }): Promise<IndoorMap[]> {
-    const response = await apiClient.get('/indoor/maps', { params });
-    return response;
+    try {
+      const response = await apiClient.get<IndoorMap[]>('/indoor/maps', { params });
+      return Array.isArray(response) ? response : [];
+    } catch (error) {
+      console.error('Failed to get indoor maps:', error);
+      return [];
+    }
   }
 
   // Indoor Nodes
@@ -243,8 +248,13 @@ export class IndoorNavigationService {
     floorLevel?: number;
     accessibleOnly?: boolean;
   }): Promise<IndoorNode[]> {
-    const response = await apiClient.get(`/indoor/maps/${mapId}/nodes`, { params });
-    return response;
+    try {
+      const response = await apiClient.get<IndoorNode[]>(`/indoor/maps/${mapId}/nodes`, { params });
+      return Array.isArray(response) ? response : [];
+    } catch (error) {
+      console.error('Failed to get indoor nodes:', error);
+      return [];
+    }
   }
 
   // Indoor Edges
@@ -258,8 +268,13 @@ export class IndoorNavigationService {
     accessibleOnly?: boolean;
     bidirectionalOnly?: boolean;
   }): Promise<IndoorEdge[]> {
-    const response = await apiClient.get(`/indoor/maps/${mapId}/edges`, { params });
-    return response;
+    try {
+      const response = await apiClient.get<IndoorEdge[]>(`/indoor/maps/${mapId}/edges`, { params });
+      return Array.isArray(response) ? response : [];
+    } catch (error) {
+      console.error('Failed to get indoor edges:', error);
+      return [];
+    }
   }
 
   // Indoor Positioning
@@ -275,8 +290,13 @@ export class IndoorNavigationService {
     floorLevel?: number;
     positioningMethod?: string;
   }): Promise<IndoorPosition[]> {
-    const response = await apiClient.get('/indoor/positions', { params });
-    return response;
+    try {
+      const response = await apiClient.get<IndoorPosition[]>('/indoor/positions', { params });
+      return Array.isArray(response) ? response : [];
+    } catch (error) {
+      console.error('Failed to get indoor positions:', error);
+      return [];
+    }
   }
 
   static async getLatestPosition(entityType: string, entityId: number): Promise<IndoorPosition> {
@@ -305,8 +325,13 @@ export class IndoorNavigationService {
     accessibleOnly?: boolean;
     emergencyOnly?: boolean;
   }): Promise<IndoorRoute[]> {
-    const response = await apiClient.get(`/indoor/maps/${mapId}/routes`, { params });
-    return response;
+    try {
+      const response = await apiClient.get<IndoorRoute[]>(`/indoor/maps/${mapId}/routes`, { params });
+      return Array.isArray(response) ? response : [];
+    } catch (error) {
+      console.error('Failed to get indoor routes:', error);
+      return [];
+    }
   }
 
   static async findNearestNode(
