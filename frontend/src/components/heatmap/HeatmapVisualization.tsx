@@ -32,8 +32,14 @@ export const HeatmapVisualization: React.FC<HeatmapVisualizationProps> = ({
 
   const lastLoadParamsRef = useRef<string>('');
   const isLoadingRef = useRef(false);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
+    // Clear any pending debounce timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
     if (!mapRef.current || loading || isLoadingRef.current) return;
 
     // Create a unique key for current load parameters
@@ -48,31 +54,30 @@ export const HeatmapVisualization: React.FC<HeatmapVisualizationProps> = ({
     lastLoadParamsRef.current = loadKey;
     
     // Add a small delay to debounce rapid changes
-    const timer = setTimeout(() => {
+    debounceTimerRef.current = setTimeout(() => {
       if (!loading && mapRef.current && !isLoadingRef.current) {
         isLoadingRef.current = true;
         loadHeatmapData();
-        // Reset after a delay to allow loading to complete
-        setTimeout(() => {
-          isLoadingRef.current = false;
-        }, 1000);
       }
     }, 300);
 
     return () => {
-      clearTimeout(timer);
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
     };
   }, [center, zoom, heatmapTypes, selectedHeatmapType]); // Removed 'loading' from dependencies to prevent infinite loop
 
   const loadHeatmapData = async () => {
     // Prevent overlapping loads which can cause the loading UI to flicker
-    if (loading) {
+    if (isLoadingRef.current || loading) {
       console.warn('Heatmap data load already in progress, skipping duplicate call');
       return;
     }
 
     if (!mapRef.current) return;
 
+    isLoadingRef.current = true;
     setLoading(true);
     setError(null);
 
@@ -106,6 +111,7 @@ export const HeatmapVisualization: React.FC<HeatmapVisualizationProps> = ({
       console.error('Heatmap data loading error:', err);
     } finally {
       setLoading(false);
+      isLoadingRef.current = false;
     }
   };
 
@@ -156,7 +162,7 @@ export const HeatmapVisualization: React.FC<HeatmapVisualizationProps> = ({
 
   const handleMapLoad = (map: maplibregl.Map) => {
     mapRef.current = map;
-    loadHeatmapData();
+    // Let the useEffect handle initial load to avoid duplicate calls
   };
 
   const handleMapClick = (event: maplibregl.MapMouseEvent) => {

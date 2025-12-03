@@ -25,6 +25,9 @@ export const TerrainVisualization: React.FC<TerrainVisualizationProps> = ({
   onRouteCalculated
 }) => {
   const mapRef = useRef<maplibregl.Map | null>(null);
+  const isLoadingRef = useRef(false);
+  const lastLoadParamsRef = useRef<string>('');
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [elevationPoints, setElevationPoints] = useState<ElevationPoint[]>([]);
   const [terrainAnalysis, setTerrainAnalysis] = useState<TerrainAnalysis[]>([]);
   const [routes, setRoutes] = useState<TerrainRoute[]>([]);
@@ -32,18 +35,41 @@ export const TerrainVisualization: React.FC<TerrainVisualizationProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Wait a bit for map to be fully initialized
-    if (mapRef.current && mapRef.current.loaded() && !loading) {
-      const timer = setTimeout(() => {
-        loadTerrainData();
-      }, 500);
-      return () => clearTimeout(timer);
+    // Clear any pending debounce timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
     }
-  }, [center, zoom, showElevation, showSlope, showAccessibility]); // Removed 'loading' from dependencies to prevent infinite loop
+
+    // Wait a bit for map to be fully initialized
+    if (mapRef.current && mapRef.current.loaded() && !isLoadingRef.current) {
+      // Create a unique key for current load parameters
+      const loadKey = `${center[0]}-${center[1]}-${zoom}-${showElevation}-${showSlope}-${showAccessibility}`;
+      
+      // Only load if parameters actually changed
+      if (lastLoadParamsRef.current === loadKey) {
+        return;
+      }
+
+      lastLoadParamsRef.current = loadKey;
+      
+      // Debounce to prevent rapid successive calls
+      debounceTimerRef.current = setTimeout(() => {
+        if (!isLoadingRef.current && mapRef.current && mapRef.current.loaded()) {
+          loadTerrainData();
+        }
+      }, 500);
+
+      return () => {
+        if (debounceTimerRef.current) {
+          clearTimeout(debounceTimerRef.current);
+        }
+      };
+    }
+  }, [center, zoom, showElevation, showSlope, showAccessibility]);
 
   const loadTerrainData = async () => {
     // Prevent overlapping loads which can cause the loading UI to flicker
-    if (loading) {
+    if (isLoadingRef.current || loading) {
       console.warn('Terrain data load already in progress, skipping duplicate call');
       return;
     }
@@ -53,6 +79,7 @@ export const TerrainVisualization: React.FC<TerrainVisualizationProps> = ({
       return;
     }
 
+    isLoadingRef.current = true;
     setLoading(true);
     setError(null);
 
@@ -97,6 +124,7 @@ export const TerrainVisualization: React.FC<TerrainVisualizationProps> = ({
       console.error('Terrain data loading error:', err);
     } finally {
       setLoading(false);
+      isLoadingRef.current = false;
     }
   };
 
@@ -474,7 +502,8 @@ export const TerrainVisualization: React.FC<TerrainVisualizationProps> = ({
 
   const handleMapLoad = (map: maplibregl.Map) => {
     mapRef.current = map;
-    loadTerrainData();
+    // Don't call loadTerrainData here - let useEffect handle it
+    // This prevents duplicate calls when map loads
   };
 
   const handleMapClick = (event: maplibregl.MapMouseEvent) => {
@@ -527,8 +556,18 @@ export const TerrainVisualization: React.FC<TerrainVisualizationProps> = ({
               checked={showElevation}
               onChange={(e) => {
                 // Toggle elevation display
-                if (e.target.checked && !loading) {
-                  loadTerrainData();
+                if (e.target.checked && !isLoadingRef.current && !loading && mapRef.current && mapRef.current.loaded()) {
+                  // Update lastLoadParamsRef to force reload
+                  lastLoadParamsRef.current = '';
+                  // Debounce the load
+                  if (debounceTimerRef.current) {
+                    clearTimeout(debounceTimerRef.current);
+                  }
+                  debounceTimerRef.current = setTimeout(() => {
+                    if (!isLoadingRef.current && mapRef.current && mapRef.current.loaded()) {
+                      loadTerrainData();
+                    }
+                  }, 300);
                 } else if (!e.target.checked) {
                   if (mapRef.current?.getLayer('elevation-points')) {
                     mapRef.current.removeLayer('elevation-points');
@@ -547,8 +586,18 @@ export const TerrainVisualization: React.FC<TerrainVisualizationProps> = ({
               checked={showSlope}
               onChange={(e) => {
                 // Toggle slope display
-                if (e.target.checked && !loading) {
-                  loadTerrainData();
+                if (e.target.checked && !isLoadingRef.current && !loading && mapRef.current && mapRef.current.loaded()) {
+                  // Update lastLoadParamsRef to force reload
+                  lastLoadParamsRef.current = '';
+                  // Debounce the load
+                  if (debounceTimerRef.current) {
+                    clearTimeout(debounceTimerRef.current);
+                  }
+                  debounceTimerRef.current = setTimeout(() => {
+                    if (!isLoadingRef.current && mapRef.current && mapRef.current.loaded()) {
+                      loadTerrainData();
+                    }
+                  }, 300);
                 } else if (!e.target.checked) {
                   if (mapRef.current?.getLayer('terrain-slope')) {
                     mapRef.current.removeLayer('terrain-slope');
@@ -565,8 +614,18 @@ export const TerrainVisualization: React.FC<TerrainVisualizationProps> = ({
               checked={showAccessibility}
               onChange={(e) => {
                 // Toggle accessibility display
-                if (e.target.checked && !loading) {
-                  loadTerrainData();
+                if (e.target.checked && !isLoadingRef.current && !loading && mapRef.current && mapRef.current.loaded()) {
+                  // Update lastLoadParamsRef to force reload
+                  lastLoadParamsRef.current = '';
+                  // Debounce the load
+                  if (debounceTimerRef.current) {
+                    clearTimeout(debounceTimerRef.current);
+                  }
+                  debounceTimerRef.current = setTimeout(() => {
+                    if (!isLoadingRef.current && mapRef.current && mapRef.current.loaded()) {
+                      loadTerrainData();
+                    }
+                  }, 300);
                 } else if (!e.target.checked) {
                   if (mapRef.current?.getLayer('terrain-analysis')) {
                     mapRef.current.removeLayer('terrain-analysis');

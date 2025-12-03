@@ -23,20 +23,52 @@ export const SatelliteImageryViewer: React.FC<SatelliteImageryViewerProps> = ({
   onDamageSelect
 }) => {
   const mapRef = useRef<maplibregl.Map | null>(null);
+  const isLoadingRef = useRef(false);
+  const lastLoadParamsRef = useRef<string>('');
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [images, setImages] = useState<SatelliteImage[]>([]);
   const [damageAssessments, setDamageAssessments] = useState<DamageAssessment[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (mapRef.current) {
-      loadSatelliteData();
+    // Clear any pending debounce timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
     }
-  }, [center, zoom]);
+
+    if (!mapRef.current || !mapRef.current.loaded() || isLoadingRef.current) {
+      return;
+    }
+
+    const loadKey = `${center[0]}-${center[1]}-${zoom}-${showImages}-${showDamage}`;
+    if (lastLoadParamsRef.current === loadKey) {
+      return;
+    }
+    lastLoadParamsRef.current = loadKey;
+
+    debounceTimerRef.current = setTimeout(() => {
+      if (!isLoadingRef.current && mapRef.current && mapRef.current.loaded()) {
+        loadSatelliteData();
+      }
+    }, 400);
+
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [center, zoom, showImages, showDamage]);
 
   const loadSatelliteData = async () => {
-    if (!mapRef.current) return;
+    if (!mapRef.current || !mapRef.current.loaded()) return;
 
+    if (isLoadingRef.current || loading) {
+      console.warn('Satellite data load already in progress, skipping duplicate call');
+      return;
+    }
+
+    isLoadingRef.current = true;
     setLoading(true);
     setError(null);
 
@@ -66,6 +98,7 @@ export const SatelliteImageryViewer: React.FC<SatelliteImageryViewerProps> = ({
       console.error('Satellite data loading error:', err);
     } finally {
       setLoading(false);
+      isLoadingRef.current = false;
     }
   };
 
@@ -273,7 +306,7 @@ export const SatelliteImageryViewer: React.FC<SatelliteImageryViewerProps> = ({
 
   const handleMapLoad = (map: maplibregl.Map) => {
     mapRef.current = map;
-    loadSatelliteData();
+    // Let useEffect handle initial load to avoid duplicate calls
   };
 
   const handleMapClick = (event: maplibregl.MapMouseEvent) => {
@@ -336,7 +369,16 @@ export const SatelliteImageryViewer: React.FC<SatelliteImageryViewerProps> = ({
               checked={showImages}
               onChange={(e) => {
                 if (e.target.checked) {
-                  loadSatelliteData();
+                  // Force reload with new params
+                  lastLoadParamsRef.current = '';
+                  if (debounceTimerRef.current) {
+                    clearTimeout(debounceTimerRef.current);
+                  }
+                  debounceTimerRef.current = setTimeout(() => {
+                    if (!isLoadingRef.current && mapRef.current && mapRef.current.loaded()) {
+                      loadSatelliteData();
+                    }
+                  }, 300);
                 } else {
                   if (mapRef.current?.getLayer('satellite-images')) {
                     mapRef.current.removeLayer('satellite-images');
@@ -356,7 +398,16 @@ export const SatelliteImageryViewer: React.FC<SatelliteImageryViewerProps> = ({
               checked={showDamage}
               onChange={(e) => {
                 if (e.target.checked) {
-                  loadSatelliteData();
+                  // Force reload with new params
+                  lastLoadParamsRef.current = '';
+                  if (debounceTimerRef.current) {
+                    clearTimeout(debounceTimerRef.current);
+                  }
+                  debounceTimerRef.current = setTimeout(() => {
+                    if (!isLoadingRef.current && mapRef.current && mapRef.current.loaded()) {
+                      loadSatelliteData();
+                    }
+                  }, 300);
                 } else {
                   if (mapRef.current?.getLayer('damage-assessments')) {
                     mapRef.current.removeLayer('damage-assessments');
