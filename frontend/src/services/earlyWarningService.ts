@@ -46,7 +46,13 @@ class EarlyWarningService {
   }
 
   async getActiveWarnings(): Promise<EarlyWarning[]> {
-    return apiService.get(`${this.baseUrl}/active`);
+    try {
+      const response = await apiService.get<EarlyWarning[]>(`${this.baseUrl}/active`);
+      return Array.isArray(response) ? response : [];
+    } catch (error) {
+      console.error('Failed to get active warnings:', error);
+      return [];
+    }
   }
 
   async getWarnings(ruleId: string, startTime: string, endTime: string): Promise<EarlyWarning[]> {

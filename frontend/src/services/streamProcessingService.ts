@@ -74,7 +74,13 @@ class StreamProcessingService {
   }
 
   async getProcessors(): Promise<StreamProcessor[]> {
-    return apiService.get(`${this.baseUrl}/processors`);
+    try {
+      const response = await apiService.get<StreamProcessor[]>(`${this.baseUrl}/processors`);
+      return Array.isArray(response) ? response : [];
+    } catch (error) {
+      console.error('Failed to get processors:', error);
+      return [];
+    }
   }
 
   async addStreamRule(processorId: string, rule: StreamRule): Promise<void> {

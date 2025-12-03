@@ -88,12 +88,18 @@ class EventCorrelationService {
     startTime?: string,
     endTime?: string
   ): Promise<CorrelationResult[]> {
-    const params = new URLSearchParams();
-    if (source) params.append('source', source);
-    if (startTime) params.append('startTime', startTime);
-    if (endTime) params.append('endTime', endTime);
-    
-    return apiService.get(`${this.baseUrl}/correlations?${params}`);
+    try {
+      const params = new URLSearchParams();
+      if (source) params.append('source', source);
+      if (startTime) params.append('startTime', startTime);
+      if (endTime) params.append('endTime', endTime);
+      
+      const response = await apiService.get<CorrelationResult[]>(`${this.baseUrl}/correlations?${params}`);
+      return Array.isArray(response) ? response : [];
+    } catch (error) {
+      console.error('Failed to find correlations:', error);
+      return [];
+    }
   }
 
   async detectPattern(
@@ -101,13 +107,19 @@ class EventCorrelationService {
     eventType: string,
     startTime: string,
     endTime: string
-  ): Promise<EventPattern> {
-    return apiService.post(`${this.baseUrl}/patterns/detect`, {
-      source,
-      eventType,
-      startTime,
-      endTime
-    });
+  ): Promise<EventPattern | null> {
+    try {
+      const response = await apiService.post<EventPattern>(`${this.baseUrl}/patterns/detect`, {
+        source,
+        eventType,
+        startTime,
+        endTime
+      });
+      return response || null;
+    } catch (error) {
+      console.error('Failed to detect pattern:', error);
+      return null;
+    }
   }
 
   async getAnalytics(source: string): Promise<CorrelationAnalytics> {

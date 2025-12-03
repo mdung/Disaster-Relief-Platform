@@ -111,7 +111,13 @@ class AdvancedReportingService {
   }
 
   async getUserReports(userId: string, reportType?: string): Promise<Report[]> {
-    return apiService.get<Report[]>(`${this.baseUrl}`, { userId, reportType });
+    try {
+      const response = await apiService.get<Report[]>(`${this.baseUrl}`, { userId, reportType });
+      return Array.isArray(response) ? response : [];
+    } catch (error) {
+      console.error('Failed to get user reports:', error);
+      return [];
+    }
   }
 
   async getPublicReports(reportType?: string): Promise<Report[]> {

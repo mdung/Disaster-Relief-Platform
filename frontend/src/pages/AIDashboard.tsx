@@ -33,37 +33,57 @@ const AIDashboard: React.FC = () => {
       setLoading(true);
       
       const [models, resourceModels, scores, activeWarnings] = await Promise.all([
-        disasterPredictionService.getModels(),
-        resourceForecastingService.getModels(),
+        disasterPredictionService.getModels().catch(() => []),
+        resourceForecastingService.getModels().catch(() => []),
         riskScoringService.getRiskScores(
           new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
           new Date().toISOString()
-        ),
-        earlyWarningService.getActiveWarnings()
+        ).catch(() => []),
+        earlyWarningService.getActiveWarnings().catch(() => [])
       ]);
 
+      // Ensure all data is arrays
+      const modelsArray = Array.isArray(models) ? models : [];
+      const resourceModelsArray = Array.isArray(resourceModels) ? resourceModels : [];
+      const scoresArray = Array.isArray(scores) ? scores : [];
+      const warningsArray = Array.isArray(activeWarnings) ? activeWarnings : [];
+
       // Load predictions for first model
-      if (models.length > 0) {
-        const predictionsData = await disasterPredictionService.getPredictions(
-          models[0].id,
-          new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-          new Date().toISOString()
-        );
-        setPredictions(predictionsData);
+      if (modelsArray.length > 0) {
+        try {
+          const predictionsData = await disasterPredictionService.getPredictions(
+            modelsArray[0].id,
+            new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+            new Date().toISOString()
+          );
+          setPredictions(Array.isArray(predictionsData) ? predictionsData : []);
+        } catch (err) {
+          console.error('Failed to load predictions:', err);
+          setPredictions([]);
+        }
+      } else {
+        setPredictions([]);
       }
 
       // Load forecasts for first model
-      if (resourceModels.length > 0) {
-        const forecastsData = await resourceForecastingService.getForecasts(
-          resourceModels[0].id,
-          new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-          new Date().toISOString()
-        );
-        setForecasts(forecastsData);
+      if (resourceModelsArray.length > 0) {
+        try {
+          const forecastsData = await resourceForecastingService.getForecasts(
+            resourceModelsArray[0].id,
+            new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+            new Date().toISOString()
+          );
+          setForecasts(Array.isArray(forecastsData) ? forecastsData : []);
+        } catch (err) {
+          console.error('Failed to load forecasts:', err);
+          setForecasts([]);
+        }
+      } else {
+        setForecasts([]);
       }
 
-      setRiskScores(scores);
-      setWarnings(activeWarnings);
+      setRiskScores(scoresArray);
+      setWarnings(warningsArray);
       
     } catch (error) {
       console.error('Error loading AI data:', error);

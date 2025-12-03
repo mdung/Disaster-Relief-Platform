@@ -172,7 +172,13 @@ class DataMiningService {
   }
 
   async getUserJobs(userId: string): Promise<MiningJob[]> {
-    return apiService.get<MiningJob[]>(`${this.baseUrl}/jobs`, { userId });
+    try {
+      const response = await apiService.get<MiningJob[]>(`${this.baseUrl}/jobs`, { userId });
+      return Array.isArray(response) ? response : [];
+    } catch (error) {
+      console.error('Failed to get user jobs:', error);
+      return [];
+    }
   }
 
   async getMiningResult(jobId: string): Promise<MiningResult> {
@@ -180,11 +186,23 @@ class DataMiningService {
   }
 
   async discoverPatterns(dataSource: string, patternType: string, filters: Record<string, any>): Promise<DataPattern[]> {
-    return apiService.post<DataPattern[]>(`${this.baseUrl}/patterns/discover`, { dataSource, patternType, filters });
+    try {
+      const response = await apiService.post<DataPattern[]>(`${this.baseUrl}/patterns/discover`, { dataSource, patternType, filters });
+      return Array.isArray(response) ? response : [];
+    } catch (error) {
+      console.error('Failed to discover patterns:', error);
+      return [];
+    }
   }
 
   async generateInsights(dataSource: string, insightType: string, parameters: Record<string, any>): Promise<DataInsight[]> {
-    return apiService.post<DataInsight[]>(`${this.baseUrl}/insights/generate`, { dataSource, insightType, parameters });
+    try {
+      const response = await apiService.post<DataInsight[]>(`${this.baseUrl}/insights/generate`, { dataSource, insightType, parameters });
+      return Array.isArray(response) ? response : [];
+    } catch (error) {
+      console.error('Failed to generate insights:', error);
+      return [];
+    }
   }
 
   async createPredictiveModel(name: string, modelType: string, targetVariable: string, features: string[], parameters: Record<string, any>, userId: string): Promise<PredictiveModel> {

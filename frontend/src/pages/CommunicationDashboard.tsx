@@ -26,18 +26,24 @@ const CommunicationDashboard: React.FC = () => {
       setLoading(true);
       
       const [conferencesData, chatSessionsData, documentsData, languagesData] = await Promise.all([
-        videoConferencingService.getUserConferences(),
-        chatBotService.getUserSessions(),
-        documentCollaborationService.getCollaborativeDocuments(),
-        translationService.getSupportedLanguages()
+        videoConferencingService.getUserConferences().catch(() => []),
+        chatBotService.getUserSessions().catch(() => []),
+        documentCollaborationService.getCollaborativeDocuments().catch(() => []),
+        translationService.getSupportedLanguages().catch(() => [])
       ]);
 
-      setConferences(conferencesData);
-      setChatSessions(chatSessionsData);
-      setDocuments(documentsData);
-      setSupportedLanguages(languagesData);
+      // Ensure all data is arrays
+      setConferences(Array.isArray(conferencesData) ? conferencesData : []);
+      setChatSessions(Array.isArray(chatSessionsData) ? chatSessionsData : []);
+      setDocuments(Array.isArray(documentsData) ? documentsData : []);
+      setSupportedLanguages(Array.isArray(languagesData) ? languagesData : []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load data');
+      // Set empty arrays on error
+      setConferences([]);
+      setChatSessions([]);
+      setDocuments([]);
+      setSupportedLanguages([]);
     } finally {
       setLoading(false);
     }

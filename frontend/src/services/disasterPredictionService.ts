@@ -72,10 +72,16 @@ class DisasterPredictionService {
   }
 
   async getPredictions(modelId: string, startTime: string, endTime: string): Promise<DisasterPrediction[]> {
-    return apiService.get(`${this.baseUrl}/models/${modelId}/predictions`, {
-      startTime,
-      endTime
-    });
+    try {
+      const response = await apiService.get<DisasterPrediction[]>(`${this.baseUrl}/models/${modelId}/predictions`, {
+        startTime,
+        endTime
+      });
+      return Array.isArray(response) ? response : [];
+    } catch (error) {
+      console.error('Failed to get predictions:', error);
+      return [];
+    }
   }
 
   async evaluateModel(modelId: string, testData: any[]): Promise<any> {
@@ -87,7 +93,13 @@ class DisasterPredictionService {
   }
 
   async getModels(): Promise<DisasterPredictionModel[]> {
-    return apiService.get(`${this.baseUrl}/models`);
+    try {
+      const response = await apiService.get<DisasterPredictionModel[]>(`${this.baseUrl}/models`);
+      return Array.isArray(response) ? response : [];
+    } catch (error) {
+      console.error('Failed to get models:', error);
+      return [];
+    }
   }
 }
 

@@ -91,10 +91,16 @@ class TrendAnalysisService {
     startTime: string,
     endTime: string
   ): Promise<TrendResult[]> {
-    return apiService.get(`${this.baseUrl}/analyzers/${analyzerId}/trends`, {
-      startTime,
-      endTime
-    });
+    try {
+      const response = await apiService.get<TrendResult[]>(`${this.baseUrl}/analyzers/${analyzerId}/trends`, {
+        startTime,
+        endTime
+      });
+      return Array.isArray(response) ? response : [];
+    } catch (error) {
+      console.error('Failed to get trends:', error);
+      return [];
+    }
   }
 
   async createAlert(
@@ -126,7 +132,13 @@ class TrendAnalysisService {
   }
 
   async getAnalyzers(): Promise<TrendAnalyzer[]> {
-    return apiService.get(`${this.baseUrl}/analyzers`);
+    try {
+      const response = await apiService.get<TrendAnalyzer[]>(`${this.baseUrl}/analyzers`);
+      return Array.isArray(response) ? response : [];
+    } catch (error) {
+      console.error('Failed to get analyzers:', error);
+      return [];
+    }
   }
 
   async updateAnalyzer(

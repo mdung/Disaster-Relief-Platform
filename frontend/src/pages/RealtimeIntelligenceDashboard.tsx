@@ -49,7 +49,7 @@ const RealtimeIntelligenceDashboard: React.FC = () => {
     try {
       setLoading(true);
       
-      // Load data from all realtime services
+      // Load data from all realtime services with error handling
       const [
         processorsData,
         correlationsData,
@@ -57,35 +57,36 @@ const RealtimeIntelligenceDashboard: React.FC = () => {
         anomaliesData,
         patternsData
       ] = await Promise.all([
-        streamProcessingService.getProcessors(),
-        eventCorrelationService.findCorrelations(),
+        streamProcessingService.getProcessors().catch(() => []),
+        eventCorrelationService.findCorrelations().catch(() => []),
         trendAnalysisService.getAnalyzers().then(analyzers => 
           Promise.all(analyzers.map(analyzer => 
             trendAnalysisService.getTrends(analyzer.id, 
               new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
               new Date().toISOString()
-            )
+            ).catch(() => [])
           ))
-        ).then(results => results.flat()),
+        ).then(results => results.flat()).catch(() => []),
         anomalyDetectionService.getDetectors().then(detectors =>
           Promise.all(detectors.map(detector =>
             anomalyDetectionService.getAnomalies(detector.id,
               new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
               new Date().toISOString()
-            )
+            ).catch(() => [])
           ))
-        ).then(results => results.flat()),
+        ).then(results => results.flat()).catch(() => []),
         eventCorrelationService.detectPattern('relief_operations', 'emergency', 
           new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
           new Date().toISOString()
-        ).then(pattern => pattern ? [pattern] : [])
+        ).then(pattern => pattern ? [pattern] : []).catch(() => [])
       ]);
       
-      setProcessors(processorsData);
-      setCorrelations(correlationsData);
-      setTrends(trendsData);
-      setAnomalies(anomaliesData);
-      setPatterns(patternsData);
+      // Ensure all data is arrays
+      setProcessors(Array.isArray(processorsData) ? processorsData : []);
+      setCorrelations(Array.isArray(correlationsData) ? correlationsData : []);
+      setTrends(Array.isArray(trendsData) ? trendsData : []);
+      setAnomalies(Array.isArray(anomaliesData) ? anomaliesData : []);
+      setPatterns(Array.isArray(patternsData) ? patternsData : []);
       
     } catch (err) {
       setError('Failed to load realtime intelligence data');

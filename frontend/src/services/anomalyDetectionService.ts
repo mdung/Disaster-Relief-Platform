@@ -122,11 +122,17 @@ class AnomalyDetectionService {
     startTime: string,
     endTime: string
   ): Promise<Anomaly[]> {
-    return apiService.get(`${this.baseUrl}/anomalies`, {
-      detectorId,
-      startTime,
-      endTime
-    });
+    try {
+      const response = await apiService.get<Anomaly[]>(`${this.baseUrl}/anomalies`, {
+        detectorId,
+        startTime,
+        endTime
+      });
+      return Array.isArray(response) ? response : [];
+    } catch (error) {
+      console.error('Failed to get anomalies:', error);
+      return [];
+    }
   }
 
   async getAnomalySummary(
@@ -173,7 +179,13 @@ class AnomalyDetectionService {
   }
 
   async getDetectors(): Promise<AnomalyDetector[]> {
-    return apiService.get(`${this.baseUrl}/detectors`);
+    try {
+      const response = await apiService.get<AnomalyDetector[]>(`${this.baseUrl}/detectors`);
+      return Array.isArray(response) ? response : [];
+    } catch (error) {
+      console.error('Failed to get detectors:', error);
+      return [];
+    }
   }
 
   async updateDetector(

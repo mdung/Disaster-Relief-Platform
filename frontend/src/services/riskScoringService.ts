@@ -44,7 +44,13 @@ class RiskScoringService {
   }
 
   async getRiskScores(startTime: string, endTime: string): Promise<RiskScore[]> {
-    return apiService.get(`${this.baseUrl}/scores`, { startTime, endTime });
+    try {
+      const response = await apiService.get<RiskScore[]>(`${this.baseUrl}/scores`, { startTime, endTime });
+      return Array.isArray(response) ? response : [];
+    } catch (error) {
+      console.error('Failed to get risk scores:', error);
+      return [];
+    }
   }
 
   async getRiskScore(scoreId: string): Promise<RiskScore> {

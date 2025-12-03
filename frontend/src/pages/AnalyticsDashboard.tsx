@@ -49,7 +49,7 @@ const AnalyticsDashboard: React.FC = () => {
     try {
       setLoading(true);
       
-      // Load data from all analytics services
+      // Load data from all analytics services with error handling
       const [
         dashboardsData,
         reportsData,
@@ -58,20 +58,21 @@ const AnalyticsDashboard: React.FC = () => {
         patternsData,
         insightsData
       ] = await Promise.all([
-        customDashboardService.getUserDashboards('user-123', 'ADMIN'),
-        advancedReportingService.getUserReports('user-123'),
-        dataMiningService.getUserJobs('user-123'),
-        roiAnalysisService.getUserAnalyses('user-123'),
-        dataMiningService.discoverPatterns('relief_operations', 'trend', {}),
-        dataMiningService.generateInsights('relief_operations', 'optimization', {})
+        customDashboardService.getUserDashboards('user-123', 'ADMIN').catch(() => []),
+        advancedReportingService.getUserReports('user-123').catch(() => []),
+        dataMiningService.getUserJobs('user-123').catch(() => []),
+        roiAnalysisService.getUserAnalyses('user-123').catch(() => []),
+        dataMiningService.discoverPatterns('relief_operations', 'trend', {}).catch(() => []),
+        dataMiningService.generateInsights('relief_operations', 'optimization', {}).catch(() => [])
       ]);
       
-      setDashboards(dashboardsData);
-      setReports(reportsData);
-      setMiningJobs(miningJobsData);
-      setRoiAnalyses(roiAnalysesData);
-      setPatterns(patternsData);
-      setInsights(insightsData);
+      // Ensure all data is arrays
+      setDashboards(Array.isArray(dashboardsData) ? dashboardsData : []);
+      setReports(Array.isArray(reportsData) ? reportsData : []);
+      setMiningJobs(Array.isArray(miningJobsData) ? miningJobsData : []);
+      setRoiAnalyses(Array.isArray(roiAnalysesData) ? roiAnalysesData : []);
+      setPatterns(Array.isArray(patternsData) ? patternsData : []);
+      setInsights(Array.isArray(insightsData) ? insightsData : []);
       
     } catch (err) {
       setError('Failed to load analytics data');

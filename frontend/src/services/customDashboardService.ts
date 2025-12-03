@@ -68,11 +68,23 @@ class CustomDashboardService {
   }
 
   async getUserDashboards(userId: string, userRole: string): Promise<Dashboard[]> {
-    return apiService.get<Dashboard[]>(`${this.baseUrl}`, { userId, userRole });
+    try {
+      const response = await apiService.get<Dashboard[]>(`${this.baseUrl}`, { userId, userRole });
+      return Array.isArray(response) ? response : [];
+    } catch (error) {
+      console.error('Failed to get user dashboards:', error);
+      return [];
+    }
   }
 
   async getPublicDashboards(): Promise<Dashboard[]> {
-    return apiService.get<Dashboard[]>(`${this.baseUrl}/public`);
+    try {
+      const response = await apiService.get<Dashboard[]>(`${this.baseUrl}/public`);
+      return Array.isArray(response) ? response : [];
+    } catch (error) {
+      console.error('Failed to get public dashboards:', error);
+      return [];
+    }
   }
 
   async addWidget(dashboardId: string, widgetType: string, title: string, configuration: Record<string, any>, position: Record<string, any>): Promise<DashboardWidget> {
@@ -84,7 +96,13 @@ class CustomDashboardService {
   }
 
   async getDashboardWidgets(dashboardId: string): Promise<DashboardWidget[]> {
-    return apiService.get<DashboardWidget[]>(`${this.baseUrl}/${dashboardId}/widgets`);
+    try {
+      const response = await apiService.get<DashboardWidget[]>(`${this.baseUrl}/${dashboardId}/widgets`);
+      return Array.isArray(response) ? response : [];
+    } catch (error) {
+      console.error('Failed to get dashboard widgets:', error);
+      return [];
+    }
   }
 
   async getWidget(widgetId: string): Promise<DashboardWidget> {

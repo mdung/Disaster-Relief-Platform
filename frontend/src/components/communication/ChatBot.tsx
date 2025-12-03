@@ -41,9 +41,12 @@ const ChatBot: React.FC<ChatBotProps> = ({ onEmergencyDetected, onClose }) => {
     try {
       const newSession = await chatBotService.startNewSession();
       setSession(newSession);
-      setMessages(newSession.messages);
+      // Ensure messages is always an array
+      setMessages(Array.isArray(newSession?.messages) ? newSession.messages : []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to initialize chat');
+      // Initialize with empty messages array on error
+      setMessages([]);
     }
   };
 
@@ -159,7 +162,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ onEmergencyDetected, onClose }) => {
 
       {/* Messages */}
       <div className="flex-1 p-4 overflow-y-auto space-y-3">
-        {messages.map((message) => (
+        {(Array.isArray(messages) ? messages : []).map((message) => (
           <div
             key={message.id}
             className={`flex ${message.messageType === 'USER' ? 'justify-end' : 'justify-start'}`}
@@ -206,7 +209,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ onEmergencyDetected, onClose }) => {
       {messages.length > 0 && (
         <div className="p-4 border-t border-gray-200">
           <div className="flex flex-wrap gap-2">
-            {getQuickReplies().slice(0, 4).map((reply) => (
+            {(getQuickReplies() || []).slice(0, 4).map((reply) => (
               <button
                 key={reply}
                 onClick={() => sendQuickReply(reply)}

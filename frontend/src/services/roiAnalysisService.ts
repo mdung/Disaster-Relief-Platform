@@ -175,7 +175,13 @@ class ROIAnalysisService {
   }
 
   async getUserAnalyses(userId: string): Promise<ROIAnalysis[]> {
-    return apiService.get<ROIAnalysis[]>(`${this.baseUrl}/analyses`, { userId });
+    try {
+      const response = await apiService.get<ROIAnalysis[]>(`${this.baseUrl}/analyses`, { userId });
+      return Array.isArray(response) ? response : [];
+    } catch (error) {
+      console.error('Failed to get user analyses:', error);
+      return [];
+    }
   }
 
   async calculateROI(projectId: string, startDate: string, endDate: string, parameters: Record<string, any>): Promise<ROIMetrics> {

@@ -81,16 +81,38 @@ class ChatBotService {
    * Get user's chat sessions
    */
   async getUserSessions(): Promise<ChatSession[]> {
-    const response = await apiService.get('/chatbot/sessions');
-    return response;
+    try {
+      const response = await apiService.get<ChatSession[]>('/chatbot/sessions');
+      return Array.isArray(response) ? response : [];
+    } catch (error) {
+      console.error('Failed to get user sessions:', error);
+      return [];
+    }
   }
 
   /**
    * Get chat session details
    */
   async getChatSession(sessionId: string): Promise<ChatSession> {
-    const response = await apiService.get(`/chatbot/sessions/${sessionId}`);
-    return response;
+    try {
+      const response = await apiService.get<ChatSession>(`/chatbot/sessions/${sessionId}`);
+      // Ensure messages is always an array
+      if (response && !Array.isArray(response.messages)) {
+        response.messages = [];
+      }
+      return response;
+    } catch (error) {
+      console.error('Failed to get chat session:', error);
+      // Return a default session structure
+      return {
+        id: sessionId,
+        userId: '',
+        createdAt: new Date().toISOString(),
+        lastActivity: new Date().toISOString(),
+        status: 'ACTIVE',
+        messages: []
+      };
+    }
   }
 
   /**
@@ -108,14 +130,35 @@ class ChatBotService {
    * Start new chat session
    */
   async startNewSession(): Promise<ChatSession> {
-    // Generate a new session ID first
-    const sessionId = this.generateSessionId();
-    
-    // Send a greeting message to start new session
-    const response = await this.sendMessage('Hello', sessionId);
-    
-    // Get the session details
-    return this.getChatSession(response.sessionId);
+    try {
+      // Generate a new session ID first
+      const sessionId = this.generateSessionId();
+      
+      // Send a greeting message to start new session
+      const response = await this.sendMessage('Hello', sessionId);
+      
+      // Get the session details
+      const session = await this.getChatSession(response.sessionId);
+      
+      // Ensure messages is always an array
+      if (!Array.isArray(session.messages)) {
+        session.messages = [];
+      }
+      
+      return session;
+    } catch (error) {
+      console.error('Failed to start new session:', error);
+      // Return a default session structure
+      const sessionId = this.generateSessionId();
+      return {
+        id: sessionId,
+        userId: '',
+        createdAt: new Date().toISOString(),
+        lastActivity: new Date().toISOString(),
+        status: 'ACTIVE',
+        messages: []
+      };
+    }
   }
 
   /**

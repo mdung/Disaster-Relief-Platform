@@ -69,10 +69,16 @@ class ResourceForecastingService {
   }
 
   async getForecasts(modelId: string, startTime: string, endTime: string): Promise<DemandForecast[]> {
-    return apiService.get(`${this.baseUrl}/models/${modelId}/forecasts`, {
-      startTime,
-      endTime
-    });
+    try {
+      const response = await apiService.get<DemandForecast[]>(`${this.baseUrl}/models/${modelId}/forecasts`, {
+        startTime,
+        endTime
+      });
+      return Array.isArray(response) ? response : [];
+    } catch (error) {
+      console.error('Failed to get forecasts:', error);
+      return [];
+    }
   }
 
   async getModel(modelId: string): Promise<ForecastingModel> {
@@ -80,7 +86,13 @@ class ResourceForecastingService {
   }
 
   async getModels(): Promise<ForecastingModel[]> {
-    return apiService.get(`${this.baseUrl}/models`);
+    try {
+      const response = await apiService.get<ForecastingModel[]>(`${this.baseUrl}/models`);
+      return Array.isArray(response) ? response : [];
+    } catch (error) {
+      console.error('Failed to get forecasting models:', error);
+      return [];
+    }
   }
 }
 
