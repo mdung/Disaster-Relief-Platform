@@ -31,17 +31,36 @@ public class AdvancedReportingController {
 
     private final AdvancedReportingService advancedReportingService;
 
+    // DTOs to match JSON payloads from frontend
+    @lombok.Data
+    public static class CreateReportRequest {
+        private String name;
+        private String description;
+        private String reportType;
+        private String userId;
+        private java.util.List<AdvancedReportingService.ReportDataSource> dataSources;
+        private java.util.Map<String, Object> configuration;
+    }
+
+    @lombok.Data
+    public static class UpdateReportRequest {
+        private String name;
+        private String description;
+        private java.util.List<AdvancedReportingService.ReportDataSource> dataSources;
+        private java.util.Map<String, Object> configuration;
+    }
+
     @PostMapping
     @Operation(summary = "Create advanced report")
-    public ResponseEntity<Report> createReport(
-            @RequestParam String name,
-            @RequestParam String description,
-            @RequestParam String reportType,
-            @RequestParam String userId,
-            @RequestBody List<ReportDataSource> dataSources,
-            @RequestBody Map<String, Object> configuration) {
-        
-        Report report = advancedReportingService.createReport(name, description, reportType, userId, dataSources, configuration);
+    public ResponseEntity<Report> createReport(@RequestBody CreateReportRequest request) {
+        Report report = advancedReportingService.createReport(
+                request.getName(),
+                request.getDescription(),
+                request.getReportType(),
+                request.getUserId(),
+                request.getDataSources(),
+                request.getConfiguration() != null ? request.getConfiguration() : Map.of()
+        );
         return ResponseEntity.ok(report);
     }
 
@@ -49,12 +68,15 @@ public class AdvancedReportingController {
     @Operation(summary = "Update advanced report")
     public ResponseEntity<Report> updateReport(
             @PathVariable String reportId,
-            @RequestParam String name,
-            @RequestParam String description,
-            @RequestBody List<ReportDataSource> dataSources,
-            @RequestBody Map<String, Object> configuration) {
-        
-        Report report = advancedReportingService.updateReport(reportId, name, description, dataSources, configuration);
+            @RequestBody UpdateReportRequest request) {
+
+        Report report = advancedReportingService.updateReport(
+                reportId,
+                request.getName(),
+                request.getDescription(),
+                request.getDataSources(),
+                request.getConfiguration() != null ? request.getConfiguration() : Map.of()
+        );
         return ResponseEntity.ok(report);
     }
 

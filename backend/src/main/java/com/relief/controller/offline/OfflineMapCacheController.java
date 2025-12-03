@@ -18,6 +18,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -169,23 +171,56 @@ public class OfflineMapCacheController {
     @Operation(summary = "Get global statistics", description = "Get global statistics for all offline map caches")
     @PreAuthorize("hasRole('ADMIN') or hasRole('DISPATCHER')")
     public ResponseEntity<Map<String, Object>> getGlobalStatistics(
-            @Parameter(description = "Start date") @RequestParam(required = false) LocalDateTime startDate,
-            @Parameter(description = "End date") @RequestParam(required = false) LocalDateTime endDate) {
-        log.info("Getting global statistics");
+            @Parameter(description = "Start date (ISO format: yyyy-MM-ddTHH:mm:ss)") @RequestParam(required = false) 
+            String startDate,
+            @Parameter(description = "End date (ISO format: yyyy-MM-ddTHH:mm:ss)") @RequestParam(required = false) 
+            String endDate) {
+        log.info("Getting global statistics - startDate: {}, endDate: {}", startDate, endDate);
         
-        LocalDateTime start = startDate != null ? startDate : LocalDateTime.now().minusDays(30);
-        LocalDateTime end = endDate != null ? endDate : LocalDateTime.now();
+        LocalDateTime start;
+        LocalDateTime end;
+        
+        try {
+            if (startDate != null && !startDate.trim().isEmpty()) {
+                start = LocalDateTime.parse(startDate, DateTimeFormatter.ISO_DATE_TIME);
+            } else {
+                start = LocalDateTime.now().minusDays(30);
+            }
+            
+            if (endDate != null && !endDate.trim().isEmpty()) {
+                end = LocalDateTime.parse(endDate, DateTimeFormatter.ISO_DATE_TIME);
+            } else {
+                end = LocalDateTime.now();
+            }
+        } catch (DateTimeParseException e) {
+            log.error("Invalid date format provided: startDate={}, endDate={}", startDate, endDate, e);
+            return ResponseEntity.badRequest().build();
+        }
         
         var statistics = offlineMapCacheService.getCacheStatistics(start, end);
         
+        // Handle null case when no caches exist
+        if (statistics == null) {
+            Map<String, Object> result = Map.of(
+                "totalCaches", 0L,
+                "completedCaches", 0L,
+                "downloadingCaches", 0L,
+                "failedCaches", 0L,
+                "pendingCaches", 0L,
+                "totalSizeBytes", 0L,
+                "avgDownloadProgress", 0.0
+            );
+            return ResponseEntity.ok(result);
+        }
+        
         Map<String, Object> result = Map.of(
-            "totalCaches", statistics.getTotalCaches(),
-            "completedCaches", statistics.getCompletedCaches(),
-            "downloadingCaches", statistics.getDownloadingCaches(),
-            "failedCaches", statistics.getFailedCaches(),
-            "pendingCaches", statistics.getPendingCaches(),
-            "totalSizeBytes", statistics.getTotalSizeBytes(),
-            "avgDownloadProgress", statistics.getAvgDownloadProgress()
+            "totalCaches", statistics.getTotalCaches() != null ? statistics.getTotalCaches() : 0L,
+            "completedCaches", statistics.getCompletedCaches() != null ? statistics.getCompletedCaches() : 0L,
+            "downloadingCaches", statistics.getDownloadingCaches() != null ? statistics.getDownloadingCaches() : 0L,
+            "failedCaches", statistics.getFailedCaches() != null ? statistics.getFailedCaches() : 0L,
+            "pendingCaches", statistics.getPendingCaches() != null ? statistics.getPendingCaches() : 0L,
+            "totalSizeBytes", statistics.getTotalSizeBytes() != null ? statistics.getTotalSizeBytes() : 0L,
+            "avgDownloadProgress", statistics.getAvgDownloadProgress() != null ? statistics.getAvgDownloadProgress() : 0.0
         );
         
         return ResponseEntity.ok(result);
@@ -195,12 +230,31 @@ public class OfflineMapCacheController {
     @Operation(summary = "Get regional statistics", description = "Get statistics by region for offline map caches")
     @PreAuthorize("hasRole('ADMIN') or hasRole('DISPATCHER')")
     public ResponseEntity<List<Map<String, Object>>> getRegionalStatistics(
-            @Parameter(description = "Start date") @RequestParam(required = false) LocalDateTime startDate,
-            @Parameter(description = "End date") @RequestParam(required = false) LocalDateTime endDate) {
-        log.info("Getting regional statistics");
+            @Parameter(description = "Start date (ISO format: yyyy-MM-ddTHH:mm:ss)") @RequestParam(required = false) 
+            String startDate,
+            @Parameter(description = "End date (ISO format: yyyy-MM-ddTHH:mm:ss)") @RequestParam(required = false) 
+            String endDate) {
+        log.info("Getting regional statistics - startDate: {}, endDate: {}", startDate, endDate);
         
-        LocalDateTime start = startDate != null ? startDate : LocalDateTime.now().minusDays(30);
-        LocalDateTime end = endDate != null ? endDate : LocalDateTime.now();
+        LocalDateTime start;
+        LocalDateTime end;
+        
+        try {
+            if (startDate != null && !startDate.trim().isEmpty()) {
+                start = LocalDateTime.parse(startDate, DateTimeFormatter.ISO_DATE_TIME);
+            } else {
+                start = LocalDateTime.now().minusDays(30);
+            }
+            
+            if (endDate != null && !endDate.trim().isEmpty()) {
+                end = LocalDateTime.parse(endDate, DateTimeFormatter.ISO_DATE_TIME);
+            } else {
+                end = LocalDateTime.now();
+            }
+        } catch (DateTimeParseException e) {
+            log.error("Invalid date format provided: startDate={}, endDate={}", startDate, endDate, e);
+            return ResponseEntity.badRequest().build();
+        }
         
         var regionStatistics = offlineMapCacheService.getCacheStatisticsByRegion(start, end);
         

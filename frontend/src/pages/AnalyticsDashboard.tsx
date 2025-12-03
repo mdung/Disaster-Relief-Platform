@@ -41,6 +41,9 @@ const AnalyticsDashboard: React.FC = () => {
   const [patterns, setPatterns] = useState<DataPattern[]>([]);
   const [insights, setInsights] = useState<DataInsight[]>([]);
 
+  const USER_ID = 'user-123';
+  const USER_ROLE = 'ADMIN';
+
   useEffect(() => {
     loadAnalyticsData();
   }, []);
@@ -125,6 +128,95 @@ const AnalyticsDashboard: React.FC = () => {
     }
   };
 
+  const handleNewDashboard = async () => {
+    try {
+      const name = window.prompt('Dashboard name', 'Operations Overview (Custom)');
+      if (!name) return;
+      const description = window.prompt('Description', 'Quick dashboard created from Analytics page') || '';
+      const created = await customDashboardService.createDashboard(
+        name,
+        description,
+        USER_ID,
+        USER_ROLE,
+        true,
+        { widgets: [] }
+      );
+      setDashboards((prev) => [...prev, created]);
+      setActiveTab('dashboards');
+    } catch (err) {
+      console.error('Failed to create dashboard', err);
+      window.alert('Failed to create dashboard. Please check console for details.');
+    }
+  };
+
+  const handleCreateReport = async () => {
+    try {
+      const name = window.prompt('Report name', 'Operational Summary Report');
+      if (!name) return;
+      const description = window.prompt('Description', 'Quick analytics report for relief operations') || '';
+      const created = await advancedReportingService.createReport(
+        name,
+        description,
+        'ANALYTICS',
+        USER_ID,
+        [],
+        {}
+      );
+      setReports((prev) => [...prev, created]);
+      setActiveTab('reports');
+    } catch (err) {
+      console.error('Failed to create report', err);
+      window.alert('Failed to create report. Please check console for details.');
+    }
+  };
+
+  const handleNewMiningJob = async () => {
+    try {
+      const name = window.prompt('Mining job name', 'Needs Trends - Ad hoc');
+      if (!name) return;
+      const description = window.prompt('Description', 'Analyze trends for recent needs requests') || '';
+      const created = await dataMiningService.createMiningJob(
+        name,
+        description,
+        'TIME_SERIES',
+        ['needs_requests'],
+        { window_days: 7 },
+        USER_ID
+      );
+      setMiningJobs((prev) => [...prev, created]);
+      setActiveTab('mining');
+    } catch (err) {
+      console.error('Failed to create mining job', err);
+      window.alert('Failed to create mining job. Please check console for details.');
+    }
+  };
+
+  const handleNewRoiAnalysis = async () => {
+    try {
+      const name = window.prompt('ROI analysis name', 'Logistics Optimization ROI');
+      if (!name) return;
+      const description = window.prompt('Description', 'Analyze ROI for logistics optimisation project') || '';
+      const created = await roiAnalysisService.createAnalysis(
+        name,
+        description,
+        'COMPREHENSIVE',
+        'project-logistics-001',
+        { region: 'Global' },
+        USER_ID
+      );
+      setRoiAnalyses((prev) => [...prev, created]);
+      setActiveTab('roi');
+    } catch (err) {
+      console.error('Failed to create ROI analysis', err);
+      window.alert('Failed to create ROI analysis. Please check console for details.');
+    }
+  };
+
+  const handleNewAnalysis = async () => {
+    // From the Overview header, create a generic data mining job as a quick analysis
+    await handleNewMiningJob();
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -163,7 +255,10 @@ const AnalyticsDashboard: React.FC = () => {
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
           </button>
-          <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+          <button
+            onClick={handleNewAnalysis}
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+          >
             <Plus className="h-4 w-4 mr-2" />
             New Analysis
           </button>
@@ -319,7 +414,10 @@ const AnalyticsDashboard: React.FC = () => {
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <h3 className="text-lg leading-6 font-medium text-gray-900">Custom Dashboards</h3>
-              <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+              <button
+                onClick={handleNewDashboard}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 Create Dashboard
               </button>
@@ -362,7 +460,10 @@ const AnalyticsDashboard: React.FC = () => {
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <h3 className="text-lg leading-6 font-medium text-gray-900">Advanced Reports</h3>
-              <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+              <button
+                onClick={handleCreateReport}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 Create Report
               </button>
@@ -418,7 +519,10 @@ const AnalyticsDashboard: React.FC = () => {
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <h3 className="text-lg leading-6 font-medium text-gray-900">Data Mining</h3>
-              <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+              <button
+                onClick={handleNewMiningJob}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 New Mining Job
               </button>
@@ -481,7 +585,10 @@ const AnalyticsDashboard: React.FC = () => {
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <h3 className="text-lg leading-6 font-medium text-gray-900">ROI Analysis</h3>
-              <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+              <button
+                onClick={handleNewRoiAnalysis}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 New ROI Analysis
               </button>

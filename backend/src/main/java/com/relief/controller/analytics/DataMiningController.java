@@ -35,17 +35,27 @@ public class DataMiningController {
 
     private final DataMiningService dataMiningService;
 
+    @lombok.Data
+    public static class CreateMiningJobRequest {
+        private String name;
+        private String description;
+        private String algorithm;
+        private java.util.List<String> dataSources;
+        private java.util.Map<String, Object> parameters;
+        private String userId;
+    }
+
     @PostMapping("/jobs")
     @Operation(summary = "Create data mining job")
-    public ResponseEntity<MiningJob> createMiningJob(
-            @RequestParam String name,
-            @RequestParam String description,
-            @RequestParam String algorithm,
-            @RequestBody List<String> dataSources,
-            @RequestBody Map<String, Object> parameters,
-            @RequestParam String userId) {
-        
-        MiningJob job = dataMiningService.createMiningJob(name, description, algorithm, dataSources, parameters, userId);
+    public ResponseEntity<MiningJob> createMiningJob(@RequestBody CreateMiningJobRequest request) {
+        MiningJob job = dataMiningService.createMiningJob(
+                request.getName(),
+                request.getDescription(),
+                request.getAlgorithm(),
+                request.getDataSources() != null ? request.getDataSources() : List.of(),
+                request.getParameters() != null ? request.getParameters() : Map.of(),
+                request.getUserId()
+        );
         return ResponseEntity.ok(job);
     }
 

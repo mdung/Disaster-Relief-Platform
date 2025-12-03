@@ -190,9 +190,7 @@ public class DonationManagementController {
                 donations = donationManagementService.getCampaignDonations(campaignId, limit);
             } else {
                 // Get all donations with limit
-                donations = donationManagementService.getDonationsByDonor(null).stream()
-                    .limit(limit)
-                    .collect(Collectors.toList());
+                donations = donationManagementService.getAllDonations(limit);
             }
             
             // Apply additional filters

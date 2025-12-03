@@ -21,6 +21,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
 
@@ -246,24 +248,58 @@ public class LocationAnalyticsController {
     @Operation(summary = "Get location history statistics", description = "Get statistics for location history")
     @PreAuthorize("hasRole('ADMIN') or hasRole('DISPATCHER')")
     public ResponseEntity<Map<String, Object>> getLocationHistoryStatistics(
-            @Parameter(description = "Start date") @RequestParam(required = false) LocalDateTime startDate,
-            @Parameter(description = "End date") @RequestParam(required = false) LocalDateTime endDate) {
-        log.info("Getting location history statistics");
+            @Parameter(description = "Start date (ISO format: yyyy-MM-ddTHH:mm:ss)") @RequestParam(required = false) 
+            String startDate,
+            @Parameter(description = "End date (ISO format: yyyy-MM-ddTHH:mm:ss)") @RequestParam(required = false) 
+            String endDate) {
+        log.info("Getting location history statistics - startDate: {}, endDate: {}", startDate, endDate);
         
-        LocalDateTime start = startDate != null ? startDate : LocalDateTime.now().minusDays(30);
-        LocalDateTime end = endDate != null ? endDate : LocalDateTime.now();
+        LocalDateTime start;
+        LocalDateTime end;
+        
+        try {
+            if (startDate != null && !startDate.trim().isEmpty()) {
+                start = LocalDateTime.parse(startDate, DateTimeFormatter.ISO_DATE_TIME);
+            } else {
+                start = LocalDateTime.now().minusDays(30);
+            }
+            
+            if (endDate != null && !endDate.trim().isEmpty()) {
+                end = LocalDateTime.parse(endDate, DateTimeFormatter.ISO_DATE_TIME);
+            } else {
+                end = LocalDateTime.now();
+            }
+        } catch (DateTimeParseException e) {
+            log.error("Invalid date format provided: startDate={}, endDate={}", startDate, endDate, e);
+            return ResponseEntity.badRequest().build();
+        }
         
         var statistics = locationHistoryRepository.getLocationHistoryStatistics(start, end);
         
+        // Handle null case when no data exists
+        if (statistics == null) {
+            Map<String, Object> result = Map.of(
+                "totalLocations", 0L,
+                "stationaryLocations", 0L,
+                "significantLocations", 0L,
+                "avgSpeed", 0.0,
+                "maxSpeed", 0.0,
+                "avgAccuracy", 0.0,
+                "uniqueEntityTypes", 0L,
+                "uniqueEntities", 0L
+            );
+            return ResponseEntity.ok(result);
+        }
+        
         Map<String, Object> result = Map.of(
-            "totalLocations", statistics.getTotalLocations(),
-            "stationaryLocations", statistics.getStationaryLocations(),
-            "significantLocations", statistics.getSignificantLocations(),
-            "avgSpeed", statistics.getAvgSpeed(),
-            "maxSpeed", statistics.getMaxSpeed(),
-            "avgAccuracy", statistics.getAvgAccuracy(),
-            "uniqueEntityTypes", statistics.getUniqueEntityTypes(),
-            "uniqueEntities", statistics.getUniqueEntities()
+            "totalLocations", statistics.getTotalLocations() != null ? statistics.getTotalLocations() : 0L,
+            "stationaryLocations", statistics.getStationaryLocations() != null ? statistics.getStationaryLocations() : 0L,
+            "significantLocations", statistics.getSignificantLocations() != null ? statistics.getSignificantLocations() : 0L,
+            "avgSpeed", statistics.getAvgSpeed() != null ? statistics.getAvgSpeed() : 0.0,
+            "maxSpeed", statistics.getMaxSpeed() != null ? statistics.getMaxSpeed() : 0.0,
+            "avgAccuracy", statistics.getAvgAccuracy() != null ? statistics.getAvgAccuracy() : 0.0,
+            "uniqueEntityTypes", statistics.getUniqueEntityTypes() != null ? statistics.getUniqueEntityTypes() : 0L,
+            "uniqueEntities", statistics.getUniqueEntities() != null ? statistics.getUniqueEntities() : 0L
         );
         
         return ResponseEntity.ok(result);
@@ -273,27 +309,64 @@ public class LocationAnalyticsController {
     @Operation(summary = "Get pattern statistics", description = "Get statistics for detected patterns")
     @PreAuthorize("hasRole('ADMIN') or hasRole('DISPATCHER')")
     public ResponseEntity<Map<String, Object>> getPatternStatistics(
-            @Parameter(description = "Start date") @RequestParam(required = false) LocalDateTime startDate,
-            @Parameter(description = "End date") @RequestParam(required = false) LocalDateTime endDate) {
-        log.info("Getting pattern statistics");
+            @Parameter(description = "Start date (ISO format: yyyy-MM-ddTHH:mm:ss)") @RequestParam(required = false) 
+            String startDate,
+            @Parameter(description = "End date (ISO format: yyyy-MM-ddTHH:mm:ss)") @RequestParam(required = false) 
+            String endDate) {
+        log.info("Getting pattern statistics - startDate: {}, endDate: {}", startDate, endDate);
         
-        LocalDateTime start = startDate != null ? startDate : LocalDateTime.now().minusDays(30);
-        LocalDateTime end = endDate != null ? endDate : LocalDateTime.now();
+        LocalDateTime start;
+        LocalDateTime end;
+        
+        try {
+            if (startDate != null && !startDate.trim().isEmpty()) {
+                start = LocalDateTime.parse(startDate, DateTimeFormatter.ISO_DATE_TIME);
+            } else {
+                start = LocalDateTime.now().minusDays(30);
+            }
+            
+            if (endDate != null && !endDate.trim().isEmpty()) {
+                end = LocalDateTime.parse(endDate, DateTimeFormatter.ISO_DATE_TIME);
+            } else {
+                end = LocalDateTime.now();
+            }
+        } catch (DateTimeParseException e) {
+            log.error("Invalid date format provided: startDate={}, endDate={}", startDate, endDate, e);
+            return ResponseEntity.badRequest().build();
+        }
         
         var statistics = locationPatternRepository.getPatternStatistics(start, end);
         
+        // Handle null case when no data exists
+        if (statistics == null) {
+            Map<String, Object> result = Map.ofEntries(
+                Map.entry("totalPatterns", 0L),
+                Map.entry("linearPatterns", 0L),
+                Map.entry("circularPatterns", 0L),
+                Map.entry("stationaryPatterns", 0L),
+                Map.entry("routePatterns", 0L),
+                Map.entry("searchPatterns", 0L),
+                Map.entry("recurringPatterns", 0L),
+                Map.entry("optimalPatterns", 0L),
+                Map.entry("avgConfidence", 0.0),
+                Map.entry("avgSpeed", 0.0),
+                Map.entry("avgDistance", 0.0)
+            );
+            return ResponseEntity.ok(result);
+        }
+        
         Map<String, Object> result = Map.ofEntries(
-            Map.entry("totalPatterns", statistics.getTotalPatterns()),
-            Map.entry("linearPatterns", statistics.getLinearPatterns()),
-            Map.entry("circularPatterns", statistics.getCircularPatterns()),
-            Map.entry("stationaryPatterns", statistics.getStationaryPatterns()),
-            Map.entry("routePatterns", statistics.getRoutePatterns()),
-            Map.entry("searchPatterns", statistics.getSearchPatterns()),
-            Map.entry("recurringPatterns", statistics.getRecurringPatterns()),
-            Map.entry("optimalPatterns", statistics.getOptimalPatterns()),
-            Map.entry("avgConfidence", statistics.getAvgConfidence()),
-            Map.entry("avgSpeed", statistics.getAvgSpeed()),
-            Map.entry("avgDistance", statistics.getAvgDistance())
+            Map.entry("totalPatterns", statistics.getTotalPatterns() != null ? statistics.getTotalPatterns() : 0L),
+            Map.entry("linearPatterns", statistics.getLinearPatterns() != null ? statistics.getLinearPatterns() : 0L),
+            Map.entry("circularPatterns", statistics.getCircularPatterns() != null ? statistics.getCircularPatterns() : 0L),
+            Map.entry("stationaryPatterns", statistics.getStationaryPatterns() != null ? statistics.getStationaryPatterns() : 0L),
+            Map.entry("routePatterns", statistics.getRoutePatterns() != null ? statistics.getRoutePatterns() : 0L),
+            Map.entry("searchPatterns", statistics.getSearchPatterns() != null ? statistics.getSearchPatterns() : 0L),
+            Map.entry("recurringPatterns", statistics.getRecurringPatterns() != null ? statistics.getRecurringPatterns() : 0L),
+            Map.entry("optimalPatterns", statistics.getOptimalPatterns() != null ? statistics.getOptimalPatterns() : 0L),
+            Map.entry("avgConfidence", statistics.getAvgConfidence() != null ? statistics.getAvgConfidence() : 0.0),
+            Map.entry("avgSpeed", statistics.getAvgSpeed() != null ? statistics.getAvgSpeed() : 0.0),
+            Map.entry("avgDistance", statistics.getAvgDistance() != null ? statistics.getAvgDistance() : 0.0)
         );
         
         return ResponseEntity.ok(result);
@@ -303,27 +376,64 @@ public class LocationAnalyticsController {
     @Operation(summary = "Get optimization statistics", description = "Get statistics for optimizations")
     @PreAuthorize("hasRole('ADMIN') or hasRole('DISPATCHER')")
     public ResponseEntity<Map<String, Object>> getOptimizationStatistics(
-            @Parameter(description = "Start date") @RequestParam(required = false) LocalDateTime startDate,
-            @Parameter(description = "End date") @RequestParam(required = false) LocalDateTime endDate) {
-        log.info("Getting optimization statistics");
+            @Parameter(description = "Start date (ISO format: yyyy-MM-ddTHH:mm:ss)") @RequestParam(required = false) 
+            String startDate,
+            @Parameter(description = "End date (ISO format: yyyy-MM-ddTHH:mm:ss)") @RequestParam(required = false) 
+            String endDate) {
+        log.info("Getting optimization statistics - startDate: {}, endDate: {}", startDate, endDate);
         
-        LocalDateTime start = startDate != null ? startDate : LocalDateTime.now().minusDays(30);
-        LocalDateTime end = endDate != null ? endDate : LocalDateTime.now();
+        LocalDateTime start;
+        LocalDateTime end;
+        
+        try {
+            if (startDate != null && !startDate.trim().isEmpty()) {
+                start = LocalDateTime.parse(startDate, DateTimeFormatter.ISO_DATE_TIME);
+            } else {
+                start = LocalDateTime.now().minusDays(30);
+            }
+            
+            if (endDate != null && !endDate.trim().isEmpty()) {
+                end = LocalDateTime.parse(endDate, DateTimeFormatter.ISO_DATE_TIME);
+            } else {
+                end = LocalDateTime.now();
+            }
+        } catch (DateTimeParseException e) {
+            log.error("Invalid date format provided: startDate={}, endDate={}", startDate, endDate, e);
+            return ResponseEntity.badRequest().build();
+        }
         
         var statistics = locationOptimizationRepository.getOptimizationStatistics(start, end);
         
+        // Handle null case when no data exists
+        if (statistics == null) {
+            Map<String, Object> result = Map.ofEntries(
+                Map.entry("totalOptimizations", 0L),
+                Map.entry("pendingOptimizations", 0L),
+                Map.entry("approvedOptimizations", 0L),
+                Map.entry("inProgressOptimizations", 0L),
+                Map.entry("completedOptimizations", 0L),
+                Map.entry("implementedOptimizations", 0L),
+                Map.entry("avgCurrentEfficiency", 0.0),
+                Map.entry("avgProjectedEfficiency", 0.0),
+                Map.entry("avgActualEfficiencyGain", 0.0),
+                Map.entry("totalTimeSavings", 0.0),
+                Map.entry("totalDistanceSavings", 0.0)
+            );
+            return ResponseEntity.ok(result);
+        }
+        
         Map<String, Object> result = Map.ofEntries(
-            Map.entry("totalOptimizations", statistics.getTotalOptimizations()),
-            Map.entry("pendingOptimizations", statistics.getPendingOptimizations()),
-            Map.entry("approvedOptimizations", statistics.getApprovedOptimizations()),
-            Map.entry("inProgressOptimizations", statistics.getInProgressOptimizations()),
-            Map.entry("completedOptimizations", statistics.getCompletedOptimizations()),
-            Map.entry("implementedOptimizations", statistics.getImplementedOptimizations()),
-            Map.entry("avgCurrentEfficiency", statistics.getAvgCurrentEfficiency()),
-            Map.entry("avgProjectedEfficiency", statistics.getAvgProjectedEfficiency()),
-            Map.entry("avgActualEfficiencyGain", statistics.getAvgActualEfficiencyGain()),
-            Map.entry("totalTimeSavings", statistics.getTotalTimeSavings()),
-            Map.entry("totalDistanceSavings", statistics.getTotalDistanceSavings())
+            Map.entry("totalOptimizations", statistics.getTotalOptimizations() != null ? statistics.getTotalOptimizations() : 0L),
+            Map.entry("pendingOptimizations", statistics.getPendingOptimizations() != null ? statistics.getPendingOptimizations() : 0L),
+            Map.entry("approvedOptimizations", statistics.getApprovedOptimizations() != null ? statistics.getApprovedOptimizations() : 0L),
+            Map.entry("inProgressOptimizations", statistics.getInProgressOptimizations() != null ? statistics.getInProgressOptimizations() : 0L),
+            Map.entry("completedOptimizations", statistics.getCompletedOptimizations() != null ? statistics.getCompletedOptimizations() : 0L),
+            Map.entry("implementedOptimizations", statistics.getImplementedOptimizations() != null ? statistics.getImplementedOptimizations() : 0L),
+            Map.entry("avgCurrentEfficiency", statistics.getAvgCurrentEfficiency() != null ? statistics.getAvgCurrentEfficiency() : 0.0),
+            Map.entry("avgProjectedEfficiency", statistics.getAvgProjectedEfficiency() != null ? statistics.getAvgProjectedEfficiency() : 0.0),
+            Map.entry("avgActualEfficiencyGain", statistics.getAvgActualEfficiencyGain() != null ? statistics.getAvgActualEfficiencyGain() : 0.0),
+            Map.entry("totalTimeSavings", statistics.getTotalTimeSavings() != null ? statistics.getTotalTimeSavings() : 0.0),
+            Map.entry("totalDistanceSavings", statistics.getTotalDistanceSavings() != null ? statistics.getTotalDistanceSavings() : 0.0)
         );
         
         return ResponseEntity.ok(result);
@@ -333,12 +443,31 @@ public class LocationAnalyticsController {
     @Operation(summary = "Get activity type statistics", description = "Get statistics by activity type")
     @PreAuthorize("hasRole('ADMIN') or hasRole('DISPATCHER')")
     public ResponseEntity<List<Map<String, Object>>> getActivityTypeStatistics(
-            @Parameter(description = "Start date") @RequestParam(required = false) LocalDateTime startDate,
-            @Parameter(description = "End date") @RequestParam(required = false) LocalDateTime endDate) {
-        log.info("Getting activity type statistics");
+            @Parameter(description = "Start date (ISO format: yyyy-MM-ddTHH:mm:ss)") @RequestParam(required = false) 
+            String startDate,
+            @Parameter(description = "End date (ISO format: yyyy-MM-ddTHH:mm:ss)") @RequestParam(required = false) 
+            String endDate) {
+        log.info("Getting activity type statistics - startDate: {}, endDate: {}", startDate, endDate);
         
-        LocalDateTime start = startDate != null ? startDate : LocalDateTime.now().minusDays(30);
-        LocalDateTime end = endDate != null ? endDate : LocalDateTime.now();
+        LocalDateTime start;
+        LocalDateTime end;
+        
+        try {
+            if (startDate != null && !startDate.trim().isEmpty()) {
+                start = LocalDateTime.parse(startDate, DateTimeFormatter.ISO_DATE_TIME);
+            } else {
+                start = LocalDateTime.now().minusDays(30);
+            }
+            
+            if (endDate != null && !endDate.trim().isEmpty()) {
+                end = LocalDateTime.parse(endDate, DateTimeFormatter.ISO_DATE_TIME);
+            } else {
+                end = LocalDateTime.now();
+            }
+        } catch (DateTimeParseException e) {
+            log.error("Invalid date format provided: startDate={}, endDate={}", startDate, endDate, e);
+            return ResponseEntity.badRequest().build();
+        }
         
         var statistics = locationHistoryRepository.getActivityTypeStatistics(start, end);
         
@@ -361,12 +490,31 @@ public class LocationAnalyticsController {
     @Operation(summary = "Get entity movement statistics", description = "Get movement statistics by entity")
     @PreAuthorize("hasRole('ADMIN') or hasRole('DISPATCHER')")
     public ResponseEntity<List<Map<String, Object>>> getEntityMovementStatistics(
-            @Parameter(description = "Start date") @RequestParam(required = false) LocalDateTime startDate,
-            @Parameter(description = "End date") @RequestParam(required = false) LocalDateTime endDate) {
-        log.info("Getting entity movement statistics");
+            @Parameter(description = "Start date (ISO format: yyyy-MM-ddTHH:mm:ss)") @RequestParam(required = false) 
+            String startDate,
+            @Parameter(description = "End date (ISO format: yyyy-MM-ddTHH:mm:ss)") @RequestParam(required = false) 
+            String endDate) {
+        log.info("Getting entity movement statistics - startDate: {}, endDate: {}", startDate, endDate);
         
-        LocalDateTime start = startDate != null ? startDate : LocalDateTime.now().minusDays(30);
-        LocalDateTime end = endDate != null ? endDate : LocalDateTime.now();
+        LocalDateTime start;
+        LocalDateTime end;
+        
+        try {
+            if (startDate != null && !startDate.trim().isEmpty()) {
+                start = LocalDateTime.parse(startDate, DateTimeFormatter.ISO_DATE_TIME);
+            } else {
+                start = LocalDateTime.now().minusDays(30);
+            }
+            
+            if (endDate != null && !endDate.trim().isEmpty()) {
+                end = LocalDateTime.parse(endDate, DateTimeFormatter.ISO_DATE_TIME);
+            } else {
+                end = LocalDateTime.now();
+            }
+        } catch (DateTimeParseException e) {
+            log.error("Invalid date format provided: startDate={}, endDate={}", startDate, endDate, e);
+            return ResponseEntity.badRequest().build();
+        }
         
         var statistics = locationHistoryRepository.getEntityMovementStatistics(start, end);
         

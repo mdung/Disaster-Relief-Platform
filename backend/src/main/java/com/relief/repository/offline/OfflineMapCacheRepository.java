@@ -128,8 +128,8 @@ public interface OfflineMapCacheRepository extends JpaRepository<OfflineMapCache
             COUNT(CASE WHEN status = 'DOWNLOADING' THEN 1 END) as downloading_caches,
             COUNT(CASE WHEN status = 'FAILED' THEN 1 END) as failed_caches,
             COUNT(CASE WHEN status = 'PENDING' THEN 1 END) as pending_caches,
-            SUM(cache_size_bytes) as total_size_bytes,
-            AVG(download_progress) as avg_download_progress
+            COALESCE(SUM(cache_size_bytes), 0) as total_size_bytes,
+            COALESCE(AVG(download_progress), 0.0) as avg_download_progress
         FROM offline_map_caches 
         WHERE created_at BETWEEN :startDate AND :endDate
         """, nativeQuery = true)

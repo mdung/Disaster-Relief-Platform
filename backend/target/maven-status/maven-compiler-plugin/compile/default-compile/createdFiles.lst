@@ -87,6 +87,7 @@ com\relief\service\satellite\DamageAssessmentService$DamageAnalysisResult.class
 com\relief\entity\Province.class
 com\relief\service\analytics\AdvancedReportingService$ReportExport.class
 com\relief\service\integration\GovernmentApiService$EvacuationRoute.class
+com\relief\controller\analytics\AdvancedReportingController$CreateReportRequest.class
 com\relief\repository\heatmap\HeatmapDataRepository$HeatmapStatistics.class
 com\relief\repository\location\LocationPatternRepository$LocationPatternStatistics.class
 com\relief\service\analytics\ROIAnalysisService$ROIMetrics.class
@@ -186,6 +187,7 @@ com\relief\service\communication\ChatBotService$SessionStatus.class
 com\relief\service\training\DisasterSimulationService$SimulationAnalytics.class
 com\relief\service\analytics\ROIAnalysisService$TrendDataPoint.class
 com\relief\service\notification\SmartNotificationService$NotificationStrategy.class
+com\relief\controller\analytics\ROIAnalysisController$CreateAnalysisRequest.class
 com\relief\domain\offline\OfflineMapTile.class
 com\relief\service\analytics\DataMiningService$DataPattern.class
 com\relief\service\integration\SocialMediaMonitoringService$SocialMediaAlert.class
@@ -262,6 +264,7 @@ com\relief\domain\heatmap\HeatmapConfiguration$HeatmapConfigurationBuilder.class
 com\relief\service\realtime\EventCorrelationService$EventPattern.class
 com\relief\controller\optimization\DynamicRoutingController.class
 com\relief\service\integration\LogisticsService$LogisticsItem.class
+com\relief\controller\analytics\AdvancedReportingController$UpdateReportRequest.class
 com\relief\service\task\TaskPerformanceAnalyticsService$TaskTypePerformance.class
 com\relief\service\LoggingSmsProvider.class
 com\relief\service\heatmap\HeatmapVisualizationService$HeatmapLayerRequest.class
@@ -814,6 +817,7 @@ com\relief\domain\indoor\IndoorMap.class
 com\relief\service\AnalyticsService.class
 com\relief\controller\heatmap\HeatmapController$HeatmapDataRequest.class
 com\relief\repository\geofencing\GeofenceRepository.class
+com\relief\controller\analytics\DataMiningController$CreateMiningJobRequest.class
 com\relief\controller\heatmap\HeatmapController$HeatmapLayerRequest.class
 com\relief\controller\DedupeController$Link.class
 com\relief\service\privacy\AuditTrailService$AuditEvent.class

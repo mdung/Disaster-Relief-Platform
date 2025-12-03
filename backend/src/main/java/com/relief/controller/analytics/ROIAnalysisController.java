@@ -36,17 +36,27 @@ public class ROIAnalysisController {
 
     private final ROIAnalysisService roiAnalysisService;
 
+    @lombok.Data
+    public static class CreateAnalysisRequest {
+        private String name;
+        private String description;
+        private String analysisType;
+        private String projectId;
+        private java.util.Map<String, Object> parameters;
+        private String userId;
+    }
+
     @PostMapping("/analyses")
     @Operation(summary = "Create ROI analysis")
-    public ResponseEntity<ROIAnalysis> createAnalysis(
-            @RequestParam String name,
-            @RequestParam String description,
-            @RequestParam String analysisType,
-            @RequestParam String projectId,
-            @RequestBody Map<String, Object> parameters,
-            @RequestParam String userId) {
-        
-        ROIAnalysis analysis = roiAnalysisService.createAnalysis(name, description, analysisType, projectId, parameters, userId);
+    public ResponseEntity<ROIAnalysis> createAnalysis(@RequestBody CreateAnalysisRequest request) {
+        ROIAnalysis analysis = roiAnalysisService.createAnalysis(
+                request.getName(),
+                request.getDescription(),
+                request.getAnalysisType(),
+                request.getProjectId(),
+                request.getParameters() != null ? request.getParameters() : java.util.Map.of(),
+                request.getUserId()
+        );
         return ResponseEntity.ok(analysis);
     }
 

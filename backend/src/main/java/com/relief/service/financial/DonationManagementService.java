@@ -229,10 +229,24 @@ public class DonationManagementService {
     }
 
     /**
+     * Get all donations
+     */
+    @Transactional(readOnly = true)
+    public List<Donation> getAllDonations(int limit) {
+        return donations.values().stream()
+            .sorted(Comparator.comparing(Donation::getDonationDate).reversed())
+            .limit(limit)
+            .collect(Collectors.toList());
+    }
+
+    /**
      * Get donations by donor
      */
     @Transactional(readOnly = true)
     public List<Donation> getDonationsByDonor(String donorId) {
+        if (donorId == null) {
+            return new ArrayList<>();
+        }
         return donations.values().stream()
             .filter(donation -> donorId.equals(donation.getDonorId()))
             .sorted(Comparator.comparing(Donation::getDonationDate).reversed())
